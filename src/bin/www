@@ -4,6 +4,9 @@ require("dotenv").config();
 /**
  * Module dependencies.
  */
+const {testDbConnection,sq} = require("../config/db.js");
+const usersrv = require('../services/User.js');
+const authsrv = require('../services/Auth.js');
 
 var app = require('../../app');
 var debug = require('debug')('cloud-storage:server');
@@ -25,6 +28,13 @@ var server = http.createServer(app);
 /**
  * Listen on provided port, on all network interfaces.
  */
+
+(async function () {
+  // testDbConnection();
+  // await sq.sync({alter:true})
+  await usersrv.sync();
+  await authsrv.sync();
+})()
 
 server.listen(port);
 server.on('error', onError);
