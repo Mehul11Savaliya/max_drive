@@ -95,9 +95,10 @@
                         <p class="mt-3">
                            Already have an Account <a href="/" class="text-primary">Sign In</a>
                         </p>
+                        <br>
+                        <p class="mt-3" style="color: red;" id="errmsg"><%=data.errmsg%></p>
                      </form>
                   </div>
-                  <p class="mt-3" style="color: red;"><%=data.errmsg%></p>
                </div>
             </div>
          </div>
@@ -117,13 +118,24 @@
                   formData.forEach((val,key)=>{
                      bodyx[key]=val;
                   })
-                  await fetch('/auth/signup',{
+                let res =   await fetch('/auth/signup',{
                      method:"POST",
                      headers:{
+                        "Accept":"*/*",
                         "Content-Type":"application/json"
                      },
                      body : JSON.stringify(bodyx)
                   });
+
+                  if(res.status!=201){
+                     document.querySelector('#errmsg').innerHTML=`user already exist..`;
+                  }
+                  else{
+                     window.location.href= (await res.json()).next;
+                  }
+
+               // let texts  = await res.text();
+               // document.write(texts);
                }
             }
          </script>
