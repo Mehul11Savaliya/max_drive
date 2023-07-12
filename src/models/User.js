@@ -23,6 +23,9 @@ const User  = sq.define('user',{
     },
     phone:{
         type : DataTypes.STRING
+    },
+    profile:{
+        type : DataTypes.STRING
     }
 },{
     freezeTableName:true

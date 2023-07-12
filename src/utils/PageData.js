@@ -1,5 +1,5 @@
 let projectName  = process.env.PROJECT_NAME
-let version = '0.0.1'
+let version = '1.1.0'
 const generateSignupPageData = ()=>{
     return {
         name : projectName,
@@ -16,4 +16,12 @@ const generateSigninPageData = ()=>{
     }
 }
 
-module.exports={generateSignupPageData,generateSigninPageData}
+const generategeneralData=()=>{
+    return {
+        name : projectName,
+        version : version,
+        title  : 'Max Drive | SignIN'
+    }
+}
+
+module.exports={generateSignupPageData,generateSigninPageData,generategeneralData}

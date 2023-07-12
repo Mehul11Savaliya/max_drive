@@ -1,7 +1,29 @@
 const model = require('../models/User');
+const { encrypt } = require('../utils/CryptoGraph');
 
 const sync=async()=>{
-   await model.sync({force:true});
+   await model.sync({alter:true});
+}
+
+const varifyUser=async(email,pass)=>{
+     pass = encrypt(pass);
+    let res = null;
+    res  = await model.findOne({
+        where:{
+            email : email,
+            password : pass
+        }
+    });
+    if(res===null) throw new Error(`user with email = ${email} not exist..`);
+    res = res.dataValues;
+    return res;
+}
+
+const getUserByEmail=async(email,raw=false)=>{
+    let res = null;
+    res = await model.findByPk(email);
+    if(res===null) throw new Error(`user with email = ${email} not exist..`);
+    return raw?res:res.dataValues;
 }
 
 const create=async(obj)=>{
@@ -10,5 +32,7 @@ const create=async(obj)=>{
 
 module.exports={
     sync,
-    create
+    create,
+    varifyUser,
+    getUserByEmail
 }

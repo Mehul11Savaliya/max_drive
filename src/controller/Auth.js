@@ -4,11 +4,22 @@ const usersrv = require('../services/User');
 const tokensrv = require('../services/Token');
 const authsrv = require('../services/Auth');
 
+const { encrypt } = require('../utils/CryptoGraph');
+const { generateSigninPageData } = require("../utils/PageData");
 
-const pass_secret = process.env.PASS_SECRET;
 
-const auth_sign_in = (req, res) => {
-
+const auth_sign_in = async(req, res) => {
+    try {
+        console.log(req.body);
+        let { email, password } = req.body;
+        if(password==null||password==''||email==null||email==undefined) throw new Error(`invalid credential..`)
+        let user = await usersrv.varifyUser(email,password);
+        res.redirect('/user/');
+    } catch (error) {
+        res.status(400).render('auth-sign-in.ejs',{
+            data:{errmsg : error.message,...generateSigninPageData()}
+        });
+    }
 }
 
 const auth_sign_up = async (req, res) => {
@@ -39,7 +50,7 @@ const auth_sign_up = async (req, res) => {
             });
             res.cookie('jwt', tokens);
             res.status(201).json({
-                next :'/user/'
+                next: '/user/'
             });
         } catch (error) {
             // console.log(error);
@@ -55,19 +66,7 @@ const auth_sign_up = async (req, res) => {
     }
 }
 
-function encrypt(data, key) {
-    const cipher = crypto.createCipher('aes-256-cbc', key);
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return encrypted;
-}
 
-function decrypt(encrypteddata, key) {
-    const decipher = crypto.createDecipher('aes-256-cbc', key);
-    let decrypted = decipher.update(encrypteddata, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
-}
 
 module.exports = {
     auth_sign_in,

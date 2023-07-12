@@ -32,8 +32,8 @@ var server = http.createServer(app);
 (async function () {
   // testDbConnection();
   // await sq.sync({alter:true})
-  await usersrv.sync();
-  await authsrv.sync();
+  // await usersrv.sync();
+  // await authsrv.sync();
 })()
 
 server.listen(port);
