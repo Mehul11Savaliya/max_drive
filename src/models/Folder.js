@@ -30,6 +30,14 @@ const Folder = sq.define("folder",{
             model :"user",
             key:"email"
         }
+    },
+    isDeleted:{
+        type : DataTypes.BOOLEAN,
+        defaultValue:false
+    },
+    permissions:{
+        type : DataTypes.INTEGER,
+        defaultValue : 1
     }
 },{
     freezeTableName : true
