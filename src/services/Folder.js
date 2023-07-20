@@ -17,4 +17,44 @@ const get_by_id = async (id, raw = false) => {
     return res.dataValues;
 }
 
-module.exports = { sync, create, get_by_id }
+const updateFolder=async(id,data)=>{
+    let old  = await get_by_id(id,true);
+    let {name,permissions,tags,isDeleted} = data;
+    if(name!==undefined)
+    old.name = name;
+    if(permissions!==undefined)
+    old.permissions = permissions;
+    if(tags!==undefined){
+        tags = tags.trim().split(',');
+        tags = tags.slice(0,tags.length);
+        tags = tags.filter((val)=>{
+            if(val!=="") return val;        })
+        old.tags = tags;
+    }
+    if(isDeleted!==undefined)
+    old.isDeleted = isDeleted;
+    old.updatedBy = data.updatedBy
+       
+    return await old.save();
+}
+
+const delete_by_id=async(id)=>{
+    let res  = await model.destroy({
+        where :{
+            id  : id
+        }
+    });
+    if(res==0) throw new Error(`not able to delete a folder with id = ${id}`)
+    else return res;
+}
+
+const get_all_folder=async(user)=>{
+let res  = await model.findAll({
+        where : {
+            createdBy : user
+        }
+});
+return res;
+}
+
+module.exports = { sync, create, get_by_id,updateFolder,delete_by_id,get_all_folder}
