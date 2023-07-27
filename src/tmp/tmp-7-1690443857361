@@ -1,0 +1,50 @@
+#a
+str="hello world"
+num=9510754137
+flt=1.02
+list =[1,2,3]
+dct={
+    "name":"xx"
+}
+
+
+print(f"type of {str} is {type(str)}")
+print(f"type of {num} is {type(num)}")
+print(f"type of {flt} is {type(flt)}")
+print(f"type of {list} is {type(list)}")
+print(f"type of {dct} is {type(dct)}")
+
+
+#b
+num1 = float(input("enter number 1 : "))
+num2 = float(input("enter number 2 : "))
+print(f"{num1} + {num2} = {num2+num1}")
+
+#c
+min=0;max=0
+num1 = float(input("enter number 1 : "))
+min = num1
+max = num1
+
+num2 = float(input("enter number 2 : "))
+if min>=num2:
+    min = num2
+if max<=num2:
+    max = num2
+
+num3 = float(input("enter number 3 : "))
+if min>=num3:
+    min = num3
+if max<=num3:
+    max = num3
+
+print(f"minimum of above three number is {min}\nmaximum of above three number is {max}")
+print("92000103085")
+
+#d
+import math as m
+
+num1 = int(input("enter number 1 : "))
+num2 = int(input("enter number 2 : "))
+print(f"gcd of {num1} and {num2} is {m.gcd(num1,num2)}")
+print("92000103085")

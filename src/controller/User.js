@@ -38,4 +38,13 @@ const get_pages = (req, res) => {
     }
 }
 
-module.exports = { get_user_home, get_pages }
+const get_folder_pages=(req,res)=>{
+    res.status(200).render('page-folder-view.ejs', {
+        data: {
+            ...generategeneralData(),
+            ...req.user_data
+        }
+    });
+}
+
+module.exports = { get_user_home, get_pages ,get_folder_pages}

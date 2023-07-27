@@ -1,0 +1,99 @@
+#1a
+list=[]
+print(f"value inside list = {list}")
+print(f"adding 1 to 10 values")
+for i in range(1,11):
+    list.append(i)
+print(f"value inside list = {list}")
+print("92000103085")
+
+#2a
+#copy
+print("copy operation")
+mainlist=[1,2,3,4]
+print(f"copying the list={mainlist} to new list")
+newlist = mainlist.copy()
+print(f"value of newlist={newlist} to new list\n")
+
+#count
+print("count operation")
+list = ['a','a','b','c','c','c']
+print(f"count if c in list = {list.count('c')}\n")
+
+#extend
+print("extend operation")
+list1=[1,2,3];list2=[4,5,6]
+print(f"extending list = {list1} by list={list2}")
+list1.extend(list2)
+print(f"resulting list : {list1}\n")
+
+#index
+print("index operation")
+print(f"index of 3 in  list = {list1} is {list1.index(3)}\n")
+
+#reverse
+print("reverse operation")
+templist1 = list1.copy()
+list1.reverse()
+print(f"reverse of {templist1} =  {list1}\n")
+
+#sort
+print("sorting operation")
+list  = [1,43,6,7,33,85]
+templist1  = list.copy()
+list.sort()
+print(f"sorting list={templist1} \noutput = {list}\n")
+print("92000103085")
+
+# 2b
+def append_list(list):
+    data  = input("enter data : ")
+    list.append(data)
+    print(f"changed list : {list}")
+
+def insert_list(list):
+    pos  = int(input("enter position : "))
+    data  = input("enter data : ")
+    list.insert(pos,data)
+    print(f"changed list : {list}")
+
+def pop_list(list):
+    poped  = list.pop()
+    print(f"poped item : {poped}")
+    print(f"changed list : {list}")
+
+def remove_list(list):
+    data  = input("enter data : ")
+    list.remove(data)
+    print(f"changed list : {list}")
+
+def clear_list(list):
+    list.clear()
+    print(f"changed list : {list}")
+
+control = 'y'
+list=[]
+while control=='y':
+    print("select operation")
+    print("append operation = 1")
+    print("insert operation = 2")
+    print("pop operation    = 3")
+    print("remove operation = 4")
+    print("clear operation  = 5")
+    ch  = int(input("enter choice : "))
+
+    if ch==1:
+        append_list(list)
+    elif ch==2:
+        insert_list(list)
+    elif ch==3:
+        pop_list(list)
+    elif ch==4:
+        remove_list(list)
+    elif ch==5:
+        clear_list(list)
+        print()
+    else:
+        print("invalid choice")
+    
+    control = input("want to continue (y/n)?:")

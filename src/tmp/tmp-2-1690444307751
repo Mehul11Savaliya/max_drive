@@ -1,0 +1,47 @@
+#5a
+# setx = set()
+# print(f"initial value of set : {setx}")
+# numl  = int(input("enter number of input : "))
+
+# for i in range(0,numl):
+#     setx.add(input(f"enter val({i}) : "))
+
+# print(f"value of set : {setx}")
+# print("92000103085")
+
+#5a
+set1  = {"t1","t2","t3"}
+set2 ={"t3","t4","t5"}
+
+print(f"set 1 = {set1}\nset 2 = {set2}")
+difset  = set1.difference(set2)
+print(f"\ndifference of set1 and set2  = {difset}")
+
+set1.difference_update(set2)
+print(f"\ndifference_update of set1 and set2  = {set1}")
+
+set1  = {"t1","t2","t3"}
+intersect = set1.intersection(set2)
+print(f"\nintersection of set1 and set2  = {intersect}")
+
+set1.intersection_update(set2)
+print(f"\nset1 after intersection_update of set1 and set2  = {set1}")
+
+set1  = {"t1","t2","t3"}
+print(f"\nsymmetric_difference of set1 and set2  = {set1.symmetric_difference(set2)}")
+
+set1.symmetric_difference_update(set2)
+print(f"\nset1 after symmetric_difference_update operation  = {set1}")
+
+set1  = {"t1","t2","t3"}
+set2 ={"t3","t4","t5"}
+print(f"\nset1 and set2 is disjoint : {set1.isdisjoint(set2)}")
+
+suerset  = {1,2,3,4,5,6,7}
+subset = {4,5,6}
+print(f"set 1  = {suerset}")
+print(f"set 2 = {subset}")
+
+print(f"\nis set 1 is superset for set 2 : {suerset.issuperset(subset)}")
+print(f"\nis set 2 is subset of set 1 : {subset.issubset(suerset)}")
+

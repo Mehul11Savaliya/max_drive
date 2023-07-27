@@ -5,6 +5,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const bodyparser = require("body-parser")
+const fileUpload=require("express-fileupload");
 
 var indexRouter = require('./src/routes/index');
 var usersRouter = require('./src/routes/users');
@@ -26,6 +27,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, './src/public')));
 app.use('asset',express.static(path.join(__dirname,'./src/public/asses')));
+app.use(fileUpload({
+  useTempFiles : true,
+  tempFileDir : './src/tmp'
+}));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

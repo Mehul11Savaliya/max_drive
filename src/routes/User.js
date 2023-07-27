@@ -10,4 +10,5 @@ router.get('/',tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,userm
 
 router.get('/:page',tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_pages)
 
+router.get('/folder/:id',tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_folder_pages)
 module.exports=router;

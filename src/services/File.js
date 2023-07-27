@@ -5,4 +5,18 @@ const sync=async()=>{
     console.log("file model synced..");
 }
 
-module.exports={sync}
+const create=async(obj)=>{
+    let file = await model.create(obj);
+    return file;
+}
+
+const get_files_from_folder=async(id)=>{
+    let res  = await model.findAll({
+        where:{
+            folder : id
+        }
+    });
+    return res;
+}
+
+module.exports={sync,create,get_files_from_folder}
