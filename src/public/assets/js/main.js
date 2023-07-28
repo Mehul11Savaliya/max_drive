@@ -199,29 +199,42 @@ async function upload_file() {
         showCloseButton: true,
         showCancelButton: true,
         focusConfirm: false,
-        confirmButtonText:'save',
+        confirmButtonText: 'save',
         confirmButtonAriaLabel: 'save',
-        cancelButtonText:'cancel',
+        cancelButtonText: 'cancel',
         cancelButtonAriaLabel: 'cancel'
-    }).then(async(res)=>{
-        if(res.isConfirmed){
+    }).then(async (res) => {
+        if (res.isConfirmed) {
             let formData = new FormData(document.querySelector("#filestoupload"));
             let url = document.location.href;
-            let folder_id  = url.split('/');
-            folder_id = folder_id[folder_id.length-1];
-            folder_id = Number.parseInt(folder_id.trim().replaceAll('?','').replaceAll('#',''));
-            formData.append("folder",folder_id);
+            let folder_id = url.split('/');
+            folder_id = folder_id[folder_id.length - 1];
+            folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+            formData.append("folder", folder_id);
             let config = {
-                        method : "POST",
-                        headers:{
-                            "Accept":"application/json"
-                        },
-                        body : formData
-                    }
-                    console.log(formData.entries());
-                    let data = await handleRequest("/file/",config,201);
-                    console.log(data);
-        }  
+                method: "POST",
+                headers: {
+                    "Accept": "application/json"
+                },
+                body: formData
+            }
+            let data;
+            // new AWN().async(
+            //     data = await handleRequest("/file/", config, 201),
+            //     'Posts has been loaded',
+            // )
+
+             let notifier = new AWN();
+            notifier.async(
+               fetch('/file/',config),
+                resp => {
+                    console.log(resp);
+                    notifier.success(`${resp.data.length} posts has been loaded`)},
+            );
+
+
+            console.log(data);
+        }
     });
 
     // let file  = document.createElement("input");
@@ -243,7 +256,7 @@ async function upload_file() {
     //     console.log(data);
 }
 
-let i=0;
+let i = 0;
 const generateWizardCard = (event) => {
 
     let holder = document.querySelector("#fm-wizard-holder");
@@ -256,17 +269,17 @@ const generateWizardCard = (event) => {
 }
 
 async function load_files(params) {
-    let folder_flag  = document.querySelector("#folder").value;
-    if(folder_flag=="true"){
+    let folder_flag = document.querySelector("#folder").value;
+    if (folder_flag == "true") {
         let url = document.location.href;
-        let folder_id  = url.split('/');
-        folder_id = folder_id[folder_id.length-1];
-        folder_id = Number.parseInt(folder_id.trim().replaceAll('?','').replaceAll('#',''));
+        let folder_id = url.split('/');
+        folder_id = folder_id[folder_id.length - 1];
+        folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
 
-        let config={
-            method:"GET"
+        let config = {
+            method: "GET"
         }
-        let ress  = await handleRequest(`/file/all?folder=${folder_id}`,config,200);
+        let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
         // if(ress==null){
         //     Swal.fire({
         //         icon: 'error',
@@ -281,22 +294,47 @@ async function load_files(params) {
 
 function generate_folder_file_cards(files) {
     let tbody = document.querySelector("#rowsholder")
-    let file_gridcard  = document.querySelector("#files");
+    let file_gridcard = document.querySelector("#files");
 
     for (let index = 0; index < files.length; index++) {
         const file = files[index];
         let tr = document.createElement("tr");
-        tr.innerHTML=`<td>
+
+        let tp = file.metadata.name.split('.');
+        let ext = tp[tp.length - 1];
+        let thumdimg = "";
+        switch (ext) {
+            case 'pptx':
+                thumdimg = '/assets/images/layouts/page-1/ppt.png'
+                break;
+            case 'pdf':
+
+                thumdimg = '/assets/images/layouts/page-1/pdf.png'
+                break;
+            case 'xlsx':
+
+                thumdimg = '/assets/images/layouts/page-1/xlsx.png'
+                break;
+            case 'docx':
+
+                thumdimg = '/assets/images/layouts/page-1/doc.png'
+                break;
+            default:
+
+                thumdimg = file.metadata.path;
+                break;
+        }
+        tr.innerHTML = `<td>
         <div class="d-flex align-items-center">
             <div class="mr-3">
-                <a href="#"><img src="/assets/images/layouts/page-1/01.png" class="img-fluid avatar-30" alt="image1"></a>
+                <a href="#"><img src="${thumdimg}" class="img-fluid avatar-30" alt="image1"></a>
             </div>
             ${file.metadata.name}
         </div>
     </td>
-    <td>Me</td>
+    <td>${file.createdBy}</td>
     <td>${new Date(file.createdAt).toDateString()}</td>
-    <td>${file.size/(1024)} mb</td>
+    <td>${((file.metadata.size / 1024) / 1024).toFixed(3)} mb</td>
     <td>
         <div class="dropdown">
             <span class="dropdown-toggle" id="dropdownMenuButton6" data-toggle="dropdown">
@@ -314,19 +352,77 @@ function generate_folder_file_cards(files) {
         tbody.appendChild(tr);
 
         let gridcard = document.createElement("div");
-        gridcard.setAttribute("class","col-lg-3 col-md-6 col-sm-6");
-        gridcard.innerHTML=`    <div class="card card-block card-stretch card-height">
-        <div class="card-body image-thumb ">
-            <div class="mb-4 text-center p-3 rounded iq-thumb">
-                <a class="image-popup-vertical-fit" href="/assets/images/layouts/page-1/01.png">
-                    <img src="/assets/images/layouts/page-1/01.png" class="img-fluid" alt="images">
-                    <div class="iq-image-overlay"></div>
-                </a>
-            </div>
-            <h6>${file.metadata.name}</h6>
-        </div>
-    </div>`;
-    file_gridcard.appendChild(gridcard);
+        gridcard.setAttribute("class", "col-lg-3 col-md-6 col-sm-6");
+        switch (ext) {
+            case 'docx':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="docx-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/doc.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+            case 'pdf':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="pdf-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/pdf.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+            case 'pptx':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="pptx-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/ppt.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+            case 'xlsx':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="xlsx-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/xlsx.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+            default:
+                gridcard.innerHTML = `    <div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb ">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <a data-author="${file.createdBy}" data-title="${file.metadata.name}" class="image-popup-vertical-fit" href="${file.metadata.path}">
+                            <img src="${file.metadata.path}" class="img-fluid" alt="images">
+                            <div class="iq-image-overlay"></div>
+                        </a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+        }
+
+        // <div class="card card-block card-stretch card-height">
+        //                 <div class="card-body image-thumb">
+        //                     <div class="mb-4 text-center p-3 rounded iq-thumb">
+        //                         <div class="iq-image-overlay"></div>
+        //                         <a href="#" id="pdf-container" data-title="Mobile-plan.pdf" data-load-file="file" data-load-target="#resolte-contaniner" data-url="../assets/vendor/doc-viewer/files/demo.pdf" data-toggle="modal" data-target="#exampleModal"><img src="../assets/images/layouts/page-1/pdf.png" class="img-fluid" alt="image1"></a>
+        //                     </div>
+        //                     <h6>Mobile-plan.pdf</h6>
+        //                 </div>
+        //             </div>
+        file_gridcard.appendChild(gridcard);
     }
 }
 

@@ -110,11 +110,24 @@ Index Of Script
         Magnific Popup
         -----------------------------------------------------------------------*/
         if(typeof $.fn.magnificPopup !== typeof undefined){
+            let author="",title="";
             jQuery('.popup-gallery, .icon-grid').magnificPopup({
                 delegate: 'a.image-popup-vertical-fit',
                 type: 'image',
                 tLoading: 'Loading image #%curr%...',
                 mainClass: 'mfp-img-mobile',
+                callbacks: {
+                        open : function(){
+                          var mp = $.magnificPopup.instance,
+                              t = $(mp.currItem.el[0]);
+                              author = t.data('author');
+                              title  = t.data('title');
+                        }
+                      ,
+                    close: function() {
+          
+                    }
+                  },
                 gallery: {
                     enabled: true,
                     navigateByImgClick: true,
@@ -123,7 +136,9 @@ Index Of Script
                 image: {
                     tError: '<a href="%url%">The image #%curr%</a> could not be loaded.',
                     titleSrc: function(item) {
-                        return item.el.attr('title') + '<small>by Marsel Van Oosten</small>';
+                        // return item.el.attr('title') + '<small>by Marsel Van Oosten</small>';
+                        return title+ `<small>by ${author}</small>`;
+                   
                     }
                 }
             });

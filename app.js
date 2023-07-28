@@ -25,10 +25,11 @@ app.use(logger('dev'));
 app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, './src/public')));
-app.use('asset',express.static(path.join(__dirname,'./src/public/asses')));
+app.use(express.static(path.join(__dirname, './src/public/')));
+app.use('/asset',express.static(path.join(__dirname,'./src/public/asset/')));
+app.use("/uploads",express.static(path.join(__dirname,"./src/uploads/")));
 app.use(fileUpload({
-  useTempFiles : true,
+  useTempFiles : false,
   tempFileDir : './src/tmp'
 }));
 
