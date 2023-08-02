@@ -40,7 +40,12 @@ const File = sq.define("file",{
     }
 },
 {
-    freezeTableName : true
+    freezeTableName : true,
+    hooks:true
+});
+
+File.addHook("afterBulkDestroy",(inst,options)=>{
+    console.log("deleted  : ",inst);
 });
 
 module.exports = File;

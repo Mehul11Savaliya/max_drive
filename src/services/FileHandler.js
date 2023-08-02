@@ -9,6 +9,16 @@ const move_file_to=(buffer,pathx)=>{
     return pathx.substring(2);
 }
 
+const delete_file=(path)=>{
+    fs.unlink(path,(err)=>{
+        if(err)
+        throw new Error(`not able to delete file path = ${path}`);
+        else
+        return 0;
+    })
+}
+
 module.exports={
-    move_file_to
+    move_file_to,
+    delete_file
 }

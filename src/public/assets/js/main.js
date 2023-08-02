@@ -1,3 +1,11 @@
+let notifier = new AWN({
+    icons: {
+        enabled: false,
+        prefix: '<i class="las la-check-double',
+        suffix: '></i>'
+    }
+});
+
 async function handleRequest(url, config, successcode, data = null) {
     let res = await fetch(url, config);
     if (res.status !== successcode) {
@@ -36,12 +44,32 @@ function deleteFolder(id) {
     })
 }
 
-function deleteFile(id) {
-   let rowcd  = document.getElementById(`tr-${id}`);
-   let gridcd  = document.getElementById(`gridtr-${id}`);
-
-   rowcd.remove();
-   gridcd.remove();
+async function deleteFile(id) {
+    let rowcd = document.getElementById(`tr-${id}`);
+    let gridcd = document.getElementById(`gridtr-${id}`);
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            let res = await fetch(`/file/${id}`, {
+                method: "DELETE"
+            });
+            console.log(res);
+            if (res.status != 204) {
+                notifier.alert("file not deleted..");
+            } else {
+                notifier.success("file deleted..");
+                rowcd.remove();
+                gridcd.remove();
+            }
+        }
+    });
 }
 
 async function home_update_folders(data) {
@@ -233,36 +261,55 @@ async function upload_file() {
             // )
             let notifier = new AWN({
                 icons: {
-                    enabled:false,
+                    enabled: false,
                     prefix: '<i class="las la-check-double',
                     suffix: '></i>'
                 }
             });
 
-            let res = await fetch('/file/', config);
-            if(res.status!=201){
-                notifier.alert("not able to upload right now..");
-            }else{
-     notifier.async(
-                res.json(),
-               async (resp) => {
-                let url = document.location.href;
-                let folder_id = url.split('/');
-                folder_id = folder_id[folder_id.length - 1];
-                folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
-                let config = {
-                    method: "GET"
-                }
+            // let res = await fetch('/file/', config);
+            notifier.async(fetch('/file/', config), async (resp) => {
+                if (resp.status != 201) {
+                    notifier.alert("not able to upload right now..");
+                } else {
+                    resp = await resp.json();
+                    let url = document.location.href;
+                    let folder_id = url.split('/');
+                    folder_id = folder_id[folder_id.length - 1];
+                    folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+                    let config = {
+                        method: "GET"
+                    }
                     let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
                     generate_folder_file_cards(ress);
                     notifier.success(`${resp.length} files has been loaded`)
-                },
-                error => {
-                    notifier.alert("error in response..");
                 }
-            );
+            }, err => {
+                notifier.alert("error in uploading..");
+            })
+            // if (res.status != 201) {
+            //     notifier.alert("not able to upload right now..");
+            // } else {
+            //     notifier.async(
+            //         res.json(),
+            //         async (resp) => {
+            //             let url = document.location.href;
+            //             let folder_id = url.split('/');
+            //             folder_id = folder_id[folder_id.length - 1];
+            //             folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+            //             let config = {
+            //                 method: "GET"
+            //             }
+            //             let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
+            //             generate_folder_file_cards(ress);
+            //             notifier.success(`${resp.length} files has been loaded`)
+            //         },
+            //         error => {
+            //             notifier.alert("error in response..");
+            //         }
+            //     );
 
-        }
+            // }
             // console.log(data);
 
         }
@@ -303,12 +350,12 @@ async function load_files(params) {
     let folder_flag = document.querySelector("#folder").value;
     if (folder_flag == "true") {
         let btn = document.querySelector('body > div.content-page > div > div.row > div > div > div.d-flex.align-items-center > div.list-grid-toggle.mr-4 > span.icon.i-grid.icon-grid > i');
-       
+
         setTimeout(() => {
             btn.click();
         }, 700);
 
-       
+
         let url = document.location.href;
         let folder_id = url.split('/');
         folder_id = folder_id[folder_id.length - 1];
@@ -339,7 +386,7 @@ function generate_folder_file_cards(files) {
     for (let index = 0; index < files.length; index++) {
         const file = files[index];
         let tr = document.createElement("tr");
-        tr.setAttribute("id",`tr-${file.id}`);
+        tr.setAttribute("id", `tr-${file.id}`);
 
         let tp = file.metadata.name.split('.');
         let ext = tp[tp.length - 1];
@@ -360,8 +407,22 @@ function generate_folder_file_cards(files) {
 
                 thumdimg = '/assets/images/layouts/page-1/doc.png'
                 break;
-            default:
+            case 'msi':
 
+                thumdimg = '/assets/images/layouts/page-1/msi.png'
+                break;
+            case 'zip':
+
+                thumdimg = '/assets/images/layouts/page-1/zip.png'
+                break;
+            case 'exe':
+
+                thumdimg = '/assets/images/layouts/page-1/exe.png'
+                break;
+            case 'mkv':
+                thumdimg = '/assets/images/layouts/page-1/media.png'
+                break;
+            default:
                 thumdimg = file.metadata.path;
                 break;
         }
@@ -382,8 +443,8 @@ function generate_folder_file_cards(files) {
                 <i class="ri-more-fill"></i>
             </span>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton6">
-                <a class="dropdown-item" href="#"><i class="ri-eye-fill mr-2"></i>View</a>
-                <a onclick="deleteFile(${file.id})" class="dropdown-item"><i class="ri-delete-bin-6-fill mr-2"></i>Delete</a>
+                <a class="dropdown-item" href="/file/${file.id}"><i class="ri-eye-fill mr-2"></i>View</a>
+                <button onclick="deleteFile(${file.id})" class="dropdown-item"><i class="ri-delete-bin-6-fill mr-2"></i>Delete</button>
                 <a class="dropdown-item" href="#"><i class="ri-pencil-fill mr-2"></i>Edit</a>
                 <a class="dropdown-item" href="#"><i class="ri-printer-fill mr-2"></i>Print</a>
                 <a class="dropdown-item" href="#"><i class="ri-file-download-fill mr-2"></i>Download</a>
@@ -394,7 +455,7 @@ function generate_folder_file_cards(files) {
 
         let gridcard = document.createElement("div");
         gridcard.setAttribute("class", "col-lg-3 col-md-6 col-sm-6");
-        gridcard.setAttribute("id",`gridtr-${file.id}`);
+        gridcard.setAttribute("id", `gridtr-${file.id}`);
         switch (ext) {
             case 'docx':
                 gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
@@ -440,6 +501,51 @@ function generate_folder_file_cards(files) {
                 </div>
             </div>`;
                 break;
+            case 'msi':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="xlsx-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/msi.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+            case 'zip':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="xlsx-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/zip.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+            case 'exe':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="xlsx-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/exe.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                break;
+            case 'mkv':
+                gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <div class="iq-image-overlay"></div>
+                        <a href="#" id="xlsx-container" data-title="${file.metadata.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.metadata.path}" data-toggle="modal" data-target="#exampleModal"><img src="/assets/images/layouts/page-1/media.png" class="img-fluid" alt="image1"></a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+            break;
+
             default:
                 gridcard.innerHTML = `    <div class="card card-block card-stretch card-height">
                 <div class="card-body image-thumb ">

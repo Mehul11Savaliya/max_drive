@@ -1,5 +1,6 @@
 const service = require("../services/File")
 const filehandler = require("../services/FileHandler");
+const uuid  = require("uuid");
 
 const post_files = async (req, res) => {
     try {
@@ -10,15 +11,18 @@ const post_files = async (req, res) => {
         console.log(req.files.file);
         let files = req.files.file;
         if (files.length === undefined) {
+            let ext;
             let metadata = {};
             metadata.name = files.name.replaceAll(' ','-');
+            ext = metadata.name.split('.');
+            ext = ext[ext.length-1];
             metadata.size = files.size;
             metadata.encoding = files.encoding;
             metadata.mimetype = files.mimetype;
             metadata.checksum = files.md5;
             
             try {
-                let name = Date.now() + metadata.name;
+                let name = uuid.v4()+"."+ext;//Date.now() + metadata.name;
                 let pathx = filehandler.move_file_to(files.data, `../uploads/${name}`);
                 metadata ={...metadata,path:pathx};
                 console.log("path is : ",pathx);
@@ -39,13 +43,16 @@ const post_files = async (req, res) => {
             for (let index = 0; index < files.length; index++) {
                 const filex = files[index];
                 let metadata = {};
+                let ext;
                 metadata.name = filex.name.replaceAll(' ','-');
+                ext = metadata.name.split('.');
+                ext = ext[ext.length-1];
                 metadata.size = filex.size;
                 metadata.encoding = filex.encoding;
                 metadata.mimetype = filex.mimetype;
                 metadata.checksum = filex.md5;
                 try {
-                    let name = Date.now() + metadata.name;
+                    let name = uuid.v4()+"."+ext;//Date.now() + metadata.name;
                     let pathx = filehandler.move_file_to(filex.data, `../uploads/${name}`);
                     console.log("path is : ",pathx);
                     // metadata['path'] = pathx;
@@ -90,7 +97,20 @@ const get_all_folder_file = async (req, res) => {
     }
 }
 
+const delete_file=async(req,res)=>{
+    try {
+        let {id} = req.params;
+            if(id==undefined)  throw new Error(`id not provided..`);
+        let resx  = await service.delete_file(id,req.user_data);
+        res.status(204).send();
+    } catch (error) {
+        console.log(error);
+        res.status(400).send();
+    }
+}
+
 module.exports = {
     post_files,
-    get_all_folder_file
+    get_all_folder_file,
+    delete_file
 }
