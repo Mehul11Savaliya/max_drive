@@ -1,4 +1,5 @@
 const model = require("../models/File");
+const foldermdl = require("../models/Folder");
 
 const sync=async()=>{
     await model.sync({force:true});

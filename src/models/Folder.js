@@ -43,6 +43,6 @@ const Folder = sq.define("folder",{
     freezeTableName : true
 });
 
-Folder.hasMany(filemdl,{as:"File",sourceKey :"id",foreignKey:"folder"});
-
+Folder.hasMany(filemdl,{as:"Folders",sourceKey :"id",foreignKey:"folder"});
+// filemdl.belongsTo(Folder)
 module.exports=Folder;

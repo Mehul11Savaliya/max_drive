@@ -67,7 +67,7 @@ const post_files = async (req, res) => {
             }
         }
         console.log(arr);
-        res.status(200).json(arr);
+        res.status(201).json(arr);
     } catch (error) {
         console.log(error);
         res.status(400).json({
@@ -83,6 +83,7 @@ const get_all_folder_file = async (req, res) => {
         let files = await service.get_files_from_folder(Number.parseInt(folder));
         res.status(200).json(files);
     } catch (error) {
+        console.log(error);
         res.status(400).json({
             errmsg: error.message
         });

@@ -36,6 +36,14 @@ function deleteFolder(id) {
     })
 }
 
+function deleteFile(id) {
+   let rowcd  = document.getElementById(`tr-${id}`);
+   let gridcd  = document.getElementById(`gridtr-${id}`);
+
+   rowcd.remove();
+   gridcd.remove();
+}
+
 async function home_update_folders(data) {
     try {
         let folders = document.querySelector('#folders');
@@ -223,17 +231,40 @@ async function upload_file() {
             //     data = await handleRequest("/file/", config, 201),
             //     'Posts has been loaded',
             // )
+            let notifier = new AWN({
+                icons: {
+                    enabled:false,
+                    prefix: '<i class="las la-check-double',
+                    suffix: '></i>'
+                }
+            });
 
-             let notifier = new AWN();
-            notifier.async(
-               fetch('/file/',config),
-                resp => {
-                    console.log(resp);
-                    notifier.success(`${resp.data.length} posts has been loaded`)},
+            let res = await fetch('/file/', config);
+            if(res.status!=201){
+                notifier.alert("not able to upload right now..");
+            }else{
+     notifier.async(
+                res.json(),
+               async (resp) => {
+                let url = document.location.href;
+                let folder_id = url.split('/');
+                folder_id = folder_id[folder_id.length - 1];
+                folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+                let config = {
+                    method: "GET"
+                }
+                    let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
+                    generate_folder_file_cards(ress);
+                    notifier.success(`${resp.length} files has been loaded`)
+                },
+                error => {
+                    notifier.alert("error in response..");
+                }
             );
 
+        }
+            // console.log(data);
 
-            console.log(data);
         }
     });
 
@@ -271,6 +302,13 @@ const generateWizardCard = (event) => {
 async function load_files(params) {
     let folder_flag = document.querySelector("#folder").value;
     if (folder_flag == "true") {
+        let btn = document.querySelector('body > div.content-page > div > div.row > div > div > div.d-flex.align-items-center > div.list-grid-toggle.mr-4 > span.icon.i-grid.icon-grid > i');
+       
+        setTimeout(() => {
+            btn.click();
+        }, 700);
+
+       
         let url = document.location.href;
         let folder_id = url.split('/');
         folder_id = folder_id[folder_id.length - 1];
@@ -295,10 +333,13 @@ async function load_files(params) {
 function generate_folder_file_cards(files) {
     let tbody = document.querySelector("#rowsholder")
     let file_gridcard = document.querySelector("#files");
+    file_gridcard.innerHTML = "";
+    tbody.innerHTML = "";
 
     for (let index = 0; index < files.length; index++) {
         const file = files[index];
         let tr = document.createElement("tr");
+        tr.setAttribute("id",`tr-${file.id}`);
 
         let tp = file.metadata.name.split('.');
         let ext = tp[tp.length - 1];
@@ -342,7 +383,7 @@ function generate_folder_file_cards(files) {
             </span>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton6">
                 <a class="dropdown-item" href="#"><i class="ri-eye-fill mr-2"></i>View</a>
-                <a class="dropdown-item" href="#"><i class="ri-delete-bin-6-fill mr-2"></i>Delete</a>
+                <a onclick="deleteFile(${file.id})" class="dropdown-item"><i class="ri-delete-bin-6-fill mr-2"></i>Delete</a>
                 <a class="dropdown-item" href="#"><i class="ri-pencil-fill mr-2"></i>Edit</a>
                 <a class="dropdown-item" href="#"><i class="ri-printer-fill mr-2"></i>Print</a>
                 <a class="dropdown-item" href="#"><i class="ri-file-download-fill mr-2"></i>Download</a>
@@ -353,6 +394,7 @@ function generate_folder_file_cards(files) {
 
         let gridcard = document.createElement("div");
         gridcard.setAttribute("class", "col-lg-3 col-md-6 col-sm-6");
+        gridcard.setAttribute("id",`gridtr-${file.id}`);
         switch (ext) {
             case 'docx':
                 gridcard.innerHTML = `<div class="card card-block card-stretch card-height">
