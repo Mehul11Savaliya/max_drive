@@ -1,0 +1,192 @@
+
+
+<!doctype html>
+<html lang="en">
+  
+<head>
+    <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title><%=data.name%> | <%=data.file.metadata.name%></title>
+      
+      <!-- Favicon -->
+      <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+       
+      <link rel="stylesheet" href="/assets/css/backend-plugin.min.css">
+      <link rel="stylesheet" href="/assets/css/backende209.css?v=1.0.0">
+      
+      <!-- <link rel="stylesheet" href="/assets/vendor/%40fortawesome/fontawesome-free/css/all.min.css"> -->
+      <link rel="stylesheet" href="/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
+      <link rel="stylesheet" href="/assets/vendor/remixicon/fonts/remixicon.css">
+      <link rel="stylesheet" href="/assets/vendor/fontawesome/main.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+      <!-- Viewer Plugin -->
+        <!--PDF-->
+        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/pdf/pdf.viewer.css">
+        <!--Docs-->
+        <!--PPTX-->
+        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/PPTXjs/css/pptxjs.css">
+        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/PPTXjs/css/nv.d3.min.css">
+        <!--All Spreadsheet -->
+        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.css">
+        <!--Image viewer-->
+        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/verySimpleImageViewer/css/jquery.verySimpleImageViewer.css">
+        <!--officeToHtml-->
+        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css">  </head>
+        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.4.0/remixicon.css" integrity="sha512-Jp3oCtkKo8j/WRrHq2jrYMtJogclQybtR6+81arCLTO/TvWj3oaF4NkZQs2bTqWJ8An8L2MLKKfvsn3H8vZP1g==" crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
+        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dripicons/2.0.0/webfont.css" integrity="sha512-uws2d1mzntk5UyAzfDcNN9wAN3OoSsztsVfUzRvq+DOMZYgUZH6HJ97g4y2Nk6TvDlIdd0GBuDjaZ74DoASdig==" crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css" integrity="sha512-vebUliqxrVkBy3gucMhClmyQP9On/HAWQdKDXRaAlb/FKuTbxkjPKUyqVOxAcGwFDka79eTF+YXwfke1h3/wfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+       
+
+        <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
+        <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
+
+  <body class=" color-light ">
+
+    <script> var fileid  = "<%=data.file.id%>";
+        var fileflag  = true;
+    </script>
+
+    <!-- loader Start -->
+    <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+    <!-- loader END -->
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+        <%-include('components/sidebar.ejs',{}) -%>
+      
+          <div class="iq-top-navbar">
+            <%-include('components/header.ejs',{}) -%>
+      </div>
+      <div class="content-page">
+      <div class="container-fluid">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+             <li class="breadcrumb-item"><a href="/user/folder/<%=data.file.folder.id%>"><%=data.file.folder.name%></a></li>
+             <!-- <li class="breadcrumb-item"><a href="#">Library</a></li> -->
+             <li class="breadcrumb-item active" aria-current="page"><%=data.file.metadata.name%></li>
+          </ol>
+       </nav>
+         <!-- <div class="row">
+            <div class="col-lg-12">
+              
+            </div>
+         </div> -->
+         <div class="row my-2">
+          <div class="col-lg-6">
+            <!-- <div class="card" style="width: 18rem;"> -->
+              <img src="<%=data.file.metadata.path%>" class="img-fluid rounded"  alt="loading image" aria-placeholder="loading..." onerror="this.remove()">
+              <video class="img-fluid rounded" src="<%=data.file.metadata.path%>" controls onerror="this.remove()"></video>
+        <!-- </div> -->
+
+          </div>
+          <div class="col-lg-6">
+            <div class="card">
+              <div class="card-body">
+                 <h4 class="card-title">File Details</h4>
+                  <div class="row">
+                    <div class="col-sm-1"><i class="ri-sd-card-line" style="font-size: 21px;"></i></div>
+                    <div class="col-sm-5"><%=data.file.metadata.size%> Mb</div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-1"><i class="ri-admin-line" style="font-size: 21px;"></i></div>
+                    <div class="col-sm-6"><%=data.file.createdBy%></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-1"><i class="ri-bookmark-line" style="font-size: 21px;"></i></div>
+                    <div class="col-sm-5">Not implemented yet</div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-1"><i class="ri-focus-3-line" style="font-size: 21px"></i>
+                    </div>
+                    <div class="col-sm-5"><%=data.file.metadata.mimetype%></div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-1"><i class="ri-download-line" style="font-size: 21px"></i>
+                    </div>
+                    <div class="col-sm-5">not implemented</div>
+                  </div>
+                 <button type="button" class="btn btn-lg btn-primary mt-2" data-toggle="popover" data-placement="right" title="Updated By" data-content="user : <%=data.file.updatedBy%>" data-original-title="Popover title" id="updatedat" >Last Update Information</button>
+              </div>
+              <script>
+                let datestr  = "<%=data.file.updatedAt%>";
+               let  date = new Date(datestr).toDateString();
+                document.querySelector("#updatedat").innerHTML = "Last updated : "+date;
+                
+              </script>
+           </div>
+          </div>
+         </div>
+         <div class="row my-2">
+          <div class="col-lg-6 col-md-6  col-sm-6 my-2">
+            <h5>Settings</h5>
+          </div>
+          <div class="col-lg-6 col-md-6  col-sm-6 my-2">
+            <h5>Options</h5>
+            <div class="col-lg-4">
+              <div class="row my-2"><button class="btn btn-outline-danger" onclick="file_delete_functions('<%=data.file.folder.id%>')">Delete File</button></div>
+              <div class="row my-2"><button class="btn btn-outline-success" onclick="file_share_function('<%=data.file.id%>')">Share</button></div>
+            </div>
+          </div>
+         </div>
+      </div>
+      </div>
+    </div>
+    <!-- Wrapper End-->
+    <%-include('components/footer.ejs',{}) -%>
+  
+    <!-- Backend Bundle JavaScript -->
+    <script src="/assets/js/backend-bundle.min.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script src="/assets/js/customizer.js" defer></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script src="/assets/js/chart-custom.js" defer></script>
+    
+    <!--PDF-->
+    <script src="/assets/vendor/doc-viewer/include/pdf/pdf.js"></script>
+    <!--Docs-->
+    <script src="/assets/vendor/doc-viewer/include/docx/jszip-utils.js"></script>
+    <script src="/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js"></script>
+    <!--PPTX-->
+    <script src="/assets/vendor/doc-viewer/include/PPTXjs/js/filereader.js"></script>
+    <script src="/assets/vendor/doc-viewer/include/PPTXjs/js/d3.min.js"></script>
+    <script src="/assets/vendor/doc-viewer/include/PPTXjs/js/nv.d3.min.js"></script>
+    <script src="/assets/vendor/doc-viewer/include/PPTXjs/js/pptxjs.js"></script>
+    <script src="/assets/vendor/doc-viewer/include/PPTXjs/js/divs2slides.js"></script>
+    <!--All Spreadsheet -->
+    <script src="/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.js"></script>
+    <script src="/assets/vendor/doc-viewer/include/SheetJS/xlsx.full.min.js"></script>
+    <!--Image viewer-->
+    <script src="/assets/vendor/doc-viewer/include/verySimpleImageViewer/js/jquery.verySimpleImageViewer.js"></script>
+    <!--officeToHtml-->
+    <script src="/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.js"></script>
+    <!-- app JavaScript -->
+    <script src="/assets/js/app.js" defer></script>
+    <script src="/assets/js/doc-viewer.js" defer></script>
+     <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title">Title</h4>
+                    <div>
+                        <a class="btn" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="resolte-contaniner" style="height: 500px;" class="overflow-auto">
+                        File not found
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </body>
+
+</html>

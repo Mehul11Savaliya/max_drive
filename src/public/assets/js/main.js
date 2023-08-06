@@ -67,6 +67,7 @@ async function deleteFile(id) {
                 notifier.success("file deleted..");
                 rowcd.remove();
                 gridcd.remove();
+                return true;
             }
         }
     });
@@ -429,7 +430,7 @@ function generate_folder_file_cards(files) {
         tr.innerHTML = `<td>
         <div class="d-flex align-items-center">
             <div class="mr-3">
-                <a href="#"><img src="${thumdimg}" class="img-fluid avatar-30" alt="image1"></a>
+                <a href="/file/${file.id}"><img src="${thumdimg}" class="img-fluid avatar-30" alt="image1"></a>
             </div>
             ${file.metadata.name}
         </div>
@@ -571,6 +572,24 @@ function generate_folder_file_cards(files) {
         //                 </div>
         //             </div>
         file_gridcard.appendChild(gridcard);
+    }
+}
+
+async function file_delete_functions(folder_id){
+    if(fileflag){
+        let filid  = Number.parseInt(fileid);
+        if(filid!=undefined&&fileid!=null){
+            if(await deleteFile(filid)){
+                window.location.href = `/user/folder/${folder_id}`
+            }
+        }
+    }
+}
+
+const file_share_function=(fid)=>{
+    if (fid!=null||fid!=undefined) {
+        let id  = Number.parseInt(fid);
+       
     }
 }
 

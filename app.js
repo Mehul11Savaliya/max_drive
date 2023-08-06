@@ -13,6 +13,7 @@ const User = require('./src/routes/User');
 const Auth = require('./src/routes/Auth');
 const Folder = require('./src/routes/Folder')
 const File = require('./src/routes/Files')
+const Permission = require('./src/routes/Permission')
 
 var app = express();
 
@@ -26,7 +27,7 @@ app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, './src/public/')));
-app.use('/asset',express.static(path.join(__dirname,'./src/public/asset/')));
+app.use('/assets',express.static(path.join(__dirname,'./src/public/asset/')));
 app.use("/uploads",express.static(path.join(__dirname,"./src/uploads/")));
 app.use(fileUpload({
   useTempFiles : false,
@@ -39,6 +40,7 @@ app.use('/user',User);
 app.use('/auth',Auth);
 app.use('/folder',Folder);
 app.use('/file',File);
+app.use('/permission',Permission);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
