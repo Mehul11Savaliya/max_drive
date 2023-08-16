@@ -38,13 +38,20 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css" integrity="sha512-vebUliqxrVkBy3gucMhClmyQP9On/HAWQdKDXRaAlb/FKuTbxkjPKUyqVOxAcGwFDka79eTF+YXwfke1h3/wfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
        
 
-        <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
-        <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
+        <!-- new Vendors -->
+        <link rel="stylesheet" href="/assets/vendor/tagsinput/bootstrap-tagsinput.css">
+        <!-- new Vendors -->
 
+        <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
+        <!-- <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
   <body class=" color-light ">
 
-    <script> var fileid  = "<%=data.file.id%>";
+    <script> 
+        var fileid  = "<%=data.file.id%>";
         var fileflag  = true;
+        var tags = "<%=data.file.tags%>";
+        tags = tags.split(',');
     </script>
 
     <!-- loader Start -->
@@ -96,7 +103,7 @@
                   </div>
                   <div class="row">
                     <div class="col-sm-1"><i class="ri-bookmark-line" style="font-size: 21px;"></i></div>
-                    <div class="col-sm-5">Not implemented yet</div>
+                    <div class="col-sm-5 col-lg-8"> <input class="form form-control" type="text" id="tags" value="<%=data.file.tags%>" data-role="tagsinput"/></div>
                   </div>
                   <div class="row">
                     <div class="col-sm-1"><i class="ri-focus-3-line" style="font-size: 21px"></i>
@@ -108,31 +115,66 @@
                     </div>
                     <div class="col-sm-5">not implemented</div>
                   </div>
-                 <button type="button" class="btn btn-lg btn-primary mt-2" data-toggle="popover" data-placement="right" title="Updated By" data-content="user : <%=data.file.updatedBy%>" data-original-title="Popover title" id="updatedat" >Last Update Information</button>
-              </div>
+                 <button type="button" class="btn btn-lg btn-primary mt-2" data-toggle="popover" data-placement="right" title="Updated By : <%=data.file.createdBy%>" data-content="user : " data-original-title="Popover title" id="updatedat" >Last Update Information</button>
+                 <!-- <button type="button" class="btn btn-lg btn-danger" data-toggle="popover" data-placement="right" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button> -->
+                </div>
               <script>
-                let datestr  = "<%=data.file.updatedAt%>";
-               let  date = new Date(datestr).toDateString();
-                document.querySelector("#updatedat").innerHTML = "Last updated : "+date;
+              //   let datestr  = "<%=data.file.updatedAt%>";
+              //  let  date = new Date(datestr).toDateString();
+              //   document.querySelector("#updatedat").innerHTML = "Last updated : "+date;
                 
               </script>
+              <!-- <p><%=JSON.stringify(data)%></p> -->
            </div>
           </div>
          </div>
          <div class="row my-2">
           <div class="col-lg-6 col-md-6  col-sm-6 my-2">
-            <h5>Settings</h5>
+            <h5>Actions</h5>
+            <div class="row">
+              <div class="col-lg-6">
+             
+<div class="custom-control custom-switch">
+  <input type="checkbox" class="custom-control-input" id="customSwitch1" >
+  <label class="custom-control-label" for="customSwitch1">Encrypt File</label>
+</div>
+<div class="custom-control custom-switch">
+  <input type="checkbox" class="custom-control-input" id="customSwitch2" >
+  <label class="custom-control-label" for="customSwitch2">Start Live Share</label>
+</div>
+              </div>
+              <div class="col-lg-6">
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="customSwitch3" >
+                  <label class="custom-control-label" for="customSwitch3">Password Protect File</label>
+                </div>
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="customSwitch4" >
+                  <label class="custom-control-label" for="customSwitch4">Encrypt File</label>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col-lg-6 col-md-6  col-sm-6 my-2">
             <h5>Options</h5>
-            <div class="col-lg-4">
-              <div class="row my-2"><button class="btn btn-outline-danger" onclick="file_delete_functions('<%=data.file.folder.id%>')">Delete File</button></div>
-              <div class="row my-2"><button class="btn btn-outline-success" onclick="file_share_function('<%=data.file.id%>')">Share</button></div>
+            <div class="row">
+            <div class="col-lg-4 mx-2">
+              <div class="row my-2"><button class="btn btn-outline-danger text-dark" onclick="file_delete_functions('<%=data.file.folder.id%>')">Delete File</button></div>
+              <div class="row my-2"><button class="btn btn-outline-success text-dark" onclick="file_share_function('<%=data.file.id%>')">Share</button></div>
+              <div class="row my-2"><button class="btn btn-outline-info text-dark" onclick="file_share_function('<%=data.file.id%>')">TimeLine</button></div>
             </div>
+            <div class="col-lg-4 mx-2">
+              <div class="row my-2"><button class="btn btn-outline-danger text-dark" onclick="file_delete_functions('<%=data.file.folder.id%>')">Download</button></div>
+              <div class="row my-2"><button class="btn btn-outline-success text-dark" onclick="manage_file_tags('<%=data.file.id%>',tags)">Manage Tags</button></div>
+              <div class="row my-2"><button class="btn btn-outline-info text-dark" onclick="file_share_function('<%=data.file.id%>')">Change File Types</button></div>
+            
+            </div>
+          </div>
           </div>
          </div>
       </div>
       </div>
+
     </div>
     <!-- Wrapper End-->
     <%-include('components/footer.ejs',{}) -%>
@@ -167,26 +209,12 @@
     <!-- app JavaScript -->
     <script src="/assets/js/app.js" defer></script>
     <script src="/assets/js/doc-viewer.js" defer></script>
-     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                  <h4 class="modal-title">Title</h4>
-                    <div>
-                        <a class="btn" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </a>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <div id="resolte-contaniner" style="height: 500px;" class="overflow-auto">
-                        File not found
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
+    <!-- new Vendors -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/assets/vendor/tagsinput/bootstrap-tagsinput.min.js"></script>
+    <!-- <script src="/assets/vendor/tagsinput/bootstrap-tagsinput-angular.min.js"></script> -->
+    <!-- new Vendors -->
   </body>
 
 </html>

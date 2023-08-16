@@ -11,9 +11,10 @@ var indexRouter = require('./src/routes/index');
 var usersRouter = require('./src/routes/users');
 const User = require('./src/routes/User');
 const Auth = require('./src/routes/Auth');
-const Folder = require('./src/routes/Folder')
-const File = require('./src/routes/Files')
-const Permission = require('./src/routes/Permission')
+const Folder = require('./src/routes/Folder');
+const File = require('./src/routes/Files');
+const Permission = require('./src/routes/Permission');
+const Share = require('./src/routes/Share');
 
 var app = express();
 
@@ -41,6 +42,7 @@ app.use('/auth',Auth);
 app.use('/folder',Folder);
 app.use('/file',File);
 app.use('/permission',Permission);
+app.use('/share',Share);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

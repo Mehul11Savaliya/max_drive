@@ -1,6 +1,8 @@
 const { DataTypes } = require("sequelize");
 const {sq} = require("../config/db");
 
+const filemetadatamdl = require("./FileMetadata");
+
 const File = sq.define("file",{
     id:{
         type : DataTypes.INTEGER,
@@ -47,5 +49,7 @@ const File = sq.define("file",{
 File.addHook("afterBulkDestroy",(inst,options)=>{
     console.log("deleted  : ",inst);
 });
+
+File.hasOne(filemetadatamdl,{as:"fkey_file_metadata",sourceKey:"id",foreignKey:"file"});
 
 module.exports = File;

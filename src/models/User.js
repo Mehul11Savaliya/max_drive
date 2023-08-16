@@ -3,7 +3,8 @@ const {sq} = require('../config/db');
 
 const authmdl = require('./Auth');
 const foldermdl = require('./Folder');
-const filemdl = require("./File")
+const filemdl = require("./File");
+const filemetadatamdl = require('./FileMetadata');
 
 const User  = sq.define('user',{
     id:{
@@ -36,5 +37,7 @@ const User  = sq.define('user',{
 User.hasOne(authmdl,{as:'Auth',sourceKey:'email',foreignKey:'email'});
 User.hasMany(foldermdl,{as:"Folders",sourceKey:"email",foreignKey:"createdBy"});
 User.hasMany(filemdl,{as :"Files",sourceKey:"email",foreignKey:"createdBy"});
+User.hasMany(filemetadatamdl,{as:"fkey_user_filemetada_ctby",sourceKey :"email",foreignKey:"createdBy"});
+User.hasMany(filemetadatamdl,{as:"fkey_user_filemetada_upby",sourceKey :"email",foreignKey:"updatedBy"});
 
 module.exports=User

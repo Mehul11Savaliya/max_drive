@@ -2,7 +2,7 @@ const model = require('../models/User');
 const { encrypt } = require('../utils/CryptoGraph');
 
 const sync=async()=>{
-   await model.sync({force:true});
+   await model.sync();
 }
 
 const varifyUser=async(email,pass)=>{

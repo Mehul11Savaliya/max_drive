@@ -575,6 +575,8 @@ function generate_folder_file_cards(files) {
     }
 }
 
+// file related scripts
+
 async function file_delete_functions(folder_id){
     if(fileflag){
         let filid  = Number.parseInt(fileid);
@@ -587,9 +589,87 @@ async function file_delete_functions(folder_id){
 }
 
 const file_share_function=(fid)=>{
+    if (fileflag) {
     if (fid!=null||fid!=undefined) {
         let id  = Number.parseInt(fid);
-       
+       Swal.fire({
+       title :"Share Settings",
+       html:`<div class="">
+           <form class="form form-horizontal" id="share_settings">
+             <div class="form-body">
+               <div class="row">
+                 <div class="col-md-4">
+                   <label>Share With : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="text" id="first-name" class="form-control" name="sharewith" placeholder="user_names..">
+                 </div>
+                 <div class="col-md-4">
+                   <label>Available  from : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="time" id="email-id" class="form-control" name="available_time" placeholder="Email">
+                 </div>
+                 <div class="col-md-4">
+                   <label>Available from : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="date" id="contact-info" class="form-control" name="availabel_date" placeholder="Mobile">
+                 </div>
+                 <div class="col-md-4">
+                   <label>Max Access Limit : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="number" id="password" min="1" class="form-control" name="max_limit" placeholder="enter limit">
+                 </div>
+                 <div class="custom-control custom-switch">
+                 <input type="checkbox" class="custom-control-input" name="make_public" id="mackepublic" >
+                 <label class="custom-control-label" for="mackepublic">Make Public</label>
+                 </div>
+                 <div class="custom-control custom-switch">
+                 <input type="checkbox" class="custom-control-input" name="unlimited_access" id="unlimited_access" >
+                 <label class="custom-control-label" for="unlimited_access">unlimited access</label>
+                 </div>
+               </div>
+             </div>
+           </form>
+         `,
+         showCancelButton:true,
+         confirmButtonText: 'Ok'
+       }).then((result)=>{
+            if (result.isConfirmed) {
+                let form = document.querySelector("#share_settings");
+                let formData = new FormData(form);
+                let object = {};
+                formData.forEach((val,key)=>{
+                    object[key] = val;
+                });
+                console.log(object);
+            }
+       });
+    }else{
+        Swal.fire({
+            text : "🐦☠🐦"
+        });
+    }
+}
+}
+
+const manage_file_tags=(fileid,tags)=>{
+    tags = tags.join(',');
+    if (fileflag) {
+        Swal.fire({
+            title: 'Edit Tags',
+            html:`<section>
+            <input type="text" class="form form-control" value="${tags}" data-role="tagsinput"/>
+            </section>`,
+            showCancelButton: true,
+            confirmButtonText: 'Save'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              Swal.fire('Saved!', '', 'success')
+            }
+          })
     }
 }
 
