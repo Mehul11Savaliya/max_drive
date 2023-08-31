@@ -23,7 +23,7 @@ const post_file_metadata = async (req, res) => {
         // let {email}= req.user_data;
         let email = "svlmehul@gmail.com";
         let obj = {};
-        let { sharewith, available_time, available_date, max_limit, make_public, unlimited_access } = req.body;
+        let { sharewith, available_time, availabel_date, max_limit, make_public, unlimited_access } = req.body;
         let { id } = req.params;
         if (sharewith == null || make_public == null || sharewith == undefined || make_public == undefined || id == undefined) {
             throw new Error(`invalid request..`)
@@ -34,7 +34,7 @@ const post_file_metadata = async (req, res) => {
 
         let share_settings = {};
         share_settings.available_time = available_time;
-        share_settings.available_date = available_date;
+        share_settings.available_date = availabel_date;
         share_settings.is_public = (make_public == "on") ? true : false;
         share_settings.share_with = sharewith.split(',');
         share_settings.is_unlimited = (unlimited_access == "on") ? true : false;
@@ -57,15 +57,15 @@ const patch_file_metadata = async (req, res) => {
         // let {email}= req.user_data;
         let email = "svlmehul@gmail.com";
         let obj = {};
-        let { sharewith, available_time, available_date, max_limit, make_public, unlimited_access } = req.body;
+        let { sharewith, available_time, availabel_date, max_limit, make_public, unlimited_access } = req.body;
         let { id } = req.params;
-        if (sharewith == null || make_public == null || sharewith == undefined || make_public == undefined || id == undefined) {
+        if ((sharewith == null && make_public == null && sharewith == undefined && make_public == undefined) || id == undefined) {
             throw new Error(`invalid request..`)
         }
         obj.updatedBy = email;
         let share_settings = {};
         share_settings.available_time = available_time;
-        share_settings.available_date = available_date;
+        share_settings.available_date = availabel_date;  //available spelling is different..
         share_settings.is_public = (make_public == "on") ? true : false;
         share_settings.share_with = sharewith.split(',');
         share_settings.is_unlimited = (unlimited_access == "on") ? true : false;
@@ -73,7 +73,7 @@ const patch_file_metadata = async (req, res) => {
 
         obj.share_settings = share_settings;
         const resx = await filemetadatsrv.update(id, obj);
-        res.status(201).json(resx);
+        res.status(200).json(resx);
     } catch (error) {
         console.log(error);
         res.status(400).json({

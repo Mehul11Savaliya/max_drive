@@ -15,7 +15,10 @@
     "express-fileupload": "^1.4.0",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^9.0.1",
+    "mongoose": "^7.4.5",
     "morgan": "~1.9.1",
+    "nano": "^10.1.2",
+    "nodemailer": "^6.9.4",
     "pg": "^8.11.1",
     "sequelize": "^6.32.1",
     "uuid": "^9.0.0"

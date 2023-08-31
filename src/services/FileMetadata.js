@@ -1,7 +1,7 @@
 const model = require("../models/FileMetadata");
 
 const sync = async () => {
-    await model.sync({ force: true });
+    await model.sync({ alter: true });
 }
 
 const create = async (data) => {
@@ -21,7 +21,6 @@ const remove = async (id) => {
 
 const read = async (id, raw = false) => {
     let res = await model.findOne({
-        include: [],
         where: {
             file: id
         }

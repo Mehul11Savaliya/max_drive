@@ -18,8 +18,8 @@
       <link rel="stylesheet" href="/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
       <link rel="stylesheet" href="/assets/vendor/remixicon/fonts/remixicon.css">
       <link rel="stylesheet" href="/assets/vendor/fontawesome/main.css">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
+      <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> -->
+<link rel="stylesheet" href="/assets/vendor/fontawesome/main.css">
       <!-- Viewer Plugin -->
         <!--PDF-->
         <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/pdf/pdf.viewer.css">
@@ -32,19 +32,21 @@
         <!--Image viewer-->
         <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/verySimpleImageViewer/css/jquery.verySimpleImageViewer.css">
         <!--officeToHtml-->
-        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css">  </head>
+        <link rel="stylesheet" href="/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css"></head>
         <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.4.0/remixicon.css" integrity="sha512-Jp3oCtkKo8j/WRrHq2jrYMtJogclQybtR6+81arCLTO/TvWj3oaF4NkZQs2bTqWJ8An8L2MLKKfvsn3H8vZP1g==" crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
         <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dripicons/2.0.0/webfont.css" integrity="sha512-uws2d1mzntk5UyAzfDcNN9wAN3OoSsztsVfUzRvq+DOMZYgUZH6HJ97g4y2Nk6TvDlIdd0GBuDjaZ74DoASdig==" crossorigin="anonymous" referrerpolicy="no-referrer" /> -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css" integrity="sha512-vebUliqxrVkBy3gucMhClmyQP9On/HAWQdKDXRaAlb/FKuTbxkjPKUyqVOxAcGwFDka79eTF+YXwfke1h3/wfg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-       
+       <!-- <link rel="stylesheet" href="/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css"> -->
 
+       
         <!-- new Vendors -->
         <link rel="stylesheet" href="/assets/vendor/tagsinput/bootstrap-tagsinput.css">
+        <link rel="stylesheet" href="/assets/vendor/timeline-master/style.css">
         <!-- new Vendors -->
 
         <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
-        <!-- <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script> -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+        <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script> -->
   <body class=" color-light ">
 
     <script> 
@@ -52,6 +54,9 @@
         var fileflag  = true;
         var tags = "<%=data.file.tags%>";
         tags = tags.split(',');
+        var file_share_settings = '<%-JSON.stringify(data.file.file_metadata)%>';
+        file_share_settings = JSON.parse(file_share_settings);
+
     </script>
 
     <!-- loader Start -->
@@ -135,8 +140,8 @@
               <div class="col-lg-6">
              
 <div class="custom-control custom-switch">
-  <input type="checkbox" class="custom-control-input" id="customSwitch1" >
-  <label class="custom-control-label" for="customSwitch1">Encrypt File</label>
+  <input type="checkbox" class="custom-control-input" onclick="encrypt_file('<%=data.file.id%>')" id="encryptswitch" >
+  <label class="custom-control-label" for="encryptswitch">Encrypt File</label>
 </div>
 <div class="custom-control custom-switch">
   <input type="checkbox" class="custom-control-input" id="customSwitch2" >
@@ -150,7 +155,7 @@
                 </div>
                 <div class="custom-control custom-switch">
                   <input type="checkbox" class="custom-control-input" id="customSwitch4" >
-                  <label class="custom-control-label" for="customSwitch4">Encrypt File</label>
+                  <label class="custom-control-label" for="customSwitch4">Thinking something..</label>
                 </div>
               </div>
             </div>
@@ -171,10 +176,16 @@
             </div>
           </div>
           </div>
-         </div>
+          <div class="row" style="width: 75%;">
+            <div class="timelinex" >
+              <ul id="timelinex">
+                
+              </ul>
+            </div>
+          </div>
       </div>
       </div>
-
+        
     </div>
     <!-- Wrapper End-->
     <%-include('components/footer.ejs',{}) -%>
@@ -211,7 +222,8 @@
     <script src="/assets/js/doc-viewer.js" defer></script>
 
     <!-- new Vendors -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/assets/vendor/jquery/min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
     <script src="/assets/vendor/tagsinput/bootstrap-tagsinput.min.js"></script>
     <!-- <script src="/assets/vendor/tagsinput/bootstrap-tagsinput-angular.min.js"></script> -->
     <!-- new Vendors -->

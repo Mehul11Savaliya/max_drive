@@ -1,6 +1,13 @@
+const path = require("path");
+
 const service = require("../services/File")
+const foldersrv = require("../services/Folder")
+const {encrypt_file_v2,decrypt_file_v2}=require("../services/FileHandler");
+const commssrv = require("../services/Communication");
+
 const filehandler = require("../services/FileHandler");
 const uuid  = require("uuid");
+const { generategeneralData } = require("../utils/PageData");
 
 const post_files = async (req, res) => {
     try {
@@ -97,6 +104,27 @@ const get_all_folder_file = async (req, res) => {
     }
 }
 
+const get_file=async(req,res)=>{
+    try {
+        let {id}=req.params;
+        if(id==undefined) throw new Error(`file id not provided..`)
+        let resx  = await service.get_by_id(id,req.user_data);
+       resx.metadata.size = (((resx.metadata.size)/1024)/1024).toFixed(3);
+        let folder = await foldersrv.get_by_id(resx.folder);
+        resx.folder = folder;
+        console.log(resx);
+        res.status(200).render('page-file-view.ejs',{data:{
+            ...req.user_data,
+            ...generategeneralData(),
+            file : {...resx}
+            
+        }});
+    } catch (error) {
+        console.log(error);
+        res.status(400).send(error.message);
+    }
+}
+
 const delete_file=async(req,res)=>{
     try {
         let {id} = req.params;
@@ -109,8 +137,138 @@ const delete_file=async(req,res)=>{
     }
 }
 
+const get_file_content=async(req,res)=>{
+    // try {
+        let {id} = req.params;
+        let file  = await service.read(id);
+        let share_settings = file.file_metadata.share_settings;
+    //     if ((share_settings.is_public||share_settings.share_with.length>0||!share_settings.share_with.includes(""))&&share_settings.max_share_limit>0) {
+    //     res.status(200).json(file);   
+    //     }else{
+    //         res.status(401).send();
+    //     }
+    // } catch (error) {
+    //     console.log(error);
+    //     res.status(500).send();
+    // }
+    if (share_settings.is_public && share_settings.is_unlimited) {
+        // res.status(200).send("u hab access unlimited times..");
+        let pth  = path.join(__dirname,".."+file.metadata.path);
+        res.status(200).sendFile(pth,(err)=>{
+            if (err) {
+                console.log(err);
+                res.status(500).send();
+            } else {
+                console.log(`file ${pth} sended..`);
+            }
+        });
+    }
+    else if (share_settings.is_public && !share_settings.is_unlimited) {
+        //   res.status(200).send("u hab access but remaining chacnce : "+share_settings.max_share_limit);
+        // res.status(200).render('page-share-view.ejs',);
+        // res.status(200).json(file)
+        let pth  = path.join(__dirname,".."+file.metadata.path);
+        res.status(200).sendFile(pth,(err)=>{
+            if (err) {
+                console.log(err);
+                res.status(500).send();
+            } else {
+                console.log(`file ${pth} sended..`);
+            }
+        });
+    }
+    else if (!share_settings.is_public && !share_settings.is_unlimited) {
+        try {
+            //extracting token from cookie
+            let jwt = JSON.parse(req.cookies.jwt);
+            console.log(jwt);
+            if (jwt === undefined || jwt === null)
+                throw new Error(`try to login again..`)
+            let access_token = jwt.access;
+            let refresh_token = jwt.refresh;
+
+            //checking the token..
+            let data = tokensrv.checkAccessToken(access_token);
+            let tokendata = data;
+
+            let user = await usersrv.getUserByEmail(tokendata.email);
+            let { email } = user;
+            // console.log(share_settings.share_with,typeof share_settings.share_with);
+            if (share_settings.share_with.includes(email)) {
+                // res.status(200).send("u hab access");
+                // res.status(200).json(file)
+                let pth  = path.join(__dirname,".."+file.metadata.path);
+                res.status(200).sendFile(pth,(err)=>{
+                    if (err) {
+                        console.log(err);
+                        res.status(500).send();
+                    } else {
+                        console.log(`file ${pth} sended..`);
+                    }
+                });
+            } else {
+                // res.status(200).send("u dont hab access");
+                res.status(401).send();
+            }
+
+        } catch (error) {
+            res.status(401).send();
+        }
+    } else {
+        res.status(401).send();
+    }
+}
+
+const get_crypto_file=async(req,res)=>{
+    let {id} = req.params;
+    let {action,algo,saveonserver} = req.query;
+try {
+    if (id==undefined||action==undefined) {
+        throw new Error(`invalid request..`)
+    }
+    let acti = ['encrypt','decrypt'];
+    if (!acti.includes(action)) {
+       throw new Error(`invalid action..`) 
+    }
+    if (algo==undefined&&saveonserver==undefined) {
+        throw new Error(`invalid request..`)
+    }
+    let {email}=req.user_data;
+    let file  = await service.read(id);
+    let file_path = file.metadata.path;
+    let new_name=file_path.split('/');
+    let ogname = new_name[new_name.length-1];
+    new_name = new_name[new_name.length-1];
+    new_name = new_name.split(".")[0];
+    new_name = new_name+".enc";
+    encrypt_file_v2(file_path,algo,async(err,key,iv)=>{
+        if (err==null) {
+             try {
+                let msg  = await commssrv.send_file_encryption_message(email,key,iv,ogname,new_name);
+                // console.log(msg);
+             } catch (error) {
+                console.log("not able to send the email..");
+             }
+           return  res.status(200).sendFile(path.join(__dirname,"../uploads/"+new_name));
+        }else{
+            //  console.log(err);
+         return res.status(400).json({
+                errmsg : err.message
+            });   
+        }
+    });
+} catch (error) {
+    res.status(400).json({
+        errmsg : error.message
+    });   
+}
+}
+
 module.exports = {
     post_files,
     get_all_folder_file,
-    delete_file
+    delete_file,
+    get_file,
+    get_file_content,
+    get_crypto_file
 }

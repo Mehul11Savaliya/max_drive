@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Countdown Timer</title>
+</head>
+<body>
+    <style>
+
+
+.countdown {
+  text-align: center;
+}
+
+.time {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.start-btn {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+}
+
+.start-btn:hover {
+  background-color: #0056b3;
+}
+
+    </style>
+  <div class="countdown">
+    <div class="time" id="time">00:00:00</div>
+    <button class="start-btn" id="startBtn">Start Countdown</button>
+  </div>
+  <script>
+    const timeDisplay = document.getElementById("time");
+const startBtn = document.getElementById("startBtn");
+
+let countdownInterval;
+let targetTime;
+let isRunning = false;
+
+function updateCountdown() {
+  const currentTime = new Date().getTime();
+  const remainingTime = targetTime - currentTime;
+  if (remainingTime <= 0) {
+    clearInterval(countdownInterval);
+    timeDisplay.textContent = "00:00:00";
+    startBtn.textContent = "Start Countdown";
+    isRunning = false;
+    return;
+  }
+  const hours = Math.floor(remainingTime / (1000 * 60 * 60));
+  const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+  timeDisplay.textContent = `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
+}
+
+function formatTime(value) {
+  return value < 10 ? `0${value}` : value;
+}
+
+function startCountdown() {
+  if (!isRunning) {
+    const inputHours = parseInt(prompt("Enter hours:"));
+    const inputMinutes = parseInt(prompt("Enter minutes:"));
+    const inputSeconds = parseInt(prompt("Enter seconds:"));
+    const currentTime = new Date().getTime();
+    targetTime = currentTime + (inputHours * 3600000) + (inputMinutes * 60000) + (inputSeconds * 1000);
+    countdownInterval = setInterval(updateCountdown, 1000);
+    isRunning = true;
+    startBtn.textContent = "Pause Countdown";
+  } else {
+    clearInterval(countdownInterval);
+    isRunning = false;
+    startBtn.textContent = "Resume Countdown";
+  }
+}
+
+startBtn.addEventListener("click", startCountdown);
+
+  </script>
+</body>
+</html>

@@ -545,7 +545,7 @@ function generate_folder_file_cards(files) {
                     <h6>${file.metadata.name}</h6>
                 </div>
             </div>`;
-            break;
+                break;
 
             default:
                 gridcard.innerHTML = `    <div class="card card-block card-stretch card-height">
@@ -577,24 +577,36 @@ function generate_folder_file_cards(files) {
 
 // file related scripts
 
-async function file_delete_functions(folder_id){
-    if(fileflag){
-        let filid  = Number.parseInt(fileid);
-        if(filid!=undefined&&fileid!=null){
-            if(await deleteFile(filid)){
+async function file_delete_functions(folder_id) {
+    if (fileflag) {
+        let filid = Number.parseInt(fileid);
+        if (filid != undefined && fileid != null) {
+            if (await deleteFile(filid)) {
                 window.location.href = `/user/folder/${folder_id}`
             }
         }
     }
 }
 
-const file_share_function=(fid)=>{
+const file_share_function = (fid) => {
     if (fileflag) {
-    if (fid!=null||fid!=undefined) {
-        let id  = Number.parseInt(fid);
-       Swal.fire({
-       title :"Share Settings",
-       html:`<div class="">
+        if (fid != null || fid != undefined) {
+            let sharedata = file_share_settings.share_settings;
+            if (sharedata == undefined) {
+                sharedata = {
+                    share_with: [],
+                    is_public: false,
+                    is_unlimited: false,
+                    max_share_limit: 0,
+                    available_date: "",
+                    available_time: ""
+                };
+            }
+            let uri = new URLSearchParams(window.location.href);
+            let id = Number.parseInt(fid);
+            Swal.fire({
+                title: "Share Settings",
+                html: `<div class="">
            <form class="form form-horizontal" id="share_settings">
              <div class="form-body">
                <div class="row">
@@ -602,74 +614,211 @@ const file_share_function=(fid)=>{
                    <label>Share With : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="text" id="first-name" class="form-control" name="sharewith" placeholder="user_names..">
+                   <input type="text" id="first-name" class="form-control" value="${sharedata.share_with.join(',')}" name="sharewith" placeholder="user_names..">
                  </div>
                  <div class="col-md-4">
-                   <label>Available  from : </label>
+                   <label>Available  at : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="time" id="email-id" class="form-control" name="available_time" placeholder="Email">
+                   <input type="time" id="email-id" class="form-control" name="available_time" value="${sharedata.available_time}" placeholder="Email">
                  </div>
                  <div class="col-md-4">
                    <label>Available from : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="date" id="contact-info" class="form-control" name="availabel_date" placeholder="Mobile">
+                   <input type="date" id="contact-info" class="form-control" name="availabel_date" value="${sharedata.available_date}" placeholder="Mobile">
                  </div>
                  <div class="col-md-4">
                    <label>Max Access Limit : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="number" id="password" min="1" class="form-control" name="max_limit" placeholder="enter limit">
+                   <input type="number" id="password" min="1" class="form-control" name="max_limit" value="${sharedata.max_share_limit}" placeholder="enter limit">
                  </div>
                  <div class="custom-control custom-switch">
-                 <input type="checkbox" class="custom-control-input" name="make_public" id="mackepublic" >
+                 <input type="checkbox" class="custom-control-input" name="make_public" id="mackepublic" ${sharedata.is_public ? 'checked' : ''}>
                  <label class="custom-control-label" for="mackepublic">Make Public</label>
                  </div>
                  <div class="custom-control custom-switch">
-                 <input type="checkbox" class="custom-control-input" name="unlimited_access" id="unlimited_access" >
+                 <input type="checkbox" class="custom-control-input" name="unlimited_access" id="unlimited_access" ${sharedata.is_unlimited ? 'checked' : ''}>
                  <label class="custom-control-label" for="unlimited_access">unlimited access</label>
                  </div>
                </div>
              </div>
+             <input type="text" class="form form-control-sm w-100" value="${window.location.protocol + "://" + window.location.host + "/share/file/" + fid}" id="filelink">
            </form>
          `,
-         showCancelButton:true,
-         confirmButtonText: 'Ok'
-       }).then((result)=>{
-            if (result.isConfirmed) {
-                let form = document.querySelector("#share_settings");
-                let formData = new FormData(form);
-                let object = {};
-                formData.forEach((val,key)=>{
-                    object[key] = val;
-                });
-                console.log(object);
-            }
-       });
-    }else{
-        Swal.fire({
-            text : "🐦☠🐦"
-        });
+                showCancelButton: true,
+                confirmButtonText: 'Ok'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    let form = document.querySelector("#share_settings");
+                    let formData = new FormData(form);
+                    let object = {};
+                    formData.forEach((val, key) => {
+                        object[key] = val;
+                    });
+                    let config = {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(object)
+                    }
+                    let res = await handleRequest(`/permission/${fid}/fmdata`, config, 201);
+                    if (res == null) {
+                        config.method = 'PATCH';
+                        res = await handleRequest(`/permission/${fid}/fmdata`, config, 200);
+                        if (res == null) {
+                            notifier.alert("Not able to update..");
+                        } else {
+                            file_share_settings = res;
+                            notifier.success("Updated..");
+                        }
+                    } else {
+                        file_share_settings = res;
+                        notifier.success("Updated..");
+
+                    }
+                }
+            });
+        } else {
+            Swal.fire({
+                text: "🐦☠🐦"
+            });
+        }
     }
 }
-}
 
-const manage_file_tags=(fileid,tags)=>{
+const manage_file_tags = (fileid, tags) => {
     tags = tags.join(',');
     if (fileflag) {
         Swal.fire({
             title: 'Edit Tags',
-            html:`<section>
+            html: `<section>
             <input type="text" class="form form-control" value="${tags}" data-role="tagsinput"/>
             </section>`,
             showCancelButton: true,
             confirmButtonText: 'Save'
-          }).then((result) => {
+        }).then((result) => {
             if (result.isConfirmed) {
-              Swal.fire('Saved!', '', 'success')
+                Swal.fire('Saved!', '', 'success')
             }
-          })
+        })
+    }
+}
+
+const generate_file_timeline = (filemname) => {
+    if (fileflag) {
+        if (filemname == undefined) {
+            notifier.alert("something went worng..");
+        }
+    }
+}
+
+const encrypt_file = async (fid) => {
+    let encalgos = await handleRequest('/master/filter?type=encryption_algorithms', { method: 'GET' }, 200);
+    if (fileflag) {
+        if (fileid == fid) {
+            let encswitch = document.querySelector("#encryptswitch");
+            if (encswitch.checked) {
+                Swal.fire({
+                    title: "Enrypt a file",
+                    html: `<form id="encform">
+                    <div class="form-group">
+                      <label for="algo">Choose Algorithm</label>
+                      <select class="form-control" id="algo" aria-describedby="algoHelp" name="algo">
+                                <option class="form-text" value="-1">select algorithm</option>
+                      </select>
+                      <small id="algoHelp" class="form-text text-muted">Ex AES,DES etc</small>
+                    </div>
+                    <div class="form-group form-check">
+                      <input type="checkbox" class="form-check-input" name="saveonserver" id="enconsrv" checked>
+                      <label class="form-check-label" for="enconsrv">encrypt file on server</label>
+                    </div>
+                  </form>`,
+                    showCancelButton: true,
+                    cancelButtonText: "cancle",
+                    allowOutsideClick: false
+                }).then(async (res) => {
+                    if (res.isConfirmed) {
+                        let objx = { "saveonserver": true, "algo": -1 }
+                        let formdata = document.querySelector("#encform");
+                        let form = new FormData(formdata);
+                        let tmp = {};
+                        for (let obj of form.entries()) {
+                            tmp[obj[0]] = obj[1];
+                        }
+                        objx.algo = tmp.algo;
+                        objx.saveonserver = tmp.saveonserver == null ? false : true;
+                        if (objx.algo == -1) {
+                            return alert("select atleast one algorithm 🐦");
+                        }
+                        let url = `/file/${fid}/crypto?action=encrypt&algo=${objx.algo}&saveonserver=${objx.saveonserver}`;
+                        
+                        let notifier = new AWN("encrypting file",{
+                            icons: {
+                                enabled: false,
+                                prefix: '<i class="las la-check-double',
+                                suffix: '></i>'
+                            }
+                        });
+
+                        notifier.async(fetch(url, {
+                            method: "GET", headers: {
+                                "Accept": "*/*"
+                            }
+                        }), async (resp) => {
+                            if (resp.status != 200) {
+                                notifier.alert("error in encrypting..");
+                            } else {
+                                resp.blob().then((resx) => {
+                                    const file = new File([resx], "encypted.enc", { type: resx.type });
+
+
+                                    const downloadLink = document.createElement('a');
+                                    downloadLink.href = URL.createObjectURL(file);
+                                    downloadLink.download = "encypted.enc"; // Set the desired filename and extension
+                                    downloadLink.textContent = 'Download File';
+
+                                    document.body.appendChild(downloadLink);
+
+                                    // Clean up after the download link is clicked or no longer needed
+                                    downloadLink.addEventListener('click', () => {
+                                        //   URL.revokeObjectURL(blobUrl);
+                                        document.body.removeChild(downloadLink);
+                                    });
+                                    downloadLink.click();
+                                });
+                            }
+                        });
+
+                        let res = await fetch(url, {
+                            method: "GET", headers: {
+                                "Accept": "*/*"
+                            }
+                        });
+                        if (res.status == 200) {
+                            notifier.success("enrypted and email is sended to you");
+                        }
+                        else {
+                            notifier.alert("error");
+                        }
+                    } else {
+                    }
+                });
+
+                for (let algo of encalgos) {
+                    let opt = document.createElement("option");
+                    opt.setAttribute("value", algo.key);
+                    opt.innerText = algo.value;
+                    document.querySelector("#algo").appendChild(opt);
+                }
+
+
+            } else {
+                Swal.fire("decrypting");
+            }
+        }
     }
 }
 

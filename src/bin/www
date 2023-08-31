@@ -10,6 +10,7 @@ const authsrv = require('../services/Auth.js');
 const foldersrv  = require("../services/Folder.js");
 const filesrv  = require("../services/File.js");
 const filemetadatsrv  = require("../services/FileMetadata.js");
+const mastersrv  = require("../services/Master.js");
 
 var app = require('../../app');
 var debug = require('debug')('cloud-storage:server');
@@ -40,6 +41,7 @@ var server = http.createServer(app);
   // await foldersrv.sync();
   // await filesrv.sync();
   // await filemetadatsrv.sync();
+  // await mastersrv.sync();
 })()
 
 server.listen(port);

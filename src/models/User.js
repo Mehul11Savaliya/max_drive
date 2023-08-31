@@ -22,7 +22,7 @@ const User  = sq.define('user',{
         type : DataTypes.STRING
     },
     password :{
-        type : DataTypes.STRING
+        type : DataTypes.STRING(256)
     },
     phone:{
         type : DataTypes.STRING

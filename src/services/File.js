@@ -2,6 +2,7 @@ const model = require("../models/File");
 const foldermdl = require("../models/Folder");
 const filehandler = require('../services/FileHandler');
 const path = require("path");
+const metadatamdl = require("../models/FileMetadata");
 
 const sync=async()=>{
     await model.sync({alter:true});
@@ -24,6 +25,7 @@ const get_files_from_folder=async(id)=>{
 
 const get_by_id=async(id,user,raw=false)=>{
     let res = await model.findByPk(id,{
+        include:[{model:metadatamdl,as:"fkey_file_metadata"}],
         where :{
             createdBy:user.email
         }
@@ -31,7 +33,23 @@ const get_by_id=async(id,user,raw=false)=>{
         // console.log(res);
     if(res==null) throw new Error(`file with id = ${id} not exist..`);
     if(raw) return res;
-     return res.dataValues;
+    let metadata = res.dataValues.fkey_file_metadata;
+    if(metadata==null) metadata={};
+    delete res.dataValues['fkey_file_metadata'];
+     return {...res.dataValues,file_metadata:metadata.dataValues};
+}
+
+const read=async(id,raw=false)=>{
+    let res = await model.findByPk(id,{
+        include:[{model:metadatamdl,as:"fkey_file_metadata"}]
+    });
+        // console.log(res);
+    if(res==null) throw new Error(`file with id = ${id} not exist..`);
+    if(raw) return res;
+    let metadata = res.dataValues.fkey_file_metadata;
+    if(metadata==null) metadata={};
+    delete res.dataValues['fkey_file_metadata'];
+     return {...res.dataValues,file_metadata:metadata.dataValues};
 }
 
 const delete_file=async(id,user)=>{
@@ -48,4 +66,4 @@ const delete_file=async(id,user)=>{
     return res;
 }
 
-module.exports={sync,create,get_files_from_folder,delete_file,get_by_id}
+module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read}

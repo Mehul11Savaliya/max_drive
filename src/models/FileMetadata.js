@@ -38,6 +38,9 @@ const FileMetadata  = sq.define("FileMetadata",{
         onDelete : 'CASCADE',
         onUpdate : 'CASCADE'
     },
+    encryption:{
+        type : DataTypes.JSONB
+    },
     other  :{
         type :DataTypes.JSONB
     }

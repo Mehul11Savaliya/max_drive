@@ -61,7 +61,7 @@ const auth_sign_up = async (req, res) => {
                 next: '/user/'
             });
         } catch (error) {
-            //  console.log(error);
+             console.log(error);
             // throw new Error(`not able to create a user ${error.message}`);
             res.status(400).json({
                 data: {

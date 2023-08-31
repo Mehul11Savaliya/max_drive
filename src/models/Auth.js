@@ -17,7 +17,7 @@ const Auth = sq.define('auth',{
         onUpdate:'CASCADE'
     },
     refresh_toke:{
-        type : DataTypes.STRING
+        type : DataTypes.STRING(400)
     }
 },{
     freezeTableName:true
