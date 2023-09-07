@@ -4,6 +4,10 @@ require("dotenv").config();
 /**
  * Module dependencies.
  */
+const os  = require("os");
+const cluster  = require("cluster");
+
+
 const {testDbConnection,sq} = require("../config/db.js");
 const usersrv = require('../services/User.js');
 const authsrv = require('../services/Auth.js');
@@ -27,12 +31,11 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+
 
 /**
  * Listen on provided port, on all network interfaces.
  */
-
 (async function () {
   // testDbConnection();
   // await sq.sync({alter:true})
@@ -44,9 +47,22 @@ var server = http.createServer(app);
   // await mastersrv.sync();
 })()
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+const cpunum  = os.cpus().length;
+if (cluster.isPrimary) {
+  console.log(`main pid  = ${process.pid}`);
+    for (let i = 0; i < cpunum; i++) {
+          cluster.fork();  
+    }
+    cluster.on("exit",()=>{
+        cluster.fork();
+    })
+}else{
+  var server = http.createServer(app);
+  server.listen(port);
+  server.on('error', onError);
+  server.on('listening', onListening);
+}
+
 
 /**
  * Normalize a port into a number, string, or false.
@@ -105,6 +121,6 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-    console.log(`Listening on http://localhost:${addr.port}`);
+    console.log(`Listening on http://localhost:${addr.port} pid = ${process.pid}`);
   debug('Listening on ' + bind);
 }

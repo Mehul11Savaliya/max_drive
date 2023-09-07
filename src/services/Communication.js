@@ -21,7 +21,7 @@ async function sendMain() {
 
 }
 
-const send_file_encryption_message=async (recever,key,iv,originalfilename,encryptfilename)=>{
+const send_file_encryption_message=async (recever,key,iv,originalfilename,encryptfilename,algo)=>{
     let msg ;
 
     const transporter = await nodemailer.createTransport(transporterconfig);
@@ -41,6 +41,11 @@ const send_file_encryption_message=async (recever,key,iv,originalfilename,encryp
             <td><b>Encrypted Filename : </b></td>
             <td>${encryptfilename}</td>
             </tr>
+            <tr>
+            <td><b>Algorithm : </b></td>
+            <td>${algo}</td>
+            </tr>
+            <tr>
             <tr>
             <td><b>Encryption Key : </b></td>
             <td>${key}</td>

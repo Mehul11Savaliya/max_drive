@@ -99,25 +99,24 @@
               <div class="card-body">
                  <h4 class="card-title">File Details</h4>
                   <div class="row">
-                    <div class="col-sm-1"><i class="ri-sd-card-line" style="font-size: 21px;"></i></div>
+                    <div class="col-sm-1"><i class="fa-solid fa-sd-card"></i></div>
                     <div class="col-sm-5"><%=data.file.metadata.size%> Mb</div>
                   </div>
                   <div class="row">
-                    <div class="col-sm-1"><i class="ri-admin-line" style="font-size: 21px;"></i></div>
+                    <div class="col-sm-1"><i class="fa-solid fa-user"></i></div>
                     <div class="col-sm-6"><%=data.file.createdBy%></div>
                   </div>
                   <div class="row">
-                    <div class="col-sm-1"><i class="ri-bookmark-line" style="font-size: 21px;"></i></div>
+                    <div class="col-sm-1"><i class="fa-solid fa-bookmark"></i></div>
                     <div class="col-sm-5 col-lg-8"> <input class="form form-control" type="text" id="tags" value="<%=data.file.tags%>" data-role="tagsinput"/></div>
                   </div>
                   <div class="row">
-                    <div class="col-sm-1"><i class="ri-focus-3-line" style="font-size: 21px"></i>
+                    <div class="col-sm-1"><i class="fa-solid fa-bullseye"></i>
                     </div>
                     <div class="col-sm-5"><%=data.file.metadata.mimetype%></div>
                   </div>
                   <div class="row">
-                    <div class="col-sm-1"><i class="ri-download-line" style="font-size: 21px"></i>
-                    </div>
+                    <div class="col-sm-1"><i class="fa-solid fa-download"></i> </div>
                     <div class="col-sm-5">not implemented</div>
                   </div>
                  <button type="button" class="btn btn-lg btn-primary mt-2" data-toggle="popover" data-placement="right" title="Updated By : <%=data.file.createdBy%>" data-content="user : " data-original-title="Popover title" id="updatedat" >Last Update Information</button>
@@ -225,6 +224,8 @@
     <script src="/assets/vendor/jquery/min.js"></script>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
     <script src="/assets/vendor/tagsinput/bootstrap-tagsinput.min.js"></script>
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
     <!-- <script src="/assets/vendor/tagsinput/bootstrap-tagsinput-angular.min.js"></script> -->
     <!-- new Vendors -->
   </body>

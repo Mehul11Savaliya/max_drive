@@ -88,28 +88,28 @@ async function home_update_folders(data) {
                     <div class="d-flex justify-content-between">
                         <a href="/user/folder/${data.id}" class="folder">
                             <div class="icon-small bg-primary rounded mb-4">
-                                <i class="ri-folder-fill"></i>
+                            <i class="fa-solid fa-folder"></i>
                             </div>
                         </a>
                         <div class="card-header-toolbar">
                             <div class="dropdown">
                                 <span class="dropdown-toggle" id="dropdownMenuButton2" data-toggle="dropdown">
-                                    <i class="ri-more-2-fill"></i>
+                                <i class="fa-solid fa-bullseye"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton2">
-                                    <a class="dropdown-item" href="#"><i class="ri-eye-fill mr-2"></i>View</a>
-                                    <button onclick="deleteFolder(${data.id})" class="dropdown-item"><i class="ri-delete-bin-6-fill mr-2" ></i>Delete</button>
-                                    <a class="dropdown-item" href="#"><i class="ri-pencil-fill mr-2"></i>Edit</a>
-                                    <a class="dropdown-item" href="#"><i class="ri-printer-fill mr-2"></i>Print</a>
-                                    <a class="dropdown-item" href="#"><i class="ri-file-download-fill mr-2"></i>Download</a>
+                                    <a class="dropdown-item" href="#"><i class="fa-solid fa-eye"></i>View</a>
+                                    <button onclick="deleteFolder(${data.id})" class="dropdown-item"><i class="fa-solid fa-trash"></i></button>
+                                    <a class="dropdown-item" href="#"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
+                                    <a class="dropdown-item" href="#"><i class="fa-solid fa-print"></i>Print</a>
+                                    <a class="dropdown-item" href="#"><i class="fa-solid fa-download"></i>Download</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <a href="" class="folder">
                         <h5 class="mb-2">${data.name}</h5>
-                        <p class="mb-2"><i class="lar la-clock text-danger mr-2 font-size-20"></i>${new Date(data.createdAt).toDateString()}</p>
-                        <p class="mb-0"><i class="las la-file-alt text-danger mr-2 font-size-20"></i> 0 Files</p>
+                        <p class="mb-2"><i class="fa-solid fa-clock"></i>${new Date(data.createdAt).toDateString()}</p>
+                        <p class="mb-0"><i class="fa-solid fa-file"></i> 0 Files</p>
                     </a>
             </div>
         </div>`;
@@ -213,7 +213,7 @@ async function update_sidebar(data) {
         file_manager_data.forEach((val) => {
             let li = document.createElement("li");
             li.innerHTML = `<a href="/user/folder/${val.id}">
-            <i class="la la-folder"></i><span>${val.name}</span>
+            <i class="fa-solid fa-folder"></i><span>${val.name}</span>
         </a>`;
             holder.appendChild(li);
         })
@@ -444,11 +444,11 @@ function generate_folder_file_cards(files) {
                 <i class="ri-more-fill"></i>
             </span>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton6">
-                <a class="dropdown-item" href="/file/${file.id}"><i class="ri-eye-fill mr-2"></i>View</a>
-                <button onclick="deleteFile(${file.id})" class="dropdown-item"><i class="ri-delete-bin-6-fill mr-2"></i>Delete</button>
-                <a class="dropdown-item" href="#"><i class="ri-pencil-fill mr-2"></i>Edit</a>
-                <a class="dropdown-item" href="#"><i class="ri-printer-fill mr-2"></i>Print</a>
-                <a class="dropdown-item" href="#"><i class="ri-file-download-fill mr-2"></i>Download</a>
+                <a class="dropdown-item" href="/file/${file.id}"><i class="fa-solid fa-eye"></i>View</a>
+                <button onclick="deleteFile(${file.id})" class="dropdown-item"><i class="fa-solid fa-trash"></i>Delete</button>
+                <a class="dropdown-item" href="#"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
+                <a class="dropdown-item" href="#"><i class="fa-solid fa-print"></i>Print</a>
+                <a class="dropdown-item" href="#"><i class="fa-solid fa-download"></i>Download</a>
             </div>
         </div>
     </td>`;
@@ -731,10 +731,10 @@ const encrypt_file = async (fid) => {
                       </select>
                       <small id="algoHelp" class="form-text text-muted">Ex AES,DES etc</small>
                     </div>
-                    <div class="form-group form-check">
+                   <!-- <div class="form-group form-check">
                       <input type="checkbox" class="form-check-input" name="saveonserver" id="enconsrv" checked>
                       <label class="form-check-label" for="enconsrv">encrypt file on server</label>
-                    </div>
+                    </div>-->
                   </form>`,
                     showCancelButton: true,
                     cancelButtonText: "cancle",
@@ -754,72 +754,168 @@ const encrypt_file = async (fid) => {
                             return alert("select atleast one algorithm 🐦");
                         }
                         let url = `/file/${fid}/crypto?action=encrypt&algo=${objx.algo}&saveonserver=${objx.saveonserver}`;
-                        
-                        let notifier = new AWN("encrypting file",{
+                        let notifier = new AWN("encrypting file", {
                             icons: {
                                 enabled: false,
                                 prefix: '<i class="las la-check-double',
                                 suffix: '></i>'
                             }
                         });
-
                         notifier.async(fetch(url, {
                             method: "GET", headers: {
                                 "Accept": "*/*"
                             }
                         }), async (resp) => {
                             if (resp.status != 200) {
-                                notifier.alert("error in encrypting..");
+                                let errx  = (await resp.json()).errmsg;
+                                notifier.alert(`${errx}`);
                             } else {
-                                resp.blob().then((resx) => {
-                                    const file = new File([resx], "encypted.enc", { type: resx.type });
+                                notifier.success("file keys related mail has been sent to you..")
+                                resp.json().then((resx) => {
+                                    // console.log(resx);
+                                    let fname = resx.file_name;
+                                    // const file = new File([resx.data], fname, { type: "application/octact-stream" });
+                                    // const downloadLink = document.createElement('a');
+                                    // downloadLink.href = URL.createObjectURL(file);
+                                    // downloadLink.download = fname; // Set the desired filename and extension
+                                    // downloadLink.textContent = 'Download encrpted File';
 
+                                    // document.body.appendChild(downloadLink);
 
-                                    const downloadLink = document.createElement('a');
-                                    downloadLink.href = URL.createObjectURL(file);
-                                    downloadLink.download = "encypted.enc"; // Set the desired filename and extension
-                                    downloadLink.textContent = 'Download File';
+                                    // // Clean up after the download link is clicked or no longer needed
+                                    // downloadLink.addEventListener('click', () => {
+                                    //     //   URL.revokeObjectURL(blobUrl);
+                                    //     document.body.removeChild(downloadLink);
+                                    // });
+                                    // downloadLink.click();
 
-                                    document.body.appendChild(downloadLink);
+                                    const byteCharacters = atob(resx.data);
+                                    const byteNumbers = new Array(byteCharacters.length);
+                                    for (let i = 0; i < byteCharacters.length; i++) {
+                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                    }
+                                    const byteArray = new Uint8Array(byteNumbers);
+                                    const blob = new Blob([byteArray], { type: 'application/octet-stream' }); // Adjust the MIME type as needed
 
-                                    // Clean up after the download link is clicked or no longer needed
-                                    downloadLink.addEventListener('click', () => {
-                                        //   URL.revokeObjectURL(blobUrl);
-                                        document.body.removeChild(downloadLink);
-                                    });
-                                    downloadLink.click();
+                                    const blobUrl = URL.createObjectURL(blob);
+
+                                    const a = document.createElement('a');
+                                    a.style.display = 'none';
+                                    document.body.appendChild(a);
+                                    a.href = blobUrl;
+                                    a.download = fname;
+                                    a.click();
+                                    URL.revokeObjectURL(blobUrl);
                                 });
                             }
                         });
-
-                        let res = await fetch(url, {
-                            method: "GET", headers: {
-                                "Accept": "*/*"
-                            }
-                        });
-                        if (res.status == 200) {
-                            notifier.success("enrypted and email is sended to you");
-                        }
-                        else {
-                            notifier.alert("error");
-                        }
                     } else {
                     }
                 });
-
                 for (let algo of encalgos) {
                     let opt = document.createElement("option");
                     opt.setAttribute("value", algo.key);
                     opt.innerText = algo.value;
                     document.querySelector("#algo").appendChild(opt);
                 }
-
-
             } else {
                 Swal.fire("decrypting");
             }
         }
     }
+}
+
+async function decryptFile() {
+    let encalgos = await handleRequest('/master/filter?type=encryption_algorithms', { method: 'GET' }, 200);
+    Swal.fire({
+        title: "File Decryptor",
+        html: `<section>
+        <form id="decryptform" enctype="multipart/form-data">
+  <div class="mb-3">
+    <label for="dcfile" class="form-label">Encrpted file</label>
+    <input type="file" name="encrypted_file" class="form-control" id="dcfile" aria-describedby="dcfilehelp">
+    <div id="dcfilehelp" class="form-text">with extension .enc</div>
+  </div>
+  <div class="mb-3">
+    <label for="algo" class="form-label">Encryption algorithm</label>
+    <select class="form-control" id="algo" aria-describedby="algoHelp" name="algo">
+    <option class="form-text" value="-1">select algorithm</option>
+</select>
+  </div>
+  <div class="mb-3">
+  <label for="ogname" class="form-label">orignal filename</label>
+  <input type="text" name="ogname" class="form-control" id="ogname">
+</div>
+  <div class="mb-3">
+    <label for="enckey" class="form-label">Encryption Key</label>
+    <input type="text" name="key" class="form-control" id="enckey">
+  </div>
+  
+  <div class="mb-3">
+    <label for="enciv" class="form-label">Encyption iv</label>
+    <input type="text" name="iv" class="form-control" id="enciv">
+  </div>
+  <div class="form-text">details is sended via email..</div>
+</form>
+        </section>`,
+        allowOutsideClick: false
+    }).then(async (res) => {
+        if (res.isConfirmed) {
+            let form = document.querySelector("#decryptform");
+            // let res = await 
+            let notifier = new AWN("encrypting file", {
+                icons: {
+                    enabled: false,
+                    prefix: '<i class="las la-check-double',
+                    suffix: '></i>'
+                }
+            });
+            notifier.async(fetch("/file/crypto", {
+                method: "POST",
+                body: new FormData(form)
+            }), async (resp) => {
+                if (resp.status != 200) {
+                    let errx  = (await resp.json()).errmsg;
+                    notifier.alert(`${errx}`);
+                } else {
+                    notifier.success("file decrpted..");
+                    resp.json().then((resx) => {
+                        let fname = resx.file_name;
+                        const byteCharacters = atob(resx.data);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: 'application/octet-stream' }); // Adjust the MIME type as needed
+            
+                        const blobUrl = URL.createObjectURL(blob);
+            
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.href = blobUrl;
+                        a.download = fname;
+                        a.click();
+                        URL.revokeObjectURL(blobUrl);
+                    });
+                }
+            });
+
+        }
+    })
+    for (let algo of encalgos) {
+        let opt = document.createElement("option");
+        opt.setAttribute("value", algo.key);
+        opt.innerText = algo.value;
+        document.querySelector("#algo").appendChild(opt);
+    }
+}
+
+
+// utils
+function util_extract_json_from_formdata(formData) {
+
 }
 
 window.onload = async () => {

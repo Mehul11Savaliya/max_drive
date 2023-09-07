@@ -20,6 +20,13 @@ let db  = {
         "ivSize": 1,
         "recommendedKeySizes": [128, 192, 256]
       }
+    ],
+    "SM4":[
+      {
+        "mode":"SM4-CBC",
+        "ivSize":16,
+        "recommendedKeySizes":[128]
+      }
     ]
   };  
 
@@ -34,7 +41,7 @@ let db  = {
         }
     });
     modeob = modeob[0];
-    let bit = Number.parseInt(data[1]);
+    let bit = isNaN(Number.parseInt(data[1]))?Number.parseInt(modeob.recommendedKeySizes[0]):Number.parseInt(data[1]);
     return {
         cipher : modeob.mode,
         ivSize:modeob.ivSize,

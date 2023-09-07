@@ -79,8 +79,8 @@ const decrypt_file_v2 = (input_file, output_file, algo, key, iv, cb) => {
         cb(err,null);
       })
    
-        const readStream = fs.createReadStream(path.join(__dirname, ".." + input_file));
-        const writeStream = fs.createWriteStream(path.join(__dirname, ".." + output_file));
+        const readStream = fs.createReadStream(input_file);//path.join(__dirname, ".." + input_file));
+        const writeStream = fs.createWriteStream(output_file);//path.join(__dirname, ".." + output_file));
 
         readStream.pipe(decipher).pipe(writeStream);
         
@@ -97,7 +97,7 @@ const decrypt_file_v2 = (input_file, output_file, algo, key, iv, cb) => {
 
 const encrypt_file_v2 = (input_path, algorithm, cb) => {
     let meta = algometadata(algorithm);
-    // console.log(meta);
+    console.log(meta);
     var key = "", iv = "";
     let str = "789456123qwertyuiopasdfghjklzcvbnm!@#$%^&*()_+";
     for (let index = 1; index <= Number.parseInt(meta.keySize) / 8; index++) {
@@ -114,6 +114,10 @@ const encrypt_file_v2 = (input_path, algorithm, cb) => {
     output_file = uuidname + ".enc";
   
         const cipher = crypto.createCipheriv(algorithm, key, iv);
+        let stats  = fs.statSync(path.join(__dirname,".." + input_path));
+        if (stats.size>8*1024*1024*50) {
+            throw new Error(`file size large...`);
+        }
         const input = fs.createReadStream(path.join(__dirname, ".." + input_path));
         const output = fs.createWriteStream(path.join(__dirname, "../uploads/" + output_file));
         input.pipe(cipher).pipe(output);
@@ -127,10 +131,11 @@ const encrypt_file_v2 = (input_path, algorithm, cb) => {
    
 }
 
+
 // encrypt_file_v2('/uploads/1.zip', 'aes-128-cbc', (err, key, iv) => {
 //     console.log(err, key, iv);
 // });
-// decrypt_file_v2("/uploads/1.enc", "/uploads/2.zip", "aes-128-cbc", "jt8*^*p6w&ant1rt", "of$^^cf@ko8933kr", (err, op) => {
+// decrypt_file_v2("/uploads/42b01c67-2b32-491e-87f5-2df0bab2654b.enc", "/uploads/op.txt", "sm4-cbc", "gmf5nczce2fvgp@j", "*fc1+ql8mz(6ca8e", (err, op) => {
 //     console.log(err, op);
 // })
 
