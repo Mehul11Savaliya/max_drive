@@ -28,7 +28,6 @@ router.delete("/:id",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken
 router.get("/:id/content",controller.get_file_content);
 
 router.get("/:id/crypto",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_crypto_file)
-
 router.post("/crypto",controller.post_decrypt_file);
 
 module.exports= router;

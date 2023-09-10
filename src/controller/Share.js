@@ -159,4 +159,13 @@ const get_file = async (req, res) => {
     }
 }
 
-module.exports = { get_file }
+const get_live_share_page=(req,res)=>{
+    res.status(200).render("page-live-share.ejs",{
+        data:{
+            ...req.user_data,
+            ...generategeneralData()
+        }
+    })
+}
+
+module.exports = { get_file,get_live_share_page }

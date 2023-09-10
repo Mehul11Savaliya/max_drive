@@ -720,7 +720,7 @@ const encrypt_file = async (fid) => {
     if (fileflag) {
         if (fileid == fid) {
             let encswitch = document.querySelector("#encryptswitch");
-            if (encswitch.checked) {
+            // if (encswitch.checked) {
                 Swal.fire({
                     title: "Enrypt a file",
                     html: `<form id="encform">
@@ -818,9 +818,9 @@ const encrypt_file = async (fid) => {
                     opt.innerText = algo.value;
                     document.querySelector("#algo").appendChild(opt);
                 }
-            } else {
-                Swal.fire("decrypting");
-            }
+            // } else {
+            //     Swal.fire("decrypting");
+            // }
         }
     }
 }
@@ -858,7 +858,8 @@ async function decryptFile() {
   <div class="form-text">details is sended via email..</div>
 </form>
         </section>`,
-        allowOutsideClick: false
+        allowOutsideClick: false,
+        showCancelButton:true
     }).then(async (res) => {
         if (res.isConfirmed) {
             let form = document.querySelector("#decryptform");
@@ -912,6 +913,140 @@ async function decryptFile() {
     }
 }
 
+const start_live_share=(id)=>{
+    if (fileflag) {
+        if (id==undefined) {
+            alert("noob")
+        }
+        else{
+            id  = Number.parseInt(id);
+            Swal.fire(typeof id);
+        }
+    }
+}
+var socket;
+function live_share() {
+    if (liveshare) {
+         socket = io("/file/share/live");
+        console.log(socket);
+        socket.on("file-download",(data)=>{
+            download_live_file(data.name,data.data,data.type);
+        });
+        socket.on("recieve-message",(data)=>{
+            handle_incoming_live_file_message(data.user,data.msg);
+        })
+    }
+}
+
+let roomid;
+function join_file_share_room() {
+    let joineduser = document.querySelector("#joineduser");
+     roomid = Number.parseInt(document.querySelector("#roomid").value);
+    socket.emit("join-room",{
+        id:roomid,
+        user:user_name
+    });
+
+    document.querySelector("#comms").innerHTML="";
+    document.querySelector("#comms").innerHTML=`  <img src="/assets/images/dark-loader.gif" class="card-img-top" style="width: 250px;height: 150px;" alt="...">`;
+    document.querySelector("#roomtext").innerHTML= `Connections(room#${roomid})`;
+    socket.on("user-joined",(data)=>{
+        joineduser.innerHTML="";
+        for (let index = 0; index < data.length; index++) {
+            const element = data[index];
+            let li = document.createElement("li");
+            li.setAttribute("class","list-group-item");
+            li.innerHTML = element;
+            joineduser.appendChild(li);
+        }
+    
+    })
+
+}
+
+function add_live_file_queue() {
+    let rows = document.querySelector("#filerows");
+    let id = 'file-'+Number.parseInt(100*Math.random());
+    let tr  = document.createElement("tr");
+    tr.setAttribute("id",id);
+    tr.innerHTML=` <th scope="row">${id}</th>`;
+    let fip = document.createElement("input");
+    fip.setAttribute("type","file");
+    fip.setAttribute("required","");
+    fip.setAttribute("class","queue-file");
+    fip.setAttribute("name",id);
+    fip.click();
+    tr.appendChild(fip);
+    let act = document.createElement("td");
+    act.innerHTML=`<button class="btn btn-sm btn-danger" onclick="remove_file_from_queue('${id}')">Delete</button>&nbsp;&nbsp;<button class="btn btn-sm btn-success">Send</button>`;
+    tr.appendChild(act);
+    rows.appendChild(tr);
+}
+
+function remove_file_from_queue(id) {
+    document.getElementById(id).remove();
+}
+
+function send_queued_file() {
+    let files  = document.getElementsByClassName("queue-file");
+    Array.from(files).forEach((file)=>{
+        if (file.files.length>0) {
+            const reader = new FileReader();
+        
+            reader.onload = (e) => {
+              const fileData = e.target.result;
+              const fileName = file.files[0].name;
+              const type  = file.files[0].type;
+
+              socket.emit('file-upload', { id:roomid, data:fileData, name:fileName,type:type});
+            };
+            reader.readAsArrayBuffer(file.files[0]);
+          }
+        // socket.emit("file-metadata",{
+        //     id : roomid,
+        //     metadata : file
+        // });
+    })
+   
+}
+
+function download_live_file(name,data,type) {
+    console.log(name,data,type);
+    const blob = new Blob([data],{type:type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function send_live_file_message() {
+    let text  = document.querySelector("#chatip").value;
+    if (text==""||text==null||text==undefined) {
+        return;
+    }
+    socket.emit("send-message",{
+        id:roomid,
+        msg : text,
+        user:user_name
+    });
+    handle_incoming_live_file_message(user_name,text)
+}
+
+function handle_incoming_live_file_message(user,message) {
+    let chats  = document.querySelector("#chats");
+    let div  = document.createElement("div");
+    div.setAttribute("class","mb-3 row bg-primary my-3");
+    div.setAttribute("style","border-radius: 15px;");
+    div.innerHTML = `<label class="col-sm-2 col-form-label">${user}</label>
+    <div class="col-sm-10">
+      <input type="text" readonly class="form-control-plaintext"  value="${message}">
+    </div>`;
+    chats.appendChild(div);
+}
 
 // utils
 function util_extract_json_from_formdata(formData) {
@@ -922,4 +1057,5 @@ window.onload = async () => {
     update_sidebar();
     home_update_folders();
     load_files();
+    live_share();
 }

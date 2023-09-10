@@ -18,4 +18,6 @@ router.get('/folder/:id',(req,res)=>{
     res.status(503).send();
 });
 
+router.get('/live',tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_live_share_page);
+
 module.exports=router;

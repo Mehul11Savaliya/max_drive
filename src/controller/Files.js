@@ -246,26 +246,26 @@ const get_crypto_file = async (req, res) => {
         new_name = new_name + ".enc";
         encrypt_file_v2(file_path, algo, async (err, key, iv) => {
             if (err) {
-                sendError(res,err);
+                sendError(res, err);
             }
-                try {
-                    let msg = await commssrv.send_file_encryption_message(email, key, iv, ogname, new_name, algo);
-                    // console.log(msg);
-                } catch (error) {
-                    console.log("not able to send the email..");
-                }
-                //    return  res.status(200).sendFile(path.join(__dirname,"../uploads/"+new_name),(err)=>{
-                //     if (!err) {
-                //         filehandler.delete_file(path.join(__dirname,"../uploads/"+new_name));
-                //     }
-                //    });
-                fs.readFile(path.join(__dirname, "../uploads/" + new_name), (err, data) => {
-                    filehandler.delete_file(path.join(__dirname, "../uploads/" + new_name));
-                    return res.status(200).json({
-                        file_name: new_name,
-                        data: data.toString("base64")
-                    })
-                });
+            try {
+                let msg = await commssrv.send_file_encryption_message(email, key, iv, ogname, new_name, algo);
+                // console.log(msg);
+            } catch (error) {
+                console.log("not able to send the email..");
+            }
+            //    return  res.status(200).sendFile(path.join(__dirname,"../uploads/"+new_name),(err)=>{
+            //     if (!err) {
+            //         filehandler.delete_file(path.join(__dirname,"../uploads/"+new_name));
+            //     }
+            //    });
+            fs.readFile(path.join(__dirname, "../uploads/" + new_name), (err, data) => {
+                filehandler.delete_file(path.join(__dirname, "../uploads/" + new_name));
+                return res.status(200).json({
+                    file_name: new_name,
+                    data: data.toString("base64")
+                })
+            });
         });
     } catch (error) {
         res.status(400).json({
@@ -287,37 +287,37 @@ const post_decrypt_file = (req, res) => {
         encrypted_file.mv(path.join(__dirname, "../tmp/" + encrypted_file.name), (err) => {
             if (err) {
                 // throw new Error("not abl to move file..");
-                sendError(res,new Error("not abl to move file.."));
+                sendError(res, new Error("not abl to move file.."));
             }
             try {
-            decrypt_file_v2(path.join(__dirname, `../tmp/${encrypted_file.name}`), path.join(__dirname, `../tmp/${ogname}`), algo, key, iv, (err, out) => {
-                if (err) {
-                    // throw 
-                    sendError(res,new Error("not able to decrypt a file.."));
-                }
-                setTimeout(() => {
-                    filehandler.delete_file(path.join(__dirname, "../tmp/" + encrypted_file.name));
-                }, 500);
-                // res.status(200).sendFile(out,(err)=>{
-                //     if (err) {
-                //         throw new Error(`not able to send a file..`);
-                //     }
-                // })
-                fs.readFile(path.join(__dirname, "../tmp/" + ogname), (err, data) => {
+                decrypt_file_v2(path.join(__dirname, `../tmp/${encrypted_file.name}`), path.join(__dirname, `../tmp/${ogname}`), algo, key, iv, (err, out) => {
                     if (err) {
-                        sendError(res,new Error("not able to read file.."));
+                        // throw 
+                        sendError(res, new Error("not able to decrypt a file.."));
                     }
-                    filehandler.delete_file(path.join(__dirname, "../tmp/" + ogname));
-                    return res.status(200).json({
-                        file_name: ogname,
-                        data: data.toString("base64")
-                    })
+                    setTimeout(() => {
+                        filehandler.delete_file(path.join(__dirname, "../tmp/" + encrypted_file.name));
+                    }, 500);
+                    // res.status(200).sendFile(out,(err)=>{
+                    //     if (err) {
+                    //         throw new Error(`not able to send a file..`);
+                    //     }
+                    // })
+                    fs.readFile(path.join(__dirname, "../tmp/" + ogname), (err, data) => {
+                        if (err) {
+                            sendError(res, new Error("not able to read file.."));
+                        }
+                        filehandler.delete_file(path.join(__dirname, "../tmp/" + ogname));
+                        return res.status(200).json({
+                            file_name: ogname,
+                            data: data.toString("base64")
+                        })
+                    });
                 });
-            });
-        } catch (error) {
-            filehandler.delete_file(path.join(__dirname, "../tmp/" + encrypted_file.name));
-                sendError(res,error);
-        }
+            } catch (error) {
+                filehandler.delete_file(path.join(__dirname, "../tmp/" + encrypted_file.name));
+                sendError(res, error);
+            }
         })
     } catch (error) {
         res.status(400).json({
@@ -326,11 +326,11 @@ const post_decrypt_file = (req, res) => {
     }
 }
 
-function sendError(res,err) {
-    return  res.status(400).json({
-          errmsg : err.message
-      })
-  }
+function sendError(res, err) {
+    return res.status(400).json({
+        errmsg: err.message
+    })
+}
 
 module.exports = {
     post_files,
