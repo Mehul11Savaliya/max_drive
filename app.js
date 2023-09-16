@@ -16,6 +16,8 @@ const File = require('./src/routes/Files');
 const Permission = require('./src/routes/Permission');
 const Share = require('./src/routes/Share');
 const Master  = require('./src/routes/Master');
+const Explore  = require("./src/routes/Explore");
+const Analytics = require("./src/routes/Analytics");
 
 var app = express();
 
@@ -54,6 +56,8 @@ app.use('/file',File);
 app.use('/permission',Permission);
 app.use('/share',Share);
 app.use('/master',Master);
+app.use("/explore",Explore);
+app.use("/analytics",Analytics);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

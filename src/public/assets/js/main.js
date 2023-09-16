@@ -721,9 +721,9 @@ const encrypt_file = async (fid) => {
         if (fileid == fid) {
             let encswitch = document.querySelector("#encryptswitch");
             // if (encswitch.checked) {
-                Swal.fire({
-                    title: "Enrypt a file",
-                    html: `<form id="encform">
+            Swal.fire({
+                title: "Enrypt a file",
+                html: `<form id="encform">
                     <div class="form-group">
                       <label for="algo">Choose Algorithm</label>
                       <select class="form-control" id="algo" aria-describedby="algoHelp" name="algo">
@@ -736,88 +736,88 @@ const encrypt_file = async (fid) => {
                       <label class="form-check-label" for="enconsrv">encrypt file on server</label>
                     </div>-->
                   </form>`,
-                    showCancelButton: true,
-                    cancelButtonText: "cancle",
-                    allowOutsideClick: false
-                }).then(async (res) => {
-                    if (res.isConfirmed) {
-                        let objx = { "saveonserver": true, "algo": -1 }
-                        let formdata = document.querySelector("#encform");
-                        let form = new FormData(formdata);
-                        let tmp = {};
-                        for (let obj of form.entries()) {
-                            tmp[obj[0]] = obj[1];
-                        }
-                        objx.algo = tmp.algo;
-                        objx.saveonserver = tmp.saveonserver == null ? false : true;
-                        if (objx.algo == -1) {
-                            return alert("select atleast one algorithm 🐦");
-                        }
-                        let url = `/file/${fid}/crypto?action=encrypt&algo=${objx.algo}&saveonserver=${objx.saveonserver}`;
-                        let notifier = new AWN("encrypting file", {
-                            icons: {
-                                enabled: false,
-                                prefix: '<i class="las la-check-double',
-                                suffix: '></i>'
-                            }
-                        });
-                        notifier.async(fetch(url, {
-                            method: "GET", headers: {
-                                "Accept": "*/*"
-                            }
-                        }), async (resp) => {
-                            if (resp.status != 200) {
-                                let errx  = (await resp.json()).errmsg;
-                                notifier.alert(`${errx}`);
-                            } else {
-                                notifier.success("file keys related mail has been sent to you..")
-                                resp.json().then((resx) => {
-                                    // console.log(resx);
-                                    let fname = resx.file_name;
-                                    // const file = new File([resx.data], fname, { type: "application/octact-stream" });
-                                    // const downloadLink = document.createElement('a');
-                                    // downloadLink.href = URL.createObjectURL(file);
-                                    // downloadLink.download = fname; // Set the desired filename and extension
-                                    // downloadLink.textContent = 'Download encrpted File';
-
-                                    // document.body.appendChild(downloadLink);
-
-                                    // // Clean up after the download link is clicked or no longer needed
-                                    // downloadLink.addEventListener('click', () => {
-                                    //     //   URL.revokeObjectURL(blobUrl);
-                                    //     document.body.removeChild(downloadLink);
-                                    // });
-                                    // downloadLink.click();
-
-                                    const byteCharacters = atob(resx.data);
-                                    const byteNumbers = new Array(byteCharacters.length);
-                                    for (let i = 0; i < byteCharacters.length; i++) {
-                                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                                    }
-                                    const byteArray = new Uint8Array(byteNumbers);
-                                    const blob = new Blob([byteArray], { type: 'application/octet-stream' }); // Adjust the MIME type as needed
-
-                                    const blobUrl = URL.createObjectURL(blob);
-
-                                    const a = document.createElement('a');
-                                    a.style.display = 'none';
-                                    document.body.appendChild(a);
-                                    a.href = blobUrl;
-                                    a.download = fname;
-                                    a.click();
-                                    URL.revokeObjectURL(blobUrl);
-                                });
-                            }
-                        });
-                    } else {
+                showCancelButton: true,
+                cancelButtonText: "cancle",
+                allowOutsideClick: false
+            }).then(async (res) => {
+                if (res.isConfirmed) {
+                    let objx = { "saveonserver": true, "algo": -1 }
+                    let formdata = document.querySelector("#encform");
+                    let form = new FormData(formdata);
+                    let tmp = {};
+                    for (let obj of form.entries()) {
+                        tmp[obj[0]] = obj[1];
                     }
-                });
-                for (let algo of encalgos) {
-                    let opt = document.createElement("option");
-                    opt.setAttribute("value", algo.key);
-                    opt.innerText = algo.value;
-                    document.querySelector("#algo").appendChild(opt);
+                    objx.algo = tmp.algo;
+                    objx.saveonserver = tmp.saveonserver == null ? false : true;
+                    if (objx.algo == -1) {
+                        return alert("select atleast one algorithm 🐦");
+                    }
+                    let url = `/file/${fid}/crypto?action=encrypt&algo=${objx.algo}&saveonserver=${objx.saveonserver}`;
+                    let notifier = new AWN("encrypting file", {
+                        icons: {
+                            enabled: false,
+                            prefix: '<i class="las la-check-double',
+                            suffix: '></i>'
+                        }
+                    });
+                    notifier.async(fetch(url, {
+                        method: "GET", headers: {
+                            "Accept": "*/*"
+                        }
+                    }), async (resp) => {
+                        if (resp.status != 200) {
+                            let errx = (await resp.json()).errmsg;
+                            notifier.alert(`${errx}`);
+                        } else {
+                            notifier.success("file keys related mail has been sent to you..")
+                            resp.json().then((resx) => {
+                                // console.log(resx);
+                                let fname = resx.file_name;
+                                // const file = new File([resx.data], fname, { type: "application/octact-stream" });
+                                // const downloadLink = document.createElement('a');
+                                // downloadLink.href = URL.createObjectURL(file);
+                                // downloadLink.download = fname; // Set the desired filename and extension
+                                // downloadLink.textContent = 'Download encrpted File';
+
+                                // document.body.appendChild(downloadLink);
+
+                                // // Clean up after the download link is clicked or no longer needed
+                                // downloadLink.addEventListener('click', () => {
+                                //     //   URL.revokeObjectURL(blobUrl);
+                                //     document.body.removeChild(downloadLink);
+                                // });
+                                // downloadLink.click();
+
+                                const byteCharacters = atob(resx.data);
+                                const byteNumbers = new Array(byteCharacters.length);
+                                for (let i = 0; i < byteCharacters.length; i++) {
+                                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                                }
+                                const byteArray = new Uint8Array(byteNumbers);
+                                const blob = new Blob([byteArray], { type: 'application/octet-stream' }); // Adjust the MIME type as needed
+
+                                const blobUrl = URL.createObjectURL(blob);
+
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                document.body.appendChild(a);
+                                a.href = blobUrl;
+                                a.download = fname;
+                                a.click();
+                                URL.revokeObjectURL(blobUrl);
+                            });
+                        }
+                    });
+                } else {
                 }
+            });
+            for (let algo of encalgos) {
+                let opt = document.createElement("option");
+                opt.setAttribute("value", algo.key);
+                opt.innerText = algo.value;
+                document.querySelector("#algo").appendChild(opt);
+            }
             // } else {
             //     Swal.fire("decrypting");
             // }
@@ -859,7 +859,7 @@ async function decryptFile() {
 </form>
         </section>`,
         allowOutsideClick: false,
-        showCancelButton:true
+        showCancelButton: true
     }).then(async (res) => {
         if (res.isConfirmed) {
             let form = document.querySelector("#decryptform");
@@ -876,7 +876,7 @@ async function decryptFile() {
                 body: new FormData(form)
             }), async (resp) => {
                 if (resp.status != 200) {
-                    let errx  = (await resp.json()).errmsg;
+                    let errx = (await resp.json()).errmsg;
                     notifier.alert(`${errx}`);
                 } else {
                     notifier.success("file decrpted..");
@@ -889,9 +889,9 @@ async function decryptFile() {
                         }
                         const byteArray = new Uint8Array(byteNumbers);
                         const blob = new Blob([byteArray], { type: 'application/octet-stream' }); // Adjust the MIME type as needed
-            
+
                         const blobUrl = URL.createObjectURL(blob);
-            
+
                         const a = document.createElement('a');
                         a.style.display = 'none';
                         document.body.appendChild(a);
@@ -913,72 +913,83 @@ async function decryptFile() {
     }
 }
 
-const start_live_share=(id)=>{
+const start_live_share = (id) => {
     if (fileflag) {
-        if (id==undefined) {
+        if (id == undefined) {
             alert("noob")
         }
-        else{
-            id  = Number.parseInt(id);
+        else {
+            id = Number.parseInt(id);
             Swal.fire(typeof id);
         }
     }
 }
 var socket;
 function live_share() {
-    if (liveshare) {
-         socket = io("/file/share/live");
+    if (liveshare != null && liveshare) {
+        socket = io("/file/share/live");
         console.log(socket);
-        socket.on("file-download",(data)=>{
-            download_live_file(data.name,data.data,data.type);
+        socket.on("file-download", (data) => {
+            download_live_file(data.name, data.data, data.type);
         });
-        socket.on("recieve-message",(data)=>{
-            handle_incoming_live_file_message(data.user,data.msg);
-        })
+        socket.on("recieve-message", (data) => {
+            handle_incoming_live_file_message(data.user, data.msg);
+        });
+
+        let i = 1;
+        setInterval(() => {
+            if (i == 1) {
+                document.title = "MaxDrive |🧨 live share 🐦"
+            } else {
+                document.title = "MaxDrive |🐦 live share 🧨"
+            }
+            i += 1;
+            i %= 2;
+        }, 1000)
     }
 }
 
 let roomid;
 function join_file_share_room() {
     let joineduser = document.querySelector("#joineduser");
-     roomid = Number.parseInt(document.querySelector("#roomid").value);
-    socket.emit("join-room",{
-        id:roomid,
-        user:user_name
+    roomid = Number.parseInt(document.querySelector("#roomid").value);
+    socket.emit("join-room", {
+        id: roomid,
+        user: user_name
     });
 
-    document.querySelector("#comms").innerHTML="";
-    document.querySelector("#comms").innerHTML=`  <img src="/assets/images/dark-loader.gif" class="card-img-top" style="width: 250px;height: 150px;" alt="...">`;
-    document.querySelector("#roomtext").innerHTML= `Connections(room#${roomid})`;
-    socket.on("user-joined",(data)=>{
-        joineduser.innerHTML="";
+    document.querySelector("#comms").innerHTML = "";
+    document.querySelector("#comms").innerHTML = `  <img src="/assets/images/dark-loader.gif" class="card-img-top" style="width: 250px;height: 30px;" alt="...">`;
+    document.querySelector("#roomtext").innerHTML = `Connections(room#${roomid})`;
+    socket.on("user-joined", (data) => {
+        joineduser.innerHTML = "";
         for (let index = 0; index < data.length; index++) {
             const element = data[index];
             let li = document.createElement("li");
-            li.setAttribute("class","list-group-item");
+            li.setAttribute("class", "list-group-item");
             li.innerHTML = element;
             joineduser.appendChild(li);
         }
-    
+
     })
 
 }
 
 function add_live_file_queue() {
     let rows = document.querySelector("#filerows");
-    let id = 'file-'+Number.parseInt(100*Math.random());
-    let tr  = document.createElement("tr");
-    tr.setAttribute("id",id);
-    tr.innerHTML=` <th scope="row">${id}</th>`;
+    let id = 'file-' + Number.parseInt(100 * Math.random());
+    let tr = document.createElement("tr");
+    tr.setAttribute("id", id);
+    tr.innerHTML = ` <th scope="row">${id}</th>`;
     let fip = document.createElement("input");
-    fip.setAttribute("type","file");
-    fip.setAttribute("required","");
-    fip.setAttribute("class","queue-file");
-    fip.setAttribute("name",id);
+    fip.setAttribute("type", "file");
+    fip.setAttribute("required", "");
+    fip.setAttribute("class", "queue-file");
+    fip.setAttribute("name", id);
     fip.click();
     tr.appendChild(fip);
     let act = document.createElement("td");
-    act.innerHTML=`<button class="btn btn-sm btn-danger" onclick="remove_file_from_queue('${id}')">Delete</button>&nbsp;&nbsp;<button class="btn btn-sm btn-success">Send</button>`;
+    act.innerHTML = `<button class="btn btn-sm btn-danger" onclick="remove_file_from_queue('${id}')">Delete</button>&nbsp;&nbsp;<button class="btn btn-sm btn-success" onclick="send_one_live_file('${id}')">Send</button>`;
     tr.appendChild(act);
     rows.appendChild(tr);
 }
@@ -988,31 +999,27 @@ function remove_file_from_queue(id) {
 }
 
 function send_queued_file() {
-    let files  = document.getElementsByClassName("queue-file");
-    Array.from(files).forEach((file)=>{
-        if (file.files.length>0) {
+    let files = document.getElementsByClassName("queue-file");
+    Array.from(files).forEach((file) => {
+        if (file.files.length > 0) {
             const reader = new FileReader();
-        
-            reader.onload = (e) => {
-              const fileData = e.target.result;
-              const fileName = file.files[0].name;
-              const type  = file.files[0].type;
 
-              socket.emit('file-upload', { id:roomid, data:fileData, name:fileName,type:type});
+            reader.onload = (e) => {
+                const fileData = e.target.result;
+                const fileName = file.files[0].name;
+                const type = file.files[0].type;
+
+                socket.emit('file-upload', { id: roomid, data: fileData, name: fileName, type: type });
             };
             reader.readAsArrayBuffer(file.files[0]);
-          }
-        // socket.emit("file-metadata",{
-        //     id : roomid,
-        //     metadata : file
-        // });
+        }
     })
-   
+
 }
 
-function download_live_file(name,data,type) {
-    console.log(name,data,type);
-    const blob = new Blob([data],{type:type});
+function download_live_file(name, data, type) {
+    console.log(name, data, type);
+    const blob = new Blob([data], { type: type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1024,28 +1031,241 @@ function download_live_file(name,data,type) {
 }
 
 function send_live_file_message() {
-    let text  = document.querySelector("#chatip").value;
-    if (text==""||text==null||text==undefined) {
+    let text = document.querySelector("#chatip").value;
+    if (text == "" || text == null || text == undefined) {
         return;
     }
-    socket.emit("send-message",{
-        id:roomid,
-        msg : text,
-        user:user_name
+    socket.emit("send-message", {
+        id: roomid,
+        msg: text,
+        user: user_name
     });
-    handle_incoming_live_file_message(user_name,text)
+    handle_incoming_live_file_message(user_name, text)
 }
 
-function handle_incoming_live_file_message(user,message) {
-    let chats  = document.querySelector("#chats");
-    let div  = document.createElement("div");
-    div.setAttribute("class","mb-3 row bg-primary my-3");
-    div.setAttribute("style","border-radius: 15px;");
-    div.innerHTML = `<label class="col-sm-2 col-form-label">${user}</label>
+function handle_incoming_live_file_message(user, message) {
+    let chats = document.querySelector("#chats");
+    let div = document.createElement("div");
+    div.setAttribute("class", "mb-3 row bg-primary my-3");
+    div.setAttribute("style", "border-radius: 15px;");
+    div.innerHTML = `<marquee class="col-sm-2 col-form-label">${user}</marquee>
     <div class="col-sm-10">
       <input type="text" readonly class="form-control-plaintext"  value="${message}">
     </div>`;
     chats.appendChild(div);
+}
+
+function send_one_live_file(id) {
+    let file = document.getElementsByName(id)[0];
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        const fileData = e.target.result;
+        const fileName = file.files[0].name;
+        const type = file.files[0].type;
+
+        socket.emit('file-upload', { id: roomid, data: fileData, name: fileName, type: type });
+    };
+    reader.readAsArrayBuffer(file.files[0]);
+}
+
+function createComment(username, text) {
+    var commentElement = document.createElement("div");
+    commentElement.setAttribute("class", "alert alert-secondary mt-3");
+    commentElement.innerHTML = `${username} : ${text}`;
+
+    // Create a reply button for this comment
+    var replyButton = document.createElement("button");
+    replyButton.setAttribute("class", "btn btn-primary btn-sm ml-2 replyBtn");
+    replyButton.innerHTML = "Reply";
+    commentElement.append(replyButton);
+
+    // Create a container for nested replies
+    var replyContainer = document.createElement("div");
+    // replyContainer.setAttribute("class","ml-4 mt-2");
+    commentElement.append(replyContainer);
+    commentElement.append(document.createElement("br"));
+    // Event handler for replying to a comment
+    replyButton.addEventListener("click", function () {
+        var replyUsername = prompt("Enter your username:");
+        var replyText = prompt("Reply to this comment:");
+        if (replyUsername && replyText) {
+            // Create a nested reply element
+            var replyElement = createComment(replyUsername, replyText);
+            replyContainer.append(replyElement);
+        }
+    });
+
+    return commentElement;
+}
+
+async function load_public_media(from, limit) {
+
+    let medias = document.querySelector("#medias");
+    let load = medias.lastChild;
+    medias.lastChild.remove();
+    if (explore_view) {
+        let res = await handleRequest(`/explore/data?from=${from}&limit=${limit}`, {
+            method: "GET"
+        }, 200);
+        if (res == null) {
+            return;
+        }
+        res.forEach((val) => {
+            let card = document.createElement("div");
+            card.setAttribute("class", "col-lg-10 col-md-6");
+            try {
+                card.innerHTML = `<div class="card col-lg-10 col-sm-7 col-md-7">
+                <div class="card-header">
+                ${val.createdBy} Shared publicaly at : ${new Date(val.updatedAt).toDateString()}
+       </div>
+           <div class="card-body">
+           <img src="${val.metadata.path}" class="card-img-top" alt="#" onerror="this.remove()">
+           <video src="${val.metadata.path}" class="img-fluid rounded" alt="#" controls onerror="this.remove()"></video>
+               <h4 class="card-title">${val.metadata.name}</h4>
+               <p class="card-text"><small class="text-muted">Updated at :${new Date(val.createdAt).toDateString()}</small></p>
+               <div class="d-flex flex-row fs-12">
+               <button class="btn btn-sm btn-outline-success like p-2 cursor mx-2"><i class="fa-solid fa-thumbs-up"></i><span class="ml-1">Like</span></button>
+               <button class="btn btn-sm btn-outline-danger like p-2 cursor mx-2"><i class="fa-solid fa-thumbs-down"></i><span class="ml-1">Dislike</span></button>
+               <button class="btn btn-sm btn-outline-info like p-2 cursor mx-2"><i class="fa-solid fa-comment"></i><span class="ml-1">Comment</span></button>
+               <button class="btn btn-sm btn-outline-primary like p-2 cursor mx-2"><i class="fa-solid fa-share"></i><span class="ml-1">Share</span></button>
+           </div>
+            </div>
+         </div>`;
+
+                var commentsSection = document.createElement("div");
+                commentsSection.setAttribute("class", "comments");
+                card.append(commentsSection);
+
+                // Create input fields for adding comments
+                var usernameInput = document.createElement("input");
+                usernameInput.setAttribute("class", "form-control");
+                usernameInput.setAttribute("placeholder", "Enter your username");
+                var commentInput = document.createElement("textarea");
+                commentInput.setAttribute("class", "form-control");
+                commentInput.setAttribute("rows", "3");
+                commentInput.setAttribute("placeholder", "Add a comment");
+                var submitButton = document.createElement("button");
+                submitButton.setAttribute("class", "btn btn-primary");
+                submitButton.innerHTML = `Submit`;
+
+
+                // Event handler for adding a comment
+                submitButton.addEventListener("click", function () {
+                    var username = usernameInput.value;
+                    var commentText = commentInput.value;
+                    if (username.trim() === "" || commentText.trim() === "") {
+                        alert("Please enter both a username and a comment.");
+                    } else {
+                        // Create a new comment element for this card
+                        var commentElement = createComment(username, commentText);
+
+                        // Append the comment to the comments section
+                        commentsSection.append(commentElement);
+
+                        // Clear the input fields
+                        usernameInput.value = "";
+                        commentInput.value = "";
+                    }
+                });
+
+                // Append input fields and submit button to the card
+                // card.append("<div class='form-group'><label>Username:</label></div>");
+                card.append(usernameInput);
+                // card.append("<div class='form-group'><label>Comment:</label></div>");
+                card.append(commentInput);
+                card.append(submitButton);
+
+            } catch (error) {
+                console.log(error.message);
+            }
+            medias.appendChild(card);
+        });
+        medias.append(load);
+    }
+}
+
+async function load_analytics_file() {
+    if (index_page) {
+        let data = await handleRequest("/analytics/files", { method: "GET" }, 200);
+        if (data == null) return;
+        let tbody = document.querySelector("#analytics_file");
+        if (tbody == null) return;
+        for(let file of data) {
+            let ext  = file.name.split('.');
+            ext = ext[ext.length-1];
+            console.log(ext);
+            let theme  = "success";
+            let icon = `<i class="fa-solid fa-file"></i>`;
+            switch (ext) {
+                case 'pptx':
+                    theme = "info";
+                   icon = `<i class="fa-solid fa-p"></i>`;
+                    break;
+                case 'pdf':
+                    theme = "danger";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+                case 'xlsx':
+                    theme = "success";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+                case 'docx':
+                    theme = "primary";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+                case 'msi':
+                    theme = "secondary";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+                case 'zip':
+                    theme = "secondary";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+                case 'exe':
+                    theme = "secondary";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+                case 'mkv':
+                    theme = "info";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+                default:
+                    theme = "secondary";
+                    icon = `<i class="fa-solid fa-file"></i>`;
+                    break;
+            }
+
+          let tr  = document.createElement("tr");
+          tr.innerHTML=`<td>
+          <div class="d-flex align-items-center">
+              <div class="icon-small bg-${theme} rounded mr-3">
+                  ${icon}
+              </div>
+              <div data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.path}" data-toggle="modal" data-target="#exampleModal" data-title="${file.name}" style="cursor: pointer;"><marquee>${file.name}</marquee></div>
+          </div>
+      </td>
+      <td>${file.author}</td>
+      <td><marquee>${new Date(file.lastedit).toDateString()} ${file.editor}</marquee></td>
+      <td>${(file.size/1024/1024).toFixed(3)} MB</td>
+      <td>
+          <div class="dropdown">
+              <span class="dropdown-toggle" id="dropdownMenuButton6" data-toggle="dropdown">
+                  <i class="ri-more-fill"></i>
+              </span>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton6">
+                  <a class="dropdown-item" href="#"><i class="ri-eye-fill mr-2"></i>View</a>
+                  <a class="dropdown-item" href="#"><i class="ri-delete-bin-6-fill mr-2"></i>Delete</a>
+                  <a class="dropdown-item" href="#"><i class="ri-pencil-fill mr-2"></i>Edit</a>
+                  <a class="dropdown-item" href="#"><i class="ri-printer-fill mr-2"></i>Print</a>
+                  <a class="dropdown-item" href="#"><i class="ri-file-download-fill mr-2"></i>Download</a>
+              </div>
+          </div>
+      </td>`;
+      tbody.appendChild(tr);
+        }
+    }
 }
 
 // utils
@@ -1054,8 +1274,46 @@ function util_extract_json_from_formdata(formData) {
 }
 
 window.onload = async () => {
-    update_sidebar();
-    home_update_folders();
-    load_files();
-    live_share();
+    try {
+        update_sidebar();
+    } catch (error) {
+
+    }
+    try {
+        home_update_folders();
+    } catch (error) {
+
+    }
+    try {
+        load_files();
+    } catch (error) {
+
+    }
+    try {
+        await load_public_media(0, 1)
+    } catch (error) {
+
+    }
+    try {
+        await live_share();
+    } catch (error) {
+
+    }
+    await load_analytics_file()
 }
+let isLoading = false, from = 0;
+window.addEventListener('scroll', async () => {
+    if (isLoading) return;
+
+    // Check if the user is near the bottom of the page
+    if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 100
+    ) {
+        isLoading = true;
+        await load_public_media(from + 1, 1);
+        from = from + 1;
+        isLoading = false;
+    }
+}
+);
