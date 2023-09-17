@@ -348,24 +348,22 @@ const generateWizardCard = (event) => {
 }
 
 async function load_files(params) {
-    let folder_flag = document.querySelector("#folder").value;
-    if (folder_flag == "true") {
+    try {
+        folder_page  = folder_page;
+    } catch (error) {
+        folder_page = false;
+    }
+    if (folder_page) {
         let btn = document.querySelector('body > div.content-page > div > div.row > div > div > div.d-flex.align-items-center > div.list-grid-toggle.mr-4 > span.icon.i-grid.icon-grid > i');
 
         setTimeout(() => {
             btn.click();
         }, 700);
 
-
-        let url = document.location.href;
-        let folder_id = url.split('/');
-        folder_id = folder_id[folder_id.length - 1];
-        folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
-
         let config = {
             method: "GET"
         }
-        let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
+        let ress = await handleRequest(`/file/all?folder=${Number.parseInt(folder_id)}`, config, 200);
         // if(ress==null){
         //     Swal.fire({
         //         icon: 'error',
@@ -1100,8 +1098,14 @@ function createComment(username, text) {
     return commentElement;
 }
 
-async function load_public_media(from, limit) {
+try {
+    explore_view = explore_view;
+} catch (error) {
+    explore_view = false;
+}
 
+async function load_public_media(from, limit) {
+    if (explore_view) {
     let medias = document.querySelector("#medias");
     let load = medias.lastChild;
     medias.lastChild.remove();
@@ -1185,55 +1189,56 @@ async function load_public_media(from, limit) {
         medias.append(load);
     }
 }
+}
 
 async function load_analytics_file() {
-    if (index_page) {
-        let data = await handleRequest("/analytics/files", { method: "GET" }, 200);
+    var from = 0,limit=10;
+   async function load_and_addd_explore_file(from,limit) {
+        let data = await handleRequest(`/analytics/files?from=${from}&limit=${limit}`, { method: "GET" }, 200);
         if (data == null) return;
         let tbody = document.querySelector("#analytics_file");
         if (tbody == null) return;
         for(let file of data) {
             let ext  = file.name.split('.');
             ext = ext[ext.length-1];
-            console.log(ext);
             let theme  = "success";
-            let icon = `<i class="fa-solid fa-file"></i>`;
+            let icon = `<i class="fa-solid fa-file" style="width:35px"></i>`;
             switch (ext) {
                 case 'pptx':
                     theme = "info";
-                   icon = `<i class="fa-solid fa-p"></i>`;
+                   icon = `<i class="fa-solid fa-file-powerpoint" style="width:35px"></i>`;
                     break;
                 case 'pdf':
                     theme = "danger";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-file-pdf" style="width:35px"></i>`;
                     break;
                 case 'xlsx':
                     theme = "success";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-file-excel" style="width:35px"></i>`;
                     break;
                 case 'docx':
                     theme = "primary";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-file-word" style="width:35px"></i>`;
                     break;
                 case 'msi':
                     theme = "secondary";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-file-code" style="width:35px"></i>`;
                     break;
                 case 'zip':
                     theme = "secondary";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-file-zipper" style="width:35px"></i>`;
                     break;
                 case 'exe':
                     theme = "secondary";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-file-code" style="width:35px"></i>`;
                     break;
                 case 'mkv':
                     theme = "info";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-video" style="width:35px"></i>`;
                     break;
                 default:
                     theme = "secondary";
-                    icon = `<i class="fa-solid fa-file"></i>`;
+                    icon = `<i class="fa-solid fa-file" style="width:35px"></i>`;
                     break;
             }
 
@@ -1246,7 +1251,6 @@ async function load_analytics_file() {
               <div data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.path}" data-toggle="modal" data-target="#exampleModal" data-title="${file.name}" style="cursor: pointer;"><marquee>${file.name}</marquee></div>
           </div>
       </td>
-      <td>${file.author}</td>
       <td><marquee>${new Date(file.lastedit).toDateString()} ${file.editor}</marquee></td>
       <td>${(file.size/1024/1024).toFixed(3)} MB</td>
       <td>
@@ -1255,8 +1259,8 @@ async function load_analytics_file() {
                   <i class="ri-more-fill"></i>
               </span>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton6">
-                  <a class="dropdown-item" href="#"><i class="ri-eye-fill mr-2"></i>View</a>
-                  <a class="dropdown-item" href="#"><i class="ri-delete-bin-6-fill mr-2"></i>Delete</a>
+                  <a class="dropdown-item" href="/file/${file.id}"><i class="ri-eye-fill mr-2"></i>View</a>
+                  <a class="dropdown-item" onclick=""><i class="ri-delete-bin-6-fill mr-2"></i>Delete</a>
                   <a class="dropdown-item" href="#"><i class="ri-pencil-fill mr-2"></i>Edit</a>
                   <a class="dropdown-item" href="#"><i class="ri-printer-fill mr-2"></i>Print</a>
                   <a class="dropdown-item" href="#"><i class="ri-file-download-fill mr-2"></i>Download</a>
@@ -1266,11 +1270,161 @@ async function load_analytics_file() {
       tbody.appendChild(tr);
         }
     }
+    try {
+        index_page = index_page
+    } catch (error) {
+        index_page = false;
+    }
+    if (index_page) {
+        await load_and_addd_explore_file(from,limit)
+        var scrollableDiv = document.getElementById("scroll_place");
+
+  scrollableDiv.addEventListener("scroll",async function () {
+    if (
+      scrollableDiv.scrollTop + scrollableDiv.clientHeight >=
+      scrollableDiv.scrollHeight
+    ) {
+        await load_and_addd_explore_file(from+limit+1,limit)
+        from +=limit+1;
+    }
+  });
+    }
+}
+
+// index-page
+async function load_index_docs() {
+    if (index_page) {
+    var from=0,limit=5;
+    let holder  = document.querySelector("#index_docs");
+
+   async function add_docs_to_holder(from=0,limit=5) {
+        let data = await handleRequest(`/analytics/docs?from=${from}&limit=${limit}`, { method: "GET" }, 200);
+        for (const file of data) {
+           let dv = document.createElement("div");
+           dv.setAttribute("class","col-lg-3 col-md-6 col-sm-6 bb");
+           dv.innerHTML=`<div class="card card-block card-stretch card-height">
+           <div class="card-body image-thumb">
+               <a href="#" data-title="${file.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.path}" data-toggle="modal" data-target="#exampleModal">
+               <div class="mb-4 text-center p-3 rounded iq-thumb">
+                   <div class="iq-image-overlay"></div>
+                   <img src="${get_meta_card_from_ext(file.name.split(".").slice(-1)[0]).image}" class="img-fluid" alt="image1">
+               </div>
+               <h6><marquee>${file.name}</marquee></h6>  
+               </a>   
+           </div>
+       </div>`;
+       holder.appendChild(dv);
+        }
+    }
+
+    add_docs_to_holder(from,limit);
+
+    holder.addEventListener("scroll",async function () {
+        if (
+          holder.scrollLeft + holder.offsetWidth >=
+          holder.scrollWidth -1
+        ) {
+         add_docs_to_holder(from+limit+1,limit);
+         from += limit+1;
+        }
+      });
+    }
+}
+
+async function generate_chart() {
+
+   
+    let data = await handleRequest("/analytics/storage",{method:"GET"},200);
+   let totgb  = (Number.parseInt(data.used)/1024/1024/1024).toFixed(2);
+    //chart card;
+    let storage_card_sidebar = document.querySelector("#storage_card_sidebar");
+    storage_card_sidebar.innerHTML=` <h4 class="mb-3"><i class="fa-solid fa-cloud"></i>Storage</h4>
+    <p>${totgb} GB Used from 20GB</p>
+    <div class="iq-progress-bar mb-3">
+        <span class="bg-primary iq-progress progress-1" data-percent="${(totgb/20).toFixed(2)*100}" style="transition: width 2s ease 0s; width: ${(totgb/20).toFixed(2)*100}%;">
+        </span>
+    </div>
+    <p>${(totgb/20).toFixed(2)*100}% Full - ${20-totgb} GB Free</p>
+    <a class="btn btn-outline-primary view-more mt-4">Buy Storage</a>`;
+ if (index_page) {
+    let mb  = [];
+    let map = new Map();
+    for(let usage of data.monthly_usage) {
+      map.set(Number.parseInt(usage.month),(Number.parseInt(usage.size)/1024/1024).toFixed(2))
+    }
+    for (let month = 1; month <=12; month++) {
+        if (map.has(month)) {
+            mb.push(map.get(month))
+        }
+        else{
+            mb.push(0);
+        }
+    }
+    
+    var options = {
+        series: [{
+          name: "MB",
+          data: mb
+      }],
+        chart: {
+        height: 350,
+        type: 'line',
+        zoom: {
+          enabled: false
+        }
+      },
+      dataLabels: {
+        enabled: false
+      },
+      stroke: {
+        curve: 'stepline'
+      },
+      title: {
+        text: 'Storage Used By Month',
+        align: 'left'
+      },
+      grid: {
+        row: {
+          colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+          opacity: 0.5
+        },
+      },
+      xaxis: {
+        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct','Nov','Dec'],
+      }
+      };
+
+      var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
+      chart.render();
+    }
 }
 
 // utils
-function util_extract_json_from_formdata(formData) {
+async function util_extract_json_from_formdata(formData) {
+    
 
+}
+
+function get_meta_card_from_ext(ext) {
+    let map = new Map();
+    map.set('pdf',{
+        image:"/assets/images/layouts/page-1/pdf.png"
+    })
+    map.set('pptx',{
+        image:"/assets/images/layouts/page-1/ppt.png"
+    })
+    map.set('docx',{
+        image:"/assets/images/layouts/page-1/doc.png"
+    })
+    map.set('xlsx',{
+        image:"/assets/images/layouts/page-1/xlsx.png"
+    })
+    map.set('csv',{
+        image:"/assets/images/layouts/page-1/xlsx.png"
+    });
+    let res  = map.get(ext);
+    if(res==undefined) return {image:"/assets/images/layouts/page-1/file.png"}
+    return res; 
 }
 
 window.onload = async () => {
@@ -1299,7 +1453,18 @@ window.onload = async () => {
     } catch (error) {
 
     }
-    await load_analytics_file()
+    try {
+        await load_analytics_file()
+        console.table(data);
+    } catch (error) {
+        
+    }
+    try {
+        load_index_docs();
+    } catch (error) {
+        
+    }
+   generate_chart();
 }
 let isLoading = false, from = 0;
 window.addEventListener('scroll', async () => {

@@ -1,5 +1,7 @@
 const { generategeneralData } = require("../utils/PageData");
 
+const foldersrv = require("../services/Folder");
+
 const get_user_home = (req, res) => {
     res.status(200).render('index.ejs', {
         data: {
@@ -38,13 +40,25 @@ const get_pages = (req, res) => {
     }
 }
 
-const get_folder_pages=(req,res)=>{
+const get_folder_pages=async(req,res)=>{
+    try {
+    let {id} = req.params;
+    if (id==undefined) {
+        throw new Error(`id not provided..`);
+    }
+    let data  = await foldersrv.get_by_id(id);
     res.status(200).render('page-folder-view.ejs', {
         data: {
             ...generategeneralData(),
-            ...req.user_data
+            ...req.user_data,
+            folder:data
         }
     });
+} catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+}
 }
 
 module.exports = { get_user_home, get_pages ,get_folder_pages}
