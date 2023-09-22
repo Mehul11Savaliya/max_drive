@@ -12,12 +12,10 @@
         </a>
     </div>
         <div class="iq-search-bar device-search">
-            
-            <form>
                 <div class="input-prepend input-append">
                     <div class="btn-group">
                         <label class="dropdown-toggle searchbox" data-toggle="dropdown">
-                        <input class="dropdown-toggle search-query text search-input" type="text"  placeholder="Type here to search..."><span class="search-replace"></span>
+                        <input id="search_bar" class="dropdown-toggle search-query text search-input" type="text"  placeholder="Type here to search..." oninput="load_searches(event,'reslts')"><span class="search-replace"></span>
                         <a class="search-link" href="#"><i class="fa-solid fa-magnifying-glass"></i></a>
                         <span class="caret"><!--icon--></span>
                         </label>
@@ -27,11 +25,13 @@
                             <li><a href="#"><div class="item"><i class="fa-solid fa-file-excel bg-success"></i>Spreadsheet</div></a></li>
                             <li><a href="#"><div class="item"><i class="fa-solid fa-file-powerpoint"></i>Presentation</div></a></li>
                             <li><a href="#"><div class="item"><i class="fa-solid fa-photo-film"></i>Photos & Images</div></a></li>
-                            <li><a href="#"><div class="item"><i class="fa-solid fa-video"></i>Videos</div></a></li>
+                            <li>------</li>
+                            <ul style="list-style: none;max-height: 20vh;overflow-y: scroll;" id="reslts">
+
+                            </ul>
                         </ul>
                     </div>
                 </div>
-            </form>
         </div>
 
         <div class="d-flex align-items-center">
@@ -57,12 +57,15 @@
                         <i class="fa-solid fa-bars"></i>
                     </a>
                     <div class="iq-search-bar iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownSearch">
-                        <form action="#" class="searchbox p-2">
+                        <div class="searchbox p-2">
                             <div class="form-group mb-0 position-relative">
-                            <input type="text" class="text search-input font-size-12" placeholder="type here to search...">
+                            <input id="search_bar" type="text" class="text search-input font-size-12" placeholder="type here to search..." oninput="load_searches(event,'resltsmin')">
                             <a href="#" class="search-link"><i class="fa-solid fa-magnifying-glass"></i></a> 
+                            <ul style="list-style: none;max-height: 40vh;overflow-y: scroll;font-size: 16px;" id="resltsmin">
+
+                            </ul>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </li> 
                 <li class="nav-item nav-icon dropdown">

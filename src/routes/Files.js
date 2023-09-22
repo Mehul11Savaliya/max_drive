@@ -20,9 +20,7 @@ router.get("/:id",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,us
 router.put("/:id",(req,res)=>{
     res.status(503).send();
 });
-router.patch("/:id",(req,res)=>{
-    res.status(503).send();
-});
+router.patch("/:id",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.patch_file);
 router.delete("/:id",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.delete_file);
 
 router.get("/:id/content",controller.get_file_content);

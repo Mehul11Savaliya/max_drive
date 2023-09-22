@@ -40,11 +40,12 @@
 
        
         <!-- new Vendors -->
-        <link rel="stylesheet" href="/assets/vendor/tagsinput/bootstrap-tagsinput.css">
         <link rel="stylesheet" href="/assets/vendor/timeline-master/style.css">
         <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
         <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
         <script src="/assets/vendor/socketio/socket.io.min.js"></script>
+        <link  rel="stylesheet" href="/assets/vendor/tokenfieldjs/tokenfield.css">
+        <script  src="/assets/vendor/tokenfieldjs/tokenfield.web.js"></script>
         <!-- new Vendors -->
  </head>
         <body class=" color-light ">
@@ -108,7 +109,42 @@
                   </div>
                   <div class="row">
                     <div class="col-sm-1"><i class="fa-solid fa-bookmark"></i></div>
-                    <div class="col-sm-5 col-lg-8"> <input class="form form-control" type="text" id="tags" value="<%=data.file.tags%>" data-role="tagsinput"/></div>
+                    <div class="col-sm-5 col-lg-8"> <input class="basic form form-control" id="tokens" placeholder="e.g. movie,filename etc"  /></div>
+                    <!-- <input class="form form-control" type="text" id="tags" value="<%=data.file.tags%>" data-role="tagsinput"/> -->
+
+                    <script>
+                      var tags  ='<%-data.file.tags-%>';
+                      let old_tags  = tags.split(",").map((val)=>{
+                        return {
+                          isNew:false,
+                          name : val
+                        }
+                      })
+                     const myItems = []
+                      const instance = new Tokenfield({
+                                     el: document.querySelector('.basic'),
+                                      items: myItems,
+                                    setItems:old_tags
+                                    });
+                     instance.on("addToken",()=>{
+                        let tags  = instance.getItems().map((val)=>{return val.name})
+                        try {
+                          fileid = Number.parseInt(fileid);
+                          update_file_tags(fileid,tags);
+                        } catch (error) {
+                          notifire.alert("tag not updated..");
+                        }
+                     });
+                     instance.on("removeToken",()=>{
+                        let tags  = instance.getItems().map((val)=>{return val.name})
+                        try {
+                          fileid = Number.parseInt(fileid);
+                          update_file_tags(fileid,tags);
+                        } catch (error) {
+                          notifire.alert("tag not updated..");
+                        }
+                     });
+                    </script>
                   </div>
                   <div class="row">
                     <div class="col-sm-1"><i class="fa-solid fa-bullseye"></i>
@@ -224,10 +260,8 @@
     <script src="/assets/js/doc-viewer.js" defer></script>
 
     <!-- new Vendors -->
-    <script src="/assets/vendor/jquery/min.js"></script>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js" integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-    <script src="/assets/vendor/tagsinput/bootstrap-tagsinput.min.js"></script>
-    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+  <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
     <!-- <script src="/assets/vendor/tagsinput/bootstrap-tagsinput-angular.min.js"></script> -->
     <!-- new Vendors -->

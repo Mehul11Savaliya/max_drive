@@ -39,7 +39,7 @@ const post_files = async (req, res) => {
                     metadata: metadata,
                     createdBy: req.user_data.email,
                     updatedBy: req.user_data.email,
-
+                    tags :[metadata.name]
                 }
                 let resp = await service.create(file);
                 arr.push(resp);
@@ -71,6 +71,7 @@ const post_files = async (req, res) => {
                         metadata: metadata,
                         createdBy: req.user_data.email,
                         updatedBy: req.user_data.email,
+                        tags :[metadata.name]
                     }
 
                     let resp = await service.create(file);
@@ -326,6 +327,22 @@ const post_decrypt_file = (req, res) => {
     }
 }
 
+const patch_file=async(req,res)=>{
+    try {
+        let {id} = req.params;
+        if (id==null||id==undefined) {
+            throw new Error(`invalid id formate..`);
+        }
+        id  = Number.parseInt(id);
+        let resx = await service.update(id,req.user_data.email,req.body);
+        res.status(200).json(resx);
+    } catch (error) {
+     res.status(400).json({
+        errmsg : error.message
+     });   
+    }
+}
+
 function sendError(res, err) {
     return res.status(400).json({
         errmsg: err.message
@@ -339,5 +356,6 @@ module.exports = {
     get_file,
     get_file_content,
     get_crypto_file,
-    post_decrypt_file
+    post_decrypt_file,
+    patch_file
 }

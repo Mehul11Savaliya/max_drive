@@ -97,7 +97,7 @@ async function home_update_folders(data) {
                                 <i class="fa-solid fa-bullseye"></i>
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton2">
-                                    <a class="dropdown-item" href="#"><i class="fa-solid fa-eye"></i>View</a>
+                                    <a class="dropdown-item" href="/user/folder/${data.id}"><i class="fa-solid fa-eye"></i>View</a>
                                     <button onclick="deleteFolder(${data.id})" class="dropdown-item"><i class="fa-solid fa-trash"></i></button>
                                     <a class="dropdown-item" href="#"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
                                     <a class="dropdown-item" href="#"><i class="fa-solid fa-print"></i>Print</a>
@@ -574,7 +574,11 @@ function generate_folder_file_cards(files) {
 }
 
 // file related scripts
-
+try {
+    fileflag = fileflag;
+} catch (error) {
+    fileflag = false;
+}
 async function file_delete_functions(folder_id) {
     if (fileflag) {
         let filid = Number.parseInt(fileid);
@@ -1191,6 +1195,12 @@ async function load_public_media(from, limit) {
 }
 }
 
+try {
+    index_page = index_page
+} catch (error) {
+    index_page = false;
+}
+
 async function load_analytics_file() {
     var from = 0,limit=10;
    async function load_and_addd_explore_file(from,limit) {
@@ -1270,11 +1280,7 @@ async function load_analytics_file() {
       tbody.appendChild(tr);
         }
     }
-    try {
-        index_page = index_page
-    } catch (error) {
-        index_page = false;
-    }
+
     if (index_page) {
         await load_and_addd_explore_file(from,limit)
         var scrollableDiv = document.getElementById("scroll_place");
@@ -1332,8 +1338,6 @@ async function load_index_docs() {
 }
 
 async function generate_chart() {
-
-   
     let data = await handleRequest("/analytics/storage",{method:"GET"},200);
    let totgb  = (Number.parseInt(data.used)/1024/1024/1024).toFixed(2);
     //chart card;
@@ -1399,6 +1403,149 @@ async function generate_chart() {
     }
 }
 
+async function update_storage_chart(gap) {
+        document.querySelector("#storage_chart").innerHTML='';
+    let data = await handleRequest(`/analytics/storage/usage?gap=${gap}`,{method:"GET"},200);
+ 
+ if (index_page) {
+    switch (gap) {
+        case 'monthly':
+            var mb  = [];
+            let map = new Map();
+            for(let usage of data) {
+              map.set(Number.parseInt(usage.month),(Number.parseInt(usage.size)/1024/1024).toFixed(2))
+            }
+            for (let month = 1; month <=12; month++) {
+                if (map.has(month)) {
+                    mb.push(map.get(month))
+                }
+                else{
+                    mb.push(0);
+                }
+            }
+            
+            var options = {
+                series: [{
+                  name: "MB",
+                  data: mb
+              }],
+                chart: {
+                height: 350,
+                type: 'line',
+                zoom: {
+                  enabled: false
+                }
+              },
+              dataLabels: {
+                enabled: false
+              },
+              stroke: {
+                curve: 'stepline'
+              },
+              title: {
+                text: 'Storage Used By Month',
+                align: 'left'
+              },
+              grid: {
+                row: {
+                  colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                  opacity: 0.5
+                },
+              },
+              xaxis: {
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct','Nov','Dec'],
+              }
+              };
+        
+              var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
+              chart.render();
+            break;
+        case 'yearly':
+             mb  = [];
+             years =[];
+            for(let usage of data) {
+              mb.push((Number.parseInt(usage.size)/1024/1024).toFixed(2));
+              years.push(usage.year);
+            }
+
+             options = {
+                series: [{
+                  name: "MB",
+                  data: mb
+              }],
+                chart: {
+                height: 350,
+                type: 'line',
+                zoom: {
+                  enabled: false
+                }
+              },
+              dataLabels: {
+                enabled: false
+              },
+              stroke: {
+                curve: 'stepline'
+              },
+              title: {
+                text: 'Storage Used By Year',
+                align: 'left'
+              },
+              grid: {
+                row: {
+                  colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                  opacity: 0.5
+                }
+              },
+              labels : years
+              };
+              var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
+              chart.render();
+            break;
+        default:
+            break;
+    }
+}
+}
+
+
+
+async function update_file_tags(id,tags) {
+    if (fileflag) {
+         let data = handleRequest(`/file/${id}`,{
+        method:"PATCH",
+        headers:{
+            'Content-Type':'application/json'
+        },
+        body:JSON.stringify({tags:tags})
+    },200);
+    if (data==null) {
+        notifier.alert("tag not updated..");
+    }
+}
+}
+
+// search bar related
+let holder  = document.querySelector("#reslts");
+// sbar.addEventListener("input",async()=>{
+   
+// })
+
+async function load_searches(event,resultid) {
+     holder  = document.getElementById(resultid);
+
+    let data  = await handleRequest(`/analytics/files/search?q=${event.target.value}`,{method:"GET"},200);
+   holder.innerHTML = '';
+   if (data.length==0) {
+    return;
+   }
+   let i =0 ;
+   for(let val of data) {
+    let lix  = document.createElement("li");
+    lix.innerHTML = `<a href="/file/${val.id}"> <span><small><marquee>${val.name} (${val.mime.split('/')[1]})</marquee></small></span></a></li>`;
+    holder.appendChild(lix);
+   }
+}
+
 // utils
 async function util_extract_json_from_formdata(formData) {
     
@@ -1426,6 +1573,41 @@ function get_meta_card_from_ext(ext) {
     if(res==undefined) return {image:"/assets/images/layouts/page-1/file.png"}
     return res; 
 }
+
+// Check if the browser supports the Cache API
+if ('caches' in window) {
+    // Define a cache name
+    const cacheName = 'src';
+  
+    // Define an array of URLs to cache
+    const urlsToCache = ["/assets/js/doc-viewer.js","/assets/js/app.js","/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.js","/assets/vendor/doc-viewer/include/verySimpleImageViewer/js/jquery.verySimpleImageViewer.js",
+    "/assets/vendor/doc-viewer/include/SheetJS/xlsx.full.min.js","/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.js","/assets/vendor/doc-viewer/include/PPTXjs/js/divs2slides.js","/assets/vendor/doc-viewer/include/PPTXjs/js/pptxjs.js"
+    ,"/assets/vendor/doc-viewer/include/PPTXjs/js/nv.d3.min.js","/assets/vendor/doc-viewer/include/PPTXjs/js/d3.min.js","/assets/vendor/doc-viewer/include/PPTXjs/js/filereader.js","/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js",
+    "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js","/assets/vendor/doc-viewer/include/docx/jszip-utils.js","/assets/vendor/doc-viewer/include/pdf/pdf.js","/assets/js/chart-custom.js","/assets/js/customizer.js","/assets/js/backend-bundle.min.js",
+    "/assets/vendor/fontawesome/css/solid.css","/assets/vendor/fontawesome/css/solid.css","/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css","/assets/vendor/doc-viewer/include/verySimpleImageViewer/css/jquery.verySimpleImageViewer.css",
+    "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.css","/assets/vendor/doc-viewer/include/PPTXjs/css/nv.d3.min.css","/assets/vendor/doc-viewer/include/PPTXjs/css/pptxjs.css","/assets/vendor/doc-viewer/include/pdf/pdf.viewer.css"
+    ];
+  
+    // Open the cache
+    caches.open(cacheName)
+      .then(function(cache) {
+        // Iterate through the URLs and cache each one
+        urlsToCache.forEach(function(url) {
+          // Fetch the resource from the network
+          fetch(url)
+            .then(async function(response) {
+              if (response.status === 200) {
+                // If the resource was fetched successfully, add it to the cache
+                cache.put(url,response);
+              }
+            })
+            .catch(function(error) {
+              console.error('Error fetching resource:', error);
+            });
+        });
+      });
+  }
+  
 
 window.onload = async () => {
     try {
@@ -1464,7 +1646,12 @@ window.onload = async () => {
     } catch (error) {
         
     }
-   generate_chart();
+    try {
+        generate_chart();
+    } catch (error) {
+        
+    }
+  
 }
 let isLoading = false, from = 0;
 window.addEventListener('scroll', async () => {

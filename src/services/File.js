@@ -66,4 +66,28 @@ const delete_file=async(id,user)=>{
     return res;
 }
 
-module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read}
+const update=async(id,user,new_data)=>{
+    console.log(new_data);
+    let old  = await get_by_id(id,user,true);
+    if (old==null) {
+        throw new Error(`file with id = ${id} not exist..`);
+    }
+
+    //tags updattion
+    let {tags} = new_data;
+    // console.log(tags);
+    if (tags!=null||tags!=undefined) {
+        old.tags = tags;
+    }
+    //userupdattion..
+    old.updatedBy = user;
+    
+    await old.save();
+    return old.dataValues;
+}
+
+// setTimeout(async() => {
+//    await update(69,'svlmehul@gmail.com',{});
+// }, 500);
+
+module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read,update}

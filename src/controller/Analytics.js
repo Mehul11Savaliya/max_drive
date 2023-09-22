@@ -59,9 +59,52 @@ const get_storage_usage=async(req,res)=>{
     }
 }
 
+const get_storage_usage_stats=async(req,res)=>{
+    try {
+        let {gap}=req.query;
+        if (!check_gap(gap)) throw new Error(`invlaid gap provided..`);
+        
+        let resx = await service.get_storage_stats(gap,req.user_data.email);
+        res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg : error.message
+        })        
+    }
+}
+
+const get_file_search=async(req,res)=>{
+    try {
+        let {q} = req.query;
+        if (q==undefined) {
+            throw new Error();
+        }
+        if (q=='') {
+            return res.status(200).json([]);
+        }
+        let resx  = await service.search(q,req.user_data.email);
+        res.status(200).json(resx);
+    } catch (error) {
+        console.log(error);
+        res.status(200).send();
+    }
+}
+
 module.exports={
     under_dev,
     get_file_list,
     get_index_docs_list,
-    get_storage_usage
+    get_storage_usage,
+    get_storage_usage_stats,
+    get_file_search
+}
+
+function check_gap(gap) {
+    if (gap==undefined||gap==null||gap=='') {
+        return false;
+    }
+    let allowed = ['daily','monthly','weekly','yearly'];
+    if (allowed.includes(gap)) {
+        return true;
+    }
 }
