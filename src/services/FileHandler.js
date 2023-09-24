@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const uuid = require("uuid");
+const sharp = require("sharp");
 
 const { algometadata } = require("../utils/encryptiondb");
 
@@ -131,6 +132,26 @@ const encrypt_file_v2 = (input_path, algorithm, cb) => {
    
 }
 
+const gen_thumb_nail=(path,width=200,height=200,cb)=>{
+    const thumbnailWidth = width;
+    const thumbnailHeight = height;
+  
+    sharp(path)
+      .resize(thumbnailWidth, thumbnailHeight)
+      .toFormat("webp")
+      .toBuffer((err, data) => {
+        if (err) {
+          cb(new Error(`Error generating thumbnail + ${err.message}`),null);
+        } else {
+        //   // Set response headers to indicate it's an image
+        //   res.set('Content-Type', 'image/jpeg');
+        //   res.set('Content-Disposition', 'inline; filename=thumbnail.jpg');
+  
+          // Send the generated thumbnail data to the frontend
+         cb(null,data);
+        }
+      });
+}
 
 // encrypt_file_v2('/uploads/1.zip', 'aes-128-cbc', (err, key, iv) => {
 //     console.log(err, key, iv);
@@ -139,9 +160,16 @@ const encrypt_file_v2 = (input_path, algorithm, cb) => {
 //     console.log(err, op);
 // })
 
+const convert_file_to=(path,target_type)=>{
+    pandoc(path,'-f docx -t markdown -o ./markdown.md',(err,res)=>{
+        console.log(err,res);
+    })
+}
+
 module.exports = {
     move_file_to,
     delete_file,
     encrypt_file_v2,
-    decrypt_file_v2
+    decrypt_file_v2,
+    gen_thumb_nail
 }

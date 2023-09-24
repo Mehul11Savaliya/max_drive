@@ -17,4 +17,7 @@ router.get("/docs",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,u
 router.get("/storage",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_storage_usage);
 router.get('/storage/usage',tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_storage_usage_stats);
 
+//audit
+// tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,
+router.get("/file/:id/audit",controller.get_file_audit)
 module.exports=router;

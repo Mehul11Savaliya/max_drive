@@ -1,4 +1,5 @@
 const service = require("../services/Analytics");
+const fileauditsrv = require("../services/FileAudit");
 
 const under_dev=(req,res)=>{
     res.status(503).send();
@@ -90,13 +91,38 @@ const get_file_search=async(req,res)=>{
     }
 }
 
+const get_file_audit=async(req,res)=>{
+    try {
+        let {id} = req.params;
+        if (id==undefined) {
+            throw new Error(`invalid request..`);
+        }
+        id = Number.parseInt(id);
+        let resx  = await fileauditsrv.get_file_timeline(id);
+        resx = resx.map((val)=>{
+            return {
+                user : val.user,
+                time : val.time,
+                fileid : val.fileid,
+                message : val.message
+            }
+        })
+        res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg : error.message
+        })
+    }
+}
+
 module.exports={
     under_dev,
     get_file_list,
     get_index_docs_list,
     get_storage_usage,
     get_storage_usage_stats,
-    get_file_search
+    get_file_search,
+    get_file_audit
 }
 
 function check_gap(gap) {

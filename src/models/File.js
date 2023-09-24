@@ -39,6 +39,10 @@ const File = sq.define("file",{
     },
     metadata:{
         type : DataTypes.JSONB
+    },
+    password:{
+        type:DataTypes.STRING,
+        defaultValue:null
     }
 },
 {

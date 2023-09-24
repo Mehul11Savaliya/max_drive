@@ -349,7 +349,7 @@ const generateWizardCard = (event) => {
 
 async function load_files(params) {
     try {
-        folder_page  = folder_page;
+        folder_page = folder_page;
     } catch (error) {
         folder_page = false;
     }
@@ -423,6 +423,9 @@ function generate_folder_file_cards(files) {
                 break;
             default:
                 thumdimg = file.metadata.path;
+                if (file.metadata.mimetype.split("/")[0] == "image") {
+                    thumdimg = `/file/${file.id}/content?type=thumb`;
+                }
                 break;
         }
         tr.innerHTML = `<td>
@@ -549,7 +552,7 @@ function generate_folder_file_cards(files) {
                 gridcard.innerHTML = `    <div class="card card-block card-stretch card-height">
                 <div class="card-body image-thumb ">
                     <div class="mb-4 text-center p-3 rounded iq-thumb">
-                        <a data-author="${file.createdBy}" data-title="${file.metadata.name}" class="image-popup-vertical-fit" href="${file.metadata.path}">
+                        <a data-author="${file.createdBy}" data-title="${file.metadata.name}" class="image-popup-vertical-fit" href="/file/${file.id}/content?type=thumb">
                             <img src="${file.metadata.path}" class="img-fluid" alt="images">
                             <div class="iq-image-overlay"></div>
                         </a>
@@ -660,26 +663,18 @@ const file_share_function = (fid) => {
                         object[key] = val;
                     });
                     let config = {
-                        method: "POST",
+                        method: "PATCH",
                         headers: {
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify(object)
                     }
-                    let res = await handleRequest(`/permission/${fid}/fmdata`, config, 201);
+                    res = await handleRequest(`/permission/${fid}/fmdata`, config, 200);
                     if (res == null) {
-                        config.method = 'PATCH';
-                        res = await handleRequest(`/permission/${fid}/fmdata`, config, 200);
-                        if (res == null) {
-                            notifier.alert("Not able to update..");
-                        } else {
-                            file_share_settings = res;
-                            notifier.success("Updated..");
-                        }
+                        notifier.alert("Not able to update..");
                     } else {
                         file_share_settings = res;
                         notifier.success("Updated..");
-
                     }
                 }
             });
@@ -709,14 +704,113 @@ const manage_file_tags = (fileid, tags) => {
     }
 }
 
-const generate_file_timeline = (filemname) => {
+async function update_file_tags(id, tags) {
     if (fileflag) {
-        if (filemname == undefined) {
-            notifier.alert("something went worng..");
+        let data = handleRequest(`/file/${id}`, {
+            method: "PATCH",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tags: tags })
+        }, 200);
+        if (data == null) {
+            notifier.alert("tag not updated..");
         }
     }
 }
 
+async function file_gen_timeline(fileid) {
+    if (fileflag) {
+        if (fileid == undefined) {
+            notifier.alert("something went worng..");
+        } else {
+            fileid = Number.parseInt(fileid);
+            let resx = await handleRequest(`/analytics/file/${fileid}/audit`, { method: "GET" }, 200);
+            resx = resx.map((val) => {
+                return {
+                    date: `${new Date(val.time).toDateString()}`,
+                    content: `accessed by <br> ${val.user} \n<br> msg :<span style="color:red"> ${val.message==undefined?"":val.message}</span>`
+                }
+            })
+            $('#file-timeline').roadmap(resx, {
+                eventsPerSlide: 10,
+                prevArrow: '<i class="fa-solid fa-arrow-left"></i>',
+                nextArrow: '<i class="fa-solid fa-arrow-right"></i>'
+            });
+
+        }
+    }
+}
+
+async function file_download_functions(fileid) {
+    if (fileflag) {
+        let filid = Number.parseInt(fileid);
+        if (!isNaN(fileid) && filid != undefined && fileid != null) {
+            const url = `/file/${fileid}/content?type=full`;
+            fetch(url)
+                .then((response) => response.blob())
+                .then((blob) => {
+                    const a = document.createElement('a');
+                    const url = window.URL.createObjectURL(blob);
+                    a.href = url;
+                    a.download = file_name; // Replace with your desired file name
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch((error) => {
+                    notifier.alert(`Error downloading the file : ${error.message}`);
+                });
+
+        }
+    }
+}
+
+async function file_pass_protect(event) {
+    let swit  = event.target;
+    if (fileflag) {
+        filid  = Number.parseInt(fileid);
+        if (!isNaN(fileid)&&fileid!=undefined) {
+            Swal.fire({
+                title: 'Set file password',
+                input: 'text',
+                inputAttributes: {
+                  autocapitalize: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Set',
+                showLoaderOnConfirm: true,
+                preConfirm: (pass) => {
+                  return fetch(`/file/${fileid}`,{
+                    method:"PATCH",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({password:pass==''?null:pass})
+                  })
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error(response.statusText)
+                      }
+                      return response.json()
+                    })
+                    .catch(error => {
+                      Swal.showValidationMessage(
+                        `failed to set password`
+                      )
+                    })
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  Swal.fire("success..")
+                }
+              })
+        }
+    }
+}
+
+//utils page
 const encrypt_file = async (fid) => {
     let encalgos = await handleRequest('/master/filter?type=encryption_algorithms', { method: 'GET' }, 200);
     if (fileflag) {
@@ -915,6 +1009,8 @@ async function decryptFile() {
     }
 }
 
+
+//live share
 const start_live_share = (id) => {
     if (fileflag) {
         if (id == undefined) {
@@ -1110,21 +1206,21 @@ try {
 
 async function load_public_media(from, limit) {
     if (explore_view) {
-    let medias = document.querySelector("#medias");
-    let load = medias.lastChild;
-    medias.lastChild.remove();
-    if (explore_view) {
-        let res = await handleRequest(`/explore/data?from=${from}&limit=${limit}`, {
-            method: "GET"
-        }, 200);
-        if (res == null) {
-            return;
-        }
-        res.forEach((val) => {
-            let card = document.createElement("div");
-            card.setAttribute("class", "col-lg-10 col-md-6");
-            try {
-                card.innerHTML = `<div class="card col-lg-10 col-sm-7 col-md-7">
+        let medias = document.querySelector("#medias");
+        let load = medias.lastChild;
+        medias.lastChild.remove();
+        if (explore_view) {
+            let res = await handleRequest(`/explore/data?from=${from}&limit=${limit}`, {
+                method: "GET"
+            }, 200);
+            if (res == null) {
+                return;
+            }
+            res.forEach((val) => {
+                let card = document.createElement("div");
+                card.setAttribute("class", "col-lg-10 col-md-6");
+                try {
+                    card.innerHTML = `<div class="card col-lg-10 col-sm-7 col-md-7">
                 <div class="card-header">
                 ${val.createdBy} Shared publicaly at : ${new Date(val.updatedAt).toDateString()}
        </div>
@@ -1142,57 +1238,57 @@ async function load_public_media(from, limit) {
             </div>
          </div>`;
 
-                var commentsSection = document.createElement("div");
-                commentsSection.setAttribute("class", "comments");
-                card.append(commentsSection);
+                    var commentsSection = document.createElement("div");
+                    commentsSection.setAttribute("class", "comments");
+                    card.append(commentsSection);
 
-                // Create input fields for adding comments
-                var usernameInput = document.createElement("input");
-                usernameInput.setAttribute("class", "form-control");
-                usernameInput.setAttribute("placeholder", "Enter your username");
-                var commentInput = document.createElement("textarea");
-                commentInput.setAttribute("class", "form-control");
-                commentInput.setAttribute("rows", "3");
-                commentInput.setAttribute("placeholder", "Add a comment");
-                var submitButton = document.createElement("button");
-                submitButton.setAttribute("class", "btn btn-primary");
-                submitButton.innerHTML = `Submit`;
+                    // Create input fields for adding comments
+                    var usernameInput = document.createElement("input");
+                    usernameInput.setAttribute("class", "form-control");
+                    usernameInput.setAttribute("placeholder", "Enter your username");
+                    var commentInput = document.createElement("textarea");
+                    commentInput.setAttribute("class", "form-control");
+                    commentInput.setAttribute("rows", "3");
+                    commentInput.setAttribute("placeholder", "Add a comment");
+                    var submitButton = document.createElement("button");
+                    submitButton.setAttribute("class", "btn btn-primary");
+                    submitButton.innerHTML = `Submit`;
 
 
-                // Event handler for adding a comment
-                submitButton.addEventListener("click", function () {
-                    var username = usernameInput.value;
-                    var commentText = commentInput.value;
-                    if (username.trim() === "" || commentText.trim() === "") {
-                        alert("Please enter both a username and a comment.");
-                    } else {
-                        // Create a new comment element for this card
-                        var commentElement = createComment(username, commentText);
+                    // Event handler for adding a comment
+                    submitButton.addEventListener("click", function () {
+                        var username = usernameInput.value;
+                        var commentText = commentInput.value;
+                        if (username.trim() === "" || commentText.trim() === "") {
+                            alert("Please enter both a username and a comment.");
+                        } else {
+                            // Create a new comment element for this card
+                            var commentElement = createComment(username, commentText);
 
-                        // Append the comment to the comments section
-                        commentsSection.append(commentElement);
+                            // Append the comment to the comments section
+                            commentsSection.append(commentElement);
 
-                        // Clear the input fields
-                        usernameInput.value = "";
-                        commentInput.value = "";
-                    }
-                });
+                            // Clear the input fields
+                            usernameInput.value = "";
+                            commentInput.value = "";
+                        }
+                    });
 
-                // Append input fields and submit button to the card
-                // card.append("<div class='form-group'><label>Username:</label></div>");
-                card.append(usernameInput);
-                // card.append("<div class='form-group'><label>Comment:</label></div>");
-                card.append(commentInput);
-                card.append(submitButton);
+                    // Append input fields and submit button to the card
+                    // card.append("<div class='form-group'><label>Username:</label></div>");
+                    card.append(usernameInput);
+                    // card.append("<div class='form-group'><label>Comment:</label></div>");
+                    card.append(commentInput);
+                    card.append(submitButton);
 
-            } catch (error) {
-                console.log(error.message);
-            }
-            medias.appendChild(card);
-        });
-        medias.append(load);
+                } catch (error) {
+                    console.log(error.message);
+                }
+                medias.appendChild(card);
+            });
+            medias.append(load);
+        }
     }
-}
 }
 
 try {
@@ -1202,21 +1298,21 @@ try {
 }
 
 async function load_analytics_file() {
-    var from = 0,limit=10;
-   async function load_and_addd_explore_file(from,limit) {
+    var from = 0, limit = 10;
+    async function load_and_addd_explore_file(from, limit) {
         let data = await handleRequest(`/analytics/files?from=${from}&limit=${limit}`, { method: "GET" }, 200);
         if (data == null) return;
         let tbody = document.querySelector("#analytics_file");
         if (tbody == null) return;
-        for(let file of data) {
-            let ext  = file.name.split('.');
-            ext = ext[ext.length-1];
-            let theme  = "success";
+        for (let file of data) {
+            let ext = file.name.split('.');
+            ext = ext[ext.length - 1];
+            let theme = "success";
             let icon = `<i class="fa-solid fa-file" style="width:35px"></i>`;
             switch (ext) {
                 case 'pptx':
                     theme = "info";
-                   icon = `<i class="fa-solid fa-file-powerpoint" style="width:35px"></i>`;
+                    icon = `<i class="fa-solid fa-file-powerpoint" style="width:35px"></i>`;
                     break;
                 case 'pdf':
                     theme = "danger";
@@ -1252,8 +1348,8 @@ async function load_analytics_file() {
                     break;
             }
 
-          let tr  = document.createElement("tr");
-          tr.innerHTML=`<td>
+            let tr = document.createElement("tr");
+            tr.innerHTML = `<td>
           <div class="d-flex align-items-center">
               <div class="icon-small bg-${theme} rounded mr-3">
                   ${icon}
@@ -1262,7 +1358,7 @@ async function load_analytics_file() {
           </div>
       </td>
       <td><marquee>${new Date(file.lastedit).toDateString()} ${file.editor}</marquee></td>
-      <td>${(file.size/1024/1024).toFixed(3)} MB</td>
+      <td>${(file.size / 1024 / 1024).toFixed(3)} MB</td>
       <td>
           <div class="dropdown">
               <span class="dropdown-toggle" id="dropdownMenuButton6" data-toggle="dropdown">
@@ -1277,38 +1373,38 @@ async function load_analytics_file() {
               </div>
           </div>
       </td>`;
-      tbody.appendChild(tr);
+            tbody.appendChild(tr);
         }
     }
 
     if (index_page) {
-        await load_and_addd_explore_file(from,limit)
+        await load_and_addd_explore_file(from, limit)
         var scrollableDiv = document.getElementById("scroll_place");
 
-  scrollableDiv.addEventListener("scroll",async function () {
-    if (
-      scrollableDiv.scrollTop + scrollableDiv.clientHeight >=
-      scrollableDiv.scrollHeight
-    ) {
-        await load_and_addd_explore_file(from+limit+1,limit)
-        from +=limit+1;
-    }
-  });
+        scrollableDiv.addEventListener("scroll", async function () {
+            if (
+                scrollableDiv.scrollTop + scrollableDiv.clientHeight >=
+                scrollableDiv.scrollHeight
+            ) {
+                await load_and_addd_explore_file(from + limit + 1, limit)
+                from += limit + 1;
+            }
+        });
     }
 }
 
 // index-page
 async function load_index_docs() {
     if (index_page) {
-    var from=0,limit=5;
-    let holder  = document.querySelector("#index_docs");
+        var from = 0, limit = 5;
+        let holder = document.querySelector("#index_docs");
 
-   async function add_docs_to_holder(from=0,limit=5) {
-        let data = await handleRequest(`/analytics/docs?from=${from}&limit=${limit}`, { method: "GET" }, 200);
-        for (const file of data) {
-           let dv = document.createElement("div");
-           dv.setAttribute("class","col-lg-3 col-md-6 col-sm-6 bb");
-           dv.innerHTML=`<div class="card card-block card-stretch card-height">
+        async function add_docs_to_holder(from = 0, limit = 5) {
+            let data = await handleRequest(`/analytics/docs?from=${from}&limit=${limit}`, { method: "GET" }, 200);
+            for (const file of data) {
+                let dv = document.createElement("div");
+                dv.setAttribute("class", "col-lg-3 col-md-6 col-sm-6 bb");
+                dv.innerHTML = `<div class="card card-block card-stretch card-height">
            <div class="card-body image-thumb">
                <a href="#" data-title="${file.name}" data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.path}" data-toggle="modal" data-target="#exampleModal">
                <div class="mb-4 text-center p-3 rounded iq-thumb">
@@ -1319,295 +1415,282 @@ async function load_index_docs() {
                </a>   
            </div>
        </div>`;
-       holder.appendChild(dv);
+                holder.appendChild(dv);
+            }
         }
-    }
 
-    add_docs_to_holder(from,limit);
+        add_docs_to_holder(from, limit);
 
-    holder.addEventListener("scroll",async function () {
-        if (
-          holder.scrollLeft + holder.offsetWidth >=
-          holder.scrollWidth -1
-        ) {
-         add_docs_to_holder(from+limit+1,limit);
-         from += limit+1;
-        }
-      });
+        holder.addEventListener("scroll", async function () {
+            if (
+                holder.scrollLeft + holder.offsetWidth >=
+                holder.scrollWidth - 1
+            ) {
+                add_docs_to_holder(from + limit + 1, limit);
+                from += limit + 1;
+            }
+        });
     }
 }
 
 async function generate_chart() {
-    let data = await handleRequest("/analytics/storage",{method:"GET"},200);
-   let totgb  = (Number.parseInt(data.used)/1024/1024/1024).toFixed(2);
+    let data = await handleRequest("/analytics/storage", { method: "GET" }, 200);
+    let totgb = (Number.parseInt(data.used) / 1024 / 1024 / 1024).toFixed(2);
     //chart card;
     let storage_card_sidebar = document.querySelector("#storage_card_sidebar");
-    storage_card_sidebar.innerHTML=` <h4 class="mb-3"><i class="fa-solid fa-cloud"></i>Storage</h4>
+    storage_card_sidebar.innerHTML = ` <h4 class="mb-3"><i class="fa-solid fa-cloud"></i>Storage</h4>
     <p>${totgb} GB Used from 20GB</p>
     <div class="iq-progress-bar mb-3">
-        <span class="bg-primary iq-progress progress-1" data-percent="${(totgb/20).toFixed(2)*100}" style="transition: width 2s ease 0s; width: ${(totgb/20).toFixed(2)*100}%;">
+        <span class="bg-primary iq-progress progress-1" data-percent="${(totgb / 20).toFixed(2) * 100}" style="transition: width 2s ease 0s; width: ${(totgb / 20).toFixed(2) * 100}%;">
         </span>
     </div>
-    <p>${(totgb/20).toFixed(2)*100}% Full - ${20-totgb} GB Free</p>
+    <p>${(totgb / 20).toFixed(2) * 100}% Full - ${20 - totgb} GB Free</p>
     <a class="btn btn-outline-primary view-more mt-4">Buy Storage</a>`;
- if (index_page) {
-    let mb  = [];
-    let map = new Map();
-    for(let usage of data.monthly_usage) {
-      map.set(Number.parseInt(usage.month),(Number.parseInt(usage.size)/1024/1024).toFixed(2))
-    }
-    for (let month = 1; month <=12; month++) {
-        if (map.has(month)) {
-            mb.push(map.get(month))
+    if (index_page) {
+        let mb = [];
+        let map = new Map();
+        for (let usage of data.monthly_usage) {
+            map.set(Number.parseInt(usage.month), (Number.parseInt(usage.size) / 1024 / 1024).toFixed(2))
         }
-        else{
-            mb.push(0);
+        for (let month = 1; month <= 12; month++) {
+            if (map.has(month)) {
+                mb.push(map.get(month))
+            }
+            else {
+                mb.push(0);
+            }
         }
-    }
-    
-    var options = {
-        series: [{
-          name: "MB",
-          data: mb
-      }],
-        chart: {
-        height: 350,
-        type: 'line',
-        zoom: {
-          enabled: false
-        }
-      },
-      dataLabels: {
-        enabled: false
-      },
-      stroke: {
-        curve: 'stepline'
-      },
-      title: {
-        text: 'Storage Used By Month',
-        align: 'left'
-      },
-      grid: {
-        row: {
-          colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-          opacity: 0.5
-        },
-      },
-      xaxis: {
-        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct','Nov','Dec'],
-      }
-      };
 
-      var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
-      chart.render();
+        var options = {
+            series: [{
+                name: "MB",
+                data: mb
+            }],
+            chart: {
+                height: 350,
+                type: 'line',
+                zoom: {
+                    enabled: false
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'stepline'
+            },
+            title: {
+                text: 'Storage Used By Month',
+                align: 'left'
+            },
+            grid: {
+                row: {
+                    colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                    opacity: 0.5
+                },
+            },
+            xaxis: {
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
+        chart.render();
     }
 }
 
 async function update_storage_chart(gap) {
-        document.querySelector("#storage_chart").innerHTML='';
-    let data = await handleRequest(`/analytics/storage/usage?gap=${gap}`,{method:"GET"},200);
- 
- if (index_page) {
-    switch (gap) {
-        case 'monthly':
-            var mb  = [];
-            let map = new Map();
-            for(let usage of data) {
-              map.set(Number.parseInt(usage.month),(Number.parseInt(usage.size)/1024/1024).toFixed(2))
-            }
-            for (let month = 1; month <=12; month++) {
-                if (map.has(month)) {
-                    mb.push(map.get(month))
-                }
-                else{
-                    mb.push(0);
-                }
-            }
-            
-            var options = {
-                series: [{
-                  name: "MB",
-                  data: mb
-              }],
-                chart: {
-                height: 350,
-                type: 'line',
-                zoom: {
-                  enabled: false
-                }
-              },
-              dataLabels: {
-                enabled: false
-              },
-              stroke: {
-                curve: 'stepline'
-              },
-              title: {
-                text: 'Storage Used By Month',
-                align: 'left'
-              },
-              grid: {
-                row: {
-                  colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-                  opacity: 0.5
-                },
-              },
-              xaxis: {
-                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct','Nov','Dec'],
-              }
-              };
-        
-              var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
-              chart.render();
-            break;
-        case 'yearly':
-             mb  = [];
-             years =[];
-            for(let usage of data) {
-              mb.push((Number.parseInt(usage.size)/1024/1024).toFixed(2));
-              years.push(usage.year);
-            }
+    document.querySelector("#storage_chart").innerHTML = '';
+    let data = await handleRequest(`/analytics/storage/usage?gap=${gap}`, { method: "GET" }, 200);
 
-             options = {
-                series: [{
-                  name: "MB",
-                  data: mb
-              }],
-                chart: {
-                height: 350,
-                type: 'line',
-                zoom: {
-                  enabled: false
+    if (index_page) {
+        switch (gap) {
+            case 'monthly':
+                var mb = [];
+                let map = new Map();
+                for (let usage of data) {
+                    map.set(Number.parseInt(usage.month), (Number.parseInt(usage.size) / 1024 / 1024).toFixed(2))
                 }
-              },
-              dataLabels: {
-                enabled: false
-              },
-              stroke: {
-                curve: 'stepline'
-              },
-              title: {
-                text: 'Storage Used By Year',
-                align: 'left'
-              },
-              grid: {
-                row: {
-                  colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-                  opacity: 0.5
+                for (let month = 1; month <= 12; month++) {
+                    if (map.has(month)) {
+                        mb.push(map.get(month))
+                    }
+                    else {
+                        mb.push(0);
+                    }
                 }
-              },
-              labels : years
-              };
-              var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
-              chart.render();
-            break;
-        default:
-            break;
+
+                var options = {
+                    series: [{
+                        name: "MB",
+                        data: mb
+                    }],
+                    chart: {
+                        height: 350,
+                        type: 'line',
+                        zoom: {
+                            enabled: false
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        curve: 'stepline'
+                    },
+                    title: {
+                        text: 'Storage Used By Month',
+                        align: 'left'
+                    },
+                    grid: {
+                        row: {
+                            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                            opacity: 0.5
+                        },
+                    },
+                    xaxis: {
+                        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    }
+                };
+
+                var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
+                chart.render();
+                break;
+            case 'yearly':
+                mb = [];
+                years = [];
+                for (let usage of data) {
+                    mb.push((Number.parseInt(usage.size) / 1024 / 1024).toFixed(2));
+                    years.push(usage.year);
+                }
+
+                options = {
+                    series: [{
+                        name: "MB",
+                        data: mb
+                    }],
+                    chart: {
+                        height: 350,
+                        type: 'line',
+                        zoom: {
+                            enabled: false
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        curve: 'stepline'
+                    },
+                    title: {
+                        text: 'Storage Used By Year',
+                        align: 'left'
+                    },
+                    grid: {
+                        row: {
+                            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+                            opacity: 0.5
+                        }
+                    },
+                    labels: years
+                };
+                var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
+                chart.render();
+                break;
+            default:
+                break;
+        }
     }
 }
-}
 
 
 
-async function update_file_tags(id,tags) {
-    if (fileflag) {
-         let data = handleRequest(`/file/${id}`,{
-        method:"PATCH",
-        headers:{
-            'Content-Type':'application/json'
-        },
-        body:JSON.stringify({tags:tags})
-    },200);
-    if (data==null) {
-        notifier.alert("tag not updated..");
-    }
-}
-}
+
 
 // search bar related
-let holder  = document.querySelector("#reslts");
+let holder = document.querySelector("#reslts");
 // sbar.addEventListener("input",async()=>{
-   
+
 // })
 
-async function load_searches(event,resultid) {
-     holder  = document.getElementById(resultid);
+async function load_searches(event, resultid) {
+    holder = document.getElementById(resultid);
 
-    let data  = await handleRequest(`/analytics/files/search?q=${event.target.value}`,{method:"GET"},200);
-   holder.innerHTML = '';
-   if (data.length==0) {
-    return;
-   }
-   let i =0 ;
-   for(let val of data) {
-    let lix  = document.createElement("li");
-    lix.innerHTML = `<a href="/file/${val.id}"> <span><small><marquee>${val.name} (${val.mime.split('/')[1]})</marquee></small></span></a></li>`;
-    holder.appendChild(lix);
-   }
+    let data = await handleRequest(`/analytics/files/search?q=${event.target.value}`, { method: "GET" }, 200);
+    holder.innerHTML = '';
+    if (data.length == 0) {
+        return;
+    }
+    let i = 0;
+    for (let val of data) {
+        let lix = document.createElement("li");
+        lix.innerHTML = `<a href="/file/${val.id}"> <span><small><marquee>${val.name} (${val.mime.split('/')[1]})</marquee></small></span></a></li>`;
+        holder.appendChild(lix);
+    }
 }
 
 // utils
 async function util_extract_json_from_formdata(formData) {
-    
+
 
 }
 
 function get_meta_card_from_ext(ext) {
     let map = new Map();
-    map.set('pdf',{
-        image:"/assets/images/layouts/page-1/pdf.png"
+    map.set('pdf', {
+        image: "/assets/images/layouts/page-1/pdf.png"
     })
-    map.set('pptx',{
-        image:"/assets/images/layouts/page-1/ppt.png"
+    map.set('pptx', {
+        image: "/assets/images/layouts/page-1/ppt.png"
     })
-    map.set('docx',{
-        image:"/assets/images/layouts/page-1/doc.png"
+    map.set('docx', {
+        image: "/assets/images/layouts/page-1/doc.png"
     })
-    map.set('xlsx',{
-        image:"/assets/images/layouts/page-1/xlsx.png"
+    map.set('xlsx', {
+        image: "/assets/images/layouts/page-1/xlsx.png"
     })
-    map.set('csv',{
-        image:"/assets/images/layouts/page-1/xlsx.png"
+    map.set('csv', {
+        image: "/assets/images/layouts/page-1/xlsx.png"
     });
-    let res  = map.get(ext);
-    if(res==undefined) return {image:"/assets/images/layouts/page-1/file.png"}
-    return res; 
+    let res = map.get(ext);
+    if (res == undefined) return { image: "/assets/images/layouts/page-1/file.png" }
+    return res;
 }
 
 // Check if the browser supports the Cache API
 if ('caches' in window) {
     // Define a cache name
     const cacheName = 'src';
-  
+
     // Define an array of URLs to cache
-    const urlsToCache = ["/assets/js/doc-viewer.js","/assets/js/app.js","/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.js","/assets/vendor/doc-viewer/include/verySimpleImageViewer/js/jquery.verySimpleImageViewer.js",
-    "/assets/vendor/doc-viewer/include/SheetJS/xlsx.full.min.js","/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.js","/assets/vendor/doc-viewer/include/PPTXjs/js/divs2slides.js","/assets/vendor/doc-viewer/include/PPTXjs/js/pptxjs.js"
-    ,"/assets/vendor/doc-viewer/include/PPTXjs/js/nv.d3.min.js","/assets/vendor/doc-viewer/include/PPTXjs/js/d3.min.js","/assets/vendor/doc-viewer/include/PPTXjs/js/filereader.js","/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js",
-    "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js","/assets/vendor/doc-viewer/include/docx/jszip-utils.js","/assets/vendor/doc-viewer/include/pdf/pdf.js","/assets/js/chart-custom.js","/assets/js/customizer.js","/assets/js/backend-bundle.min.js",
-    "/assets/vendor/fontawesome/css/solid.css","/assets/vendor/fontawesome/css/solid.css","/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css","/assets/vendor/doc-viewer/include/verySimpleImageViewer/css/jquery.verySimpleImageViewer.css",
-    "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.css","/assets/vendor/doc-viewer/include/PPTXjs/css/nv.d3.min.css","/assets/vendor/doc-viewer/include/PPTXjs/css/pptxjs.css","/assets/vendor/doc-viewer/include/pdf/pdf.viewer.css"
+    const urlsToCache = ["/assets/js/doc-viewer.js", "/assets/js/app.js", "/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.js", "/assets/vendor/doc-viewer/include/verySimpleImageViewer/js/jquery.verySimpleImageViewer.js",
+        "/assets/vendor/doc-viewer/include/SheetJS/xlsx.full.min.js", "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/divs2slides.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/pptxjs.js"
+        , "/assets/vendor/doc-viewer/include/PPTXjs/js/nv.d3.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/d3.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/filereader.js", "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js",
+        "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js", "/assets/vendor/doc-viewer/include/docx/jszip-utils.js", "/assets/vendor/doc-viewer/include/pdf/pdf.js", "/assets/js/chart-custom.js", "/assets/js/customizer.js", "/assets/js/backend-bundle.min.js",
+        "/assets/vendor/fontawesome/css/solid.css", "/assets/vendor/fontawesome/css/solid.css", "/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css", "/assets/vendor/doc-viewer/include/verySimpleImageViewer/css/jquery.verySimpleImageViewer.css",
+        "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.css", "/assets/vendor/doc-viewer/include/PPTXjs/css/nv.d3.min.css", "/assets/vendor/doc-viewer/include/PPTXjs/css/pptxjs.css", "/assets/vendor/doc-viewer/include/pdf/pdf.viewer.css"
     ];
-  
+
     // Open the cache
     caches.open(cacheName)
-      .then(function(cache) {
-        // Iterate through the URLs and cache each one
-        urlsToCache.forEach(function(url) {
-          // Fetch the resource from the network
-          fetch(url)
-            .then(async function(response) {
-              if (response.status === 200) {
-                // If the resource was fetched successfully, add it to the cache
-                cache.put(url,response);
-              }
-            })
-            .catch(function(error) {
-              console.error('Error fetching resource:', error);
+        .then(function (cache) {
+            // Iterate through the URLs and cache each one
+            urlsToCache.forEach(function (url) {
+                // Fetch the resource from the network
+                fetch(url)
+                    .then(async function (response) {
+                        if (response.status === 200) {
+                            // If the resource was fetched successfully, add it to the cache
+                            cache.put(url, response);
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching resource:', error);
+                    });
             });
         });
-      });
-  }
-  
+}
+
 
 window.onload = async () => {
     try {
@@ -1639,19 +1722,19 @@ window.onload = async () => {
         await load_analytics_file()
         console.table(data);
     } catch (error) {
-        
+
     }
     try {
         load_index_docs();
     } catch (error) {
-        
+
     }
     try {
         generate_chart();
     } catch (error) {
-        
+
     }
-  
+
 }
 let isLoading = false, from = 0;
 window.addEventListener('scroll', async () => {

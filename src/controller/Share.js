@@ -5,12 +5,13 @@ const { generategeneralData } = require("../utils/PageData");
 
 const couchsrv = require("../services/couchdb");
 
+var emmiterx = require("../subscriber/ShareEvents");
+
 const get_file = async (req, res) => {
     let user;
     try {
         //extracting token from cookie
         let jwt = JSON.parse(req.cookies.jwt);
-        console.log(jwt);
         if (jwt === undefined || jwt === null)
             throw new Error(`try to login again..`)
         let access_token = jwt.access;
@@ -35,17 +36,18 @@ const get_file = async (req, res) => {
         if (share_settings.is_public && share_settings.is_unlimited) {
             // res.status(200).send("u hab access unlimited times..");
             let filepath = file.metadata.path.split('/');
-            couchsrv.insertFileTimeline(file.id, {
+            emmiterx.emit("share",{
+                fileid : file.id,
                 filename: file.metadata.name,
                 servername: filepath[filepath.length - 1],
                 user: "unauthorized_user",
                 time: Date.now()
             });
-            res.status(200).render('page-share-view.ejs', {
+         return res.status(200).render('page-share-view.ejs', {
                 data: {
                     ...generategeneralData(),
-                    file: { ...file }
-
+                    file: { ...file },
+                    user :{email:(user == null) ? undefined : user.email}
                 }
             });
         }
@@ -53,45 +55,28 @@ const get_file = async (req, res) => {
             //   res.status(200).send("u hab access but remaining chacnce : "+share_settings.max_share_limit);
             // res.status(200).render('page-share-view.ejs',);
             let filepath = file.metadata.path.split('/');
-            couchsrv.insertFileTimeline(file.id, {
+            emmiterx.emit("share",{
+                fileid : file.id,
                 filename: file.metadata.name,
                 servername: filepath[filepath.length - 1],
                 user: (user == null) ? "anonymous" : user.email,
                 time: Date.now()
             });
-            res.status(200).render('page-share-view.ejs', {
+          return  res.status(200).render('page-share-view.ejs', {
                 data: {
                     ...generategeneralData(),
-                    file: { ...file }
-
+                    file: { ...file },
+                    user :{email:(user == null) ? undefined : user.email}
                 }
             });
         }
         else if (!share_settings.is_public && !share_settings.is_unlimited) {
             try {
-                // //extracting token from cookie
-                // let jwt = JSON.parse(req.cookies.jwt);
-                // console.log(jwt);
-                // if (jwt === undefined || jwt === null)
-                //     throw new Error(`try to login again..`)
-                // let access_token = jwt.access;
-                // let refresh_token = jwt.refresh;
-
-                // //checking the token..
-                // let data = tokensrv.checkAccessToken(access_token);
-                // let tokendata = data;
-
-                // let user = await usersrv.getUserByEmail(tokendata.email);
-
-                // console.log(share_settings.share_with,typeof share_settings.share_with);
-
-
-
-
-                if (user == null) {
+                  if (user == null) {
                     // res.status(200).send("u dont hab access");
                     let filepath = file.metadata.path.split('/');
-                    couchsrv.insertFileTimeline(file.id, {
+                    emmiterx.emit("share",{
+                        fileid : file.id,
                         filename: file.metadata.name,
                         servername: filepath[filepath.length - 1],
                         user: "unauthorized_user",
@@ -101,12 +86,11 @@ const get_file = async (req, res) => {
                 }
 
                 let { email } = user;
-                if (share_settings.share_with.includes(email)) {
+                if (file.createdBy == email||share_settings.share_with.includes(email)) {
                     // res.status(200).send("u hab access");
-                    // res.status(200).render('page-share-view.ejs', {});
-
                     let filepath = file.metadata.path.split('/');
-                    couchsrv.insertFileTimeline(file.id, {
+                    emmiterx.emit("share",{
+                        fileid : file.id,
                         filename: file.metadata.name,
                         servername: filepath[filepath.length - 1],
                         user: email,
@@ -116,17 +100,18 @@ const get_file = async (req, res) => {
                         data: {
                             ...user,
                             ...generategeneralData(),
-                            file: { ...file }
-
+                            file: { ...file },
+                            user :{email:user.email}
                         }
                     });
                 } else {
                     // res.status(200).send("u dont hab access");
                     let filepath = file.metadata.path.split('/');
-                    couchsrv.insertFileTimeline(file.id, {
+                    emmiterx.emit("share",{
+                        fileid : file.id,
                         filename: file.metadata.name,
                         servername: filepath[filepath.length - 1],
-                        user: "unauthorized_user" + user.email,
+                        user: "unauthorized_user(" + user.email+")",
                         time: Date.now()
                     });
                     return res.status(401).send();
@@ -135,26 +120,11 @@ const get_file = async (req, res) => {
             } catch (error) {
                 console.log(error);
                 res.status(401).send();
-                // res.status(400).send(error.message);
-                // res.status(400).render('pages-error.ejs', {
-                //     data: {
-                //         errmsg: error.message
-                //     }
-                // });
             }
         } else {
             res.status(200).send("u dont hab access");
         }
-        // res.status(200).json(req.file_info);
     } catch (error) {
-        console.log(error);
-        // let filepath = file.metadata.path.split('/');
-        //     couchsrv.insertFileTimeline(file.id,{
-        //             filename : file.metadata.name,
-        //             servername : filepath[filepath.length-1],
-        //             user :"unauthorized_user",
-        //             time : Date.now()
-        //     });
         res.status(401).send("u dont hab access☠🐦");
     }
 }
@@ -168,4 +138,4 @@ const get_live_share_page=(req,res)=>{
     })
 }
 
-module.exports = { get_file,get_live_share_page }
+module.exports = { get_file,get_live_share_page ,emmiterx:emmiterx}

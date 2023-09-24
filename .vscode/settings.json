@@ -1,9 +1,0 @@
-{
-    "files.autoSave": "afterDelay",
-    "editor.autoClosingDelete": "always",
-    "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
-    "editor.minimap.autohide": true,
-    "editor.suggest.preview": true,
-    "editor.suggest.showStatusBar": true,
-    "editor.suggest.showStructs": true
-}

@@ -5,6 +5,9 @@ const service = require("../services/File")
 const foldersrv = require("../services/Folder")
 const { encrypt_file_v2, decrypt_file_v2 } = require("../services/FileHandler");
 const commssrv = require("../services/Communication");
+const metadatasrv = require("../services/FileMetadata");
+const tokensrv = require("../services/Token");
+const usersrv = require("../services/User");
 
 const filehandler = require("../services/FileHandler");
 const uuid = require("uuid");
@@ -39,9 +42,10 @@ const post_files = async (req, res) => {
                     metadata: metadata,
                     createdBy: req.user_data.email,
                     updatedBy: req.user_data.email,
-                    tags :[metadata.name]
+                    tags: [metadata.name]
                 }
                 let resp = await service.create(file);
+                await metadatasrv.create(genBlankMetadaObject(resp));
                 arr.push(resp);
             } catch (error) {
                 console.log(error);
@@ -71,10 +75,11 @@ const post_files = async (req, res) => {
                         metadata: metadata,
                         createdBy: req.user_data.email,
                         updatedBy: req.user_data.email,
-                        tags :[metadata.name]
+                        tags: [metadata.name]
                     }
 
                     let resp = await service.create(file);
+                    await metadatasrv.create(genBlankMetadaObject(resp));
                     arr.push(resp);
                 } catch (error) {
                     console.log(error);
@@ -124,7 +129,6 @@ const get_file = async (req, res) => {
             }
         });
     } catch (error) {
-        console.log(error);
         res.status(400).send(error.message);
     }
 }
@@ -142,23 +146,36 @@ const delete_file = async (req, res) => {
 }
 
 const get_file_content = async (req, res) => {
-    // try {
+     try {
     let { id } = req.params;
-    let file = await service.read(id);
+    let {type} = req.query;
+    if (type==undefined) {
+        type = "full"
+    }
+    else  if (["full","thumb"].includes(type)) {
+            type  = type;
+        }
+    else{
+        type = "full";
+    }
+
+    let file = req.file_info;
+
     let share_settings = file.file_metadata.share_settings;
-    //     if ((share_settings.is_public||share_settings.share_with.length>0||!share_settings.share_with.includes(""))&&share_settings.max_share_limit>0) {
-    //     res.status(200).json(file);   
-    //     }else{
-    //         res.status(401).send();
-    //     }
-    // } catch (error) {
-    //     console.log(error);
-    //     res.status(500).send();
-    // }
-    if (share_settings.is_public && share_settings.is_unlimited) {
-        // res.status(200).send("u hab access unlimited times..");
-        let pth = path.join(__dirname, ".." + file.metadata.path);
-        res.status(200).sendFile(pth, (err) => {
+    let pth = path.join(__dirname, ".." + file.metadata.path);
+    if (share_settings.is_public) {
+        if (file.metadata.mimetype.split("/")[0] == "image" && type=="thumb") {
+            filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
+                if (err!=null) {
+                    sendError(res, err)
+                } else {
+                    res.set('Content-Type', 'image/webp');
+                    res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
+                  return  res.status(200).send(data);
+                }
+            })
+        }else{
+         res.status(200).sendFile(pth, (err) => {
             if (err) {
                 console.log(err);
                 res.status(500).send();
@@ -167,42 +184,27 @@ const get_file_content = async (req, res) => {
             }
         });
     }
-    else if (share_settings.is_public && !share_settings.is_unlimited) {
-        //   res.status(200).send("u hab access but remaining chacnce : "+share_settings.max_share_limit);
-        // res.status(200).render('page-share-view.ejs',);
-        // res.status(200).json(file)
-        let pth = path.join(__dirname, ".." + file.metadata.path);
-        res.status(200).sendFile(pth, (err) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send();
-            } else {
-                console.log(`file ${pth} sended..`);
-            }
-        });
     }
-    else if (!share_settings.is_public && !share_settings.is_unlimited) {
+    else {
         try {
-            //extracting token from cookie
-            let jwt = JSON.parse(req.cookies.jwt);
-            console.log(jwt);
-            if (jwt === undefined || jwt === null)
-                throw new Error(`try to login again..`)
-            let access_token = jwt.access;
-            let refresh_token = jwt.refresh;
-
-            //checking the token..
-            let data = tokensrv.checkAccessToken(access_token);
-            let tokendata = data;
-
-            let user = await usersrv.getUserByEmail(tokendata.email);
-            let { email } = user;
+           
+            let { email } = req.user;
             // console.log(share_settings.share_with,typeof share_settings.share_with);
-            if (share_settings.share_with.includes(email)) {
+            if (share_settings.share_with.includes(email) || email == file.createdBy) {
                 // res.status(200).send("u hab access");
                 // res.status(200).json(file)
-                let pth = path.join(__dirname, ".." + file.metadata.path);
-                res.status(200).sendFile(pth, (err) => {
+                if (file.metadata.mimetype.split("/")[0] == "image"  && type=="thumb") {
+                    filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
+                        if (err) {
+                            sendError(res, err)
+                        } else {
+                            res.set('Content-Type', 'image/webp');
+                            res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
+                          return  res.status(200).send(data);
+                        }
+                    })
+                }else{
+            return   res.status(200).sendFile(pth, (err) => {
                     if (err) {
                         console.log(err);
                         res.status(500).send();
@@ -210,6 +212,7 @@ const get_file_content = async (req, res) => {
                         console.log(`file ${pth} sended..`);
                     }
                 });
+            }
             } else {
                 // res.status(200).send("u dont hab access");
                 res.status(401).send();
@@ -218,9 +221,10 @@ const get_file_content = async (req, res) => {
         } catch (error) {
             res.status(401).send();
         }
-    } else {
-        res.status(401).send();
     }
+}catch(error){
+    res.status(400).send();
+}
 }
 
 const get_crypto_file = async (req, res) => {
@@ -327,19 +331,19 @@ const post_decrypt_file = (req, res) => {
     }
 }
 
-const patch_file=async(req,res)=>{
+const patch_file = async (req, res) => {
     try {
-        let {id} = req.params;
-        if (id==null||id==undefined) {
+        let { id } = req.params;
+        if (id == null || id == undefined) {
             throw new Error(`invalid id formate..`);
         }
-        id  = Number.parseInt(id);
-        let resx = await service.update(id,req.user_data.email,req.body);
+        id = Number.parseInt(id);
+        let resx = await service.update(id, req.user_data.email, req.body);
         res.status(200).json(resx);
     } catch (error) {
-     res.status(400).json({
-        errmsg : error.message
-     });   
+        res.status(400).json({
+            errmsg: error.message
+        });
     }
 }
 
@@ -359,3 +363,22 @@ module.exports = {
     post_decrypt_file,
     patch_file
 }
+
+function genBlankMetadaObject(filedata) {
+    let obj = {};
+    obj.createdBy = filedata.createdBy;
+    obj.updatedBy = filedata.createdBy;
+    obj.file = filedata.id;
+
+    let share_settings = {};
+    share_settings.available_time = "";
+    share_settings.available_date = "";
+    share_settings.is_public = false;
+    share_settings.share_with = [filedata.createdBy]
+    share_settings.is_unlimited = false;
+    share_settings.max_share_limit = 0;
+
+    obj.share_settings = share_settings;
+    return obj;
+}
+

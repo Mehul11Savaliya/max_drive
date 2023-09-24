@@ -3,6 +3,7 @@ const foldermdl = require("../models/Folder");
 const filehandler = require('../services/FileHandler');
 const path = require("path");
 const metadatamdl = require("../models/FileMetadata");
+const cryptosrv  = require("../utils/CryptoGraph");
 
 const sync=async()=>{
     await model.sync({alter:true});
@@ -24,9 +25,10 @@ const get_files_from_folder=async(id)=>{
 }
 
 const get_by_id=async(id,user,raw=false)=>{
-    let res = await model.findByPk(id,{
+    let res = await model.findOne({
         include:[{model:metadatamdl,as:"fkey_file_metadata"}],
         where :{
+            id:id,
             createdBy:user.email
         }
     });
@@ -78,6 +80,14 @@ const update=async(id,user,new_data)=>{
     // console.log(tags);
     if (tags!=null||tags!=undefined) {
         old.tags = tags;
+    }
+
+    let {password} = new_data;
+    if (password!=undefined) {
+        password = cryptosrv.encrypt(password);
+        old.password = password;
+    }else{
+        old.password = null;
     }
     //userupdattion..
     old.updatedBy = user;
