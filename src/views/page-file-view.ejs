@@ -136,7 +136,7 @@
                   </div>
                   <div class="row">
                     <div class="col-sm-1"><i class="fa-solid fa-download"></i> </div>
-                    <div class="col-sm-5">not implemented</div>
+                    <div class="col-sm-5"><%=data.file.downloads%></div>
                   </div>
                  <button type="button" class="btn btn-lg btn-primary mt-2" data-toggle="popover" data-placement="right" title="Updated By : <%=data.file.createdBy%>" data-content="user : " data-original-title="Popover title" id="updatedat" >Last Update Information</button>
                  <!-- <button type="button" class="btn btn-lg btn-danger" data-toggle="popover" data-placement="right" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?">Click to toggle popover</button> -->
@@ -211,6 +211,64 @@
             <div  id="file-timeline"></div>
            
           </div>
+          <!-- <button id="downloadButton">Download File</button>
+    <progress id="downloadProgress" value="0" max="100"></progress>
+    <span id="progressText">0%</span>
+    <span id="downloadSpeed">0 KB/s</span>
+    <span id="remainingTime">Calculating...</span> -->
+<!-- 
+    <script>
+        const downloadButton = document.getElementById('downloadButton');
+        const downloadProgress = document.getElementById('downloadProgress');
+        const progressText = document.getElementById('progressText');
+        const downloadSpeed = document.getElementById('downloadSpeed');
+        const remainingTime = document.getElementById('remainingTime');
+
+        downloadButton.addEventListener('click', () => {
+            const start = Date.now();
+
+            fetch(`/file/163/content?type=full`) // Replace 'sample.txt' with the actual file URL
+                .then(response => {
+                    const total = response.headers.get('content-length');
+                    const contentLength = parseInt(total, 10);
+                    let downloaded = 0;
+
+                    const reader = response.body.getReader();
+
+                    function read() {
+                        return reader.read().then(({ value, done }) => {
+                            if (done) {
+                                return;
+                            }
+
+                            downloaded += value.length;
+                            const percentage = (downloaded / contentLength) * 100;
+                            const currentTime = Date.now() - start;
+                            const downloadRate = (downloaded / currentTime) * 1000; // bytes per second
+
+                            downloadProgress.value = percentage;
+                            progressText.textContent = `${percentage.toFixed(2)}%`;
+                            downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+
+                            const remainingBytes = contentLength - downloaded;
+                            const remainingTimeInSeconds = remainingBytes / downloadRate;
+                            const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                            const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+
+                            remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+
+                            // Continue reading the file
+                            return read();
+                        });
+                    }
+
+                    return read();
+                })
+                .catch(error => {
+                    console.error('Download error:', error);
+                });
+        }); -->
+    </script>
       </div>
    
         

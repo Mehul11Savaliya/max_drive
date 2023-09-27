@@ -1,4 +1,6 @@
 const model = require("../models/Folder");
+const filemdl = require("../models/File");
+const { Sequelize } = require("sequelize");
 
 const sync = async () => {
     await model.sync({ force: true });
@@ -50,11 +52,24 @@ const delete_by_id=async(id)=>{
 
 const get_all_folder=async(user)=>{
 let res  = await model.findAll({
+        include:[{
+            model:filemdl,
+            as:"files",
+            attributes:['folder']
+        }],
         where : {
             createdBy : user
-        }
+        },
+        attributes:[[Sequelize.literal(`folder."id"`),"id"],[Sequelize.literal(`folder."name"`),"name"],"createdAt","updatedAt",Sequelize.literal(`COUNT(files."id")`)],
+        group:['folder.id',"files.folder"],
+        order:[['updatedAt',"ASC"]],
+        raw:true
 });
 return res;
 }
+
+// setTimeout(async() => {
+//     console.log((await get_all_folder("svlmehul@gmail.com")));
+// }, 500);
 
 module.exports = { sync, create, get_by_id,updateFolder,delete_by_id,get_all_folder}

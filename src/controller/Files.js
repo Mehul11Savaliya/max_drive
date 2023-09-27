@@ -104,7 +104,7 @@ const get_all_folder_file = async (req, res) => {
         let files = await service.get_files_from_folder(Number.parseInt(folder));
         res.status(200).json(files);
     } catch (error) {
-        console.log(error);
+        console.log("err",error);
         res.status(400).json({
             errmsg: error.message
         });
@@ -338,7 +338,7 @@ const patch_file = async (req, res) => {
             throw new Error(`invalid id formate..`);
         }
         id = Number.parseInt(id);
-        let resx = await service.update(id, req.user_data.email, req.body);
+        let resx = await service.update(id, req.user_data, req.body);
         res.status(200).json(resx);
     } catch (error) {
         res.status(400).json({

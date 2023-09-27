@@ -19,7 +19,8 @@ const get_public_files=async(from=0,limit=10,all=false)=>{
                     [Op.like]:"video/%"
                    }]
                 }
-            }
+            },
+            password:null
         },
     attributes:["metadata","tags","id",'createdAt','updatedAt','createdAt','updatedAt','createdBy'],
     offset:from,

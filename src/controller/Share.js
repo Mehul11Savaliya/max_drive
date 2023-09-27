@@ -6,6 +6,7 @@ const { generategeneralData } = require("../utils/PageData");
 const couchsrv = require("../services/couchdb");
 
 var emmiterx = require("../subscriber/ShareEvents");
+var filevents = require("../subscriber/FileEvents");
 
 const get_file = async (req, res) => {
     let user;
@@ -32,6 +33,7 @@ const get_file = async (req, res) => {
         // if(id==undefined) res.status(400).send('🖕');
         // const resx  = await filesrv.get_by_id(id,{email:"svlmehul@gmail.com"});
         let file = req.file_info;
+        filevents.emit("download",{id:file.id,downloads:Number.parseInt(file.downloads)+1});
         let { share_settings } = file.file_metadata;
         if (share_settings.is_public && share_settings.is_unlimited) {
             // res.status(200).send("u hab access unlimited times..");

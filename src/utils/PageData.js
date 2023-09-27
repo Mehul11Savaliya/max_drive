@@ -1,5 +1,5 @@
 let projectName  = process.env.PROJECT_NAME
-let version = '1.7.1'
+let version = '1.8.1'
 const generateSignupPageData = ()=>{
     return {
         name : projectName,

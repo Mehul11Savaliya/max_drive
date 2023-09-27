@@ -69,7 +69,7 @@ const delete_file=async(id,user)=>{
 }
 
 const update=async(id,user,new_data)=>{
-    console.log(new_data);
+    // console.log(new_data);
     let old  = await get_by_id(id,user,true);
     if (old==null) {
         throw new Error(`file with id = ${id} not exist..`);
@@ -90,9 +90,22 @@ const update=async(id,user,new_data)=>{
         old.password = null;
     }
     //userupdattion..
-    old.updatedBy = user;
+    old.updatedBy = user.email;
     
     await old.save();
+    return old.dataValues;
+}
+
+const update_by_id=async(id,new_data)=>{
+    let old  = await model.findOne({where:{id:id}});
+    if (old!=null) {
+        console.log(old.dataValues);
+       let {downloads} = new_data;
+       if (downloads!=undefined) {
+        old.downloads  = downloads;
+       }
+       await old.save();
+    }
     return old.dataValues;
 }
 
@@ -100,4 +113,4 @@ const update=async(id,user,new_data)=>{
 //    await update(69,'svlmehul@gmail.com',{});
 // }, 500);
 
-module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read,update}
+module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read,update,update_by_id}

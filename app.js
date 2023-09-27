@@ -25,6 +25,15 @@ var app = express();
 app.set('views', path.join(__dirname, './src/views'));
 app.set('view engine', 'ejs');
 
+// app.use((req, res, next) => {
+//   // Set caching headers
+//   res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+//   res.setHeader('Expires', new Date(Date.now() + 450000).toUTCString()); // Cache for 1 hour
+
+//   // Call the next middleware in the stack
+//   next();
+// });
+
 app.use(logger(function (tokens, req, res) {
   return [
     tokens.method(req, res),
@@ -39,7 +48,10 @@ app.use(logger(function (tokens, req, res) {
 app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, './src/public/')));
+app.use(express.static(path.join(__dirname, './src/public/'),{
+  maxAge:"1day"
+}));
+app.use("/src/main.js",express.static(path.join(__dirname,"./src/public/assets/js/main.js")));
 app.use('/assets',express.static(path.join(__dirname,'./src/public/asset/')));
 app.use("/uploads",express.static(path.join(__dirname,"./src/uploads/")));
 app.use(fileUpload({

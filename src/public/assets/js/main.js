@@ -109,7 +109,7 @@ async function home_update_folders(data) {
                     <a href="" class="folder">
                         <h5 class="mb-2">${data.name}</h5>
                         <p class="mb-2"><i class="fa-solid fa-clock"></i>${new Date(data.createdAt).toDateString()}</p>
-                        <p class="mb-0"><i class="fa-solid fa-file"></i> 0 Files</p>
+                        <p class="mb-0"><i class="fa-solid fa-file"></i> ${data.count} Files</p>
                     </a>
             </div>
         </div>`;
@@ -449,7 +449,7 @@ function generate_folder_file_cards(files) {
                 <button onclick="deleteFile(${file.id})" class="dropdown-item"><i class="fa-solid fa-trash"></i>Delete</button>
                 <a class="dropdown-item" href="#"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
                 <a class="dropdown-item" href="#"><i class="fa-solid fa-print"></i>Print</a>
-                <a class="dropdown-item" href="#"><i class="fa-solid fa-download"></i>Download</a>
+                <button onclick="file_download_functions(${file.id},'${file.metadata.name}')" class="dropdown-item"><i class="fa-solid fa-download"></i>Download</button>
             </div>
         </div>
     </td>`;
@@ -553,7 +553,7 @@ function generate_folder_file_cards(files) {
                 <div class="card-body image-thumb ">
                     <div class="mb-4 text-center p-3 rounded iq-thumb">
                         <a data-author="${file.createdBy}" data-title="${file.metadata.name}" class="image-popup-vertical-fit" href="/file/${file.id}/content?type=thumb">
-                            <img src="${file.metadata.path}" class="img-fluid" alt="images">
+                            <img src="/file/${file.id}/content?type=thumb" class="img-fluid" alt="images">
                             <div class="iq-image-overlay"></div>
                         </a>
                     </div>
@@ -742,27 +742,33 @@ async function file_gen_timeline(fileid) {
     }
 }
 
-async function file_download_functions(fileid) {
-    if (fileflag) {
+async function file_download_functions(fileid,finame=undefined) {
+    if (fileflag||folder_page) {
         let filid = Number.parseInt(fileid);
         if (!isNaN(fileid) && filid != undefined && fileid != null) {
             const url = `/file/${fileid}/content?type=full`;
-            fetch(url)
-                .then((response) => response.blob())
-                .then((blob) => {
-                    const a = document.createElement('a');
-                    const url = window.URL.createObjectURL(blob);
-                    a.href = url;
-                    a.download = file_name; // Replace with your desired file name
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                })
-                .catch((error) => {
-                    notifier.alert(`Error downloading the file : ${error.message}`);
-                });
+            // fetch(url)
+            //     .then((response) => response.blob())
+            //     .then((blob) => {
+            //         const a = document.createElement('a');
+            //         const url = window.URL.createObjectURL(blob);
+            //         a.href = url;
+            //         if (finame!=undefined) {
+            //             file_name = finame;
+            //         }
+            //         a.download = file_name; // Replace with your desired file name
+            //         document.body.appendChild(a);
+            //         a.click();
+            //         window.URL.revokeObjectURL(url);
+            //     })
+            //     .catch((error) => {
+            //         notifier.alert(`Error downloading the file : ${error.message}`);
+            //     });
+            
 
         }
+    }else{
+        console.log("lol");
     }
 }
 
@@ -1225,8 +1231,8 @@ async function load_public_media(from, limit) {
                 ${val.createdBy} Shared publicaly at : ${new Date(val.updatedAt).toDateString()}
        </div>
            <div class="card-body">
-           <img src="${val.metadata.path}" class="card-img-top" alt="#" onerror="this.remove()">
-           <video src="${val.metadata.path}" class="img-fluid rounded" alt="#" controls onerror="this.remove()"></video>
+           <img src="/file/${val.id}/content?type=thumb" loading="lazy" class="card-img-top" alt="#" onerror="this.remove()">
+           <video src="/file/${val.id}/content" class="img-fluid rounded" alt="#" controls onerror="this.remove()"></video>
                <h4 class="card-title">${val.metadata.name}</h4>
                <p class="card-text"><small class="text-muted">Updated at :${new Date(val.createdAt).toDateString()}</small></p>
                <div class="d-flex flex-row fs-12">
@@ -1496,6 +1502,75 @@ async function generate_chart() {
 
         var chart = new ApexCharts(document.querySelector("#storage_chart"), options);
         chart.render();
+
+        //storage uploads and downloads
+        data = await handleRequest("/analytics/upanddowns",{method:"GET"},200);
+        document.querySelector("#ups").innerHTML = data.uploads;
+        document.querySelector("#downs").innerHTML = data.downloads;
+
+        let uploads = [],downloads=[];
+        
+        let mp = new Map();
+        data.data.forEach((val)=>{
+            mp.set(Number.parseInt(val.month),{up:val.uploads,dw:val.downloads});
+        })
+       for (let month = 1; month <= 12; month++) {
+            if (mp.has(month)) {
+                uploads[month] = Number.parseInt(mp.get(month).up);
+                downloads[month] = Number.parseInt(mp.get(month).dw);
+            }
+            else{
+                uploads[month] = 0;
+                downloads[month]=0;
+            }
+       }
+       uploads.shift();
+       downloads.shift();
+        var options = {
+            series: [{
+                    name: 'Uploads',
+                    data: uploads
+                  }, {
+                    name: 'Downloads',
+                    data: downloads
+                  }],
+            chart: {
+            type: 'bar',
+            height: 400
+          },
+          plotOptions: {
+            bar: {
+              horizontal: true,
+              dataLabels: {
+                position: 'top',
+              },
+            }
+          },
+          dataLabels: {
+            enabled: true,
+            offsetX: -6,
+            style: {
+              fontSize: '12px',
+              colors: ['#fff']
+            }
+          },
+          stroke: {
+            show: true,
+            width: 1,
+            colors: ['#fff']
+          },
+          tooltip: {
+            shared: true,
+            intersect: false
+          },
+          xaxis: {
+            categories: ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct','Nov','Dec'],
+          },
+          };
+  
+          var chart = new ApexCharts(document.querySelector("#downloadchart"), options);
+          chart.render();
+
     }
 }
 
@@ -1605,8 +1680,6 @@ async function update_storage_chart(gap) {
 
 
 
-
-
 // search bar related
 let holder = document.querySelector("#reslts");
 // sbar.addEventListener("input",async()=>{
@@ -1657,39 +1730,39 @@ function get_meta_card_from_ext(ext) {
     return res;
 }
 
-// Check if the browser supports the Cache API
-if ('caches' in window) {
-    // Define a cache name
-    const cacheName = 'src';
+// // Check if the browser supports the Cache API
+// if ('caches' in window) {
+//     // Define a cache name
+//     const cacheName = 'src';
 
-    // Define an array of URLs to cache
-    const urlsToCache = ["/assets/js/doc-viewer.js", "/assets/js/app.js", "/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.js", "/assets/vendor/doc-viewer/include/verySimpleImageViewer/js/jquery.verySimpleImageViewer.js",
-        "/assets/vendor/doc-viewer/include/SheetJS/xlsx.full.min.js", "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/divs2slides.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/pptxjs.js"
-        , "/assets/vendor/doc-viewer/include/PPTXjs/js/nv.d3.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/d3.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/filereader.js", "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js",
-        "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js", "/assets/vendor/doc-viewer/include/docx/jszip-utils.js", "/assets/vendor/doc-viewer/include/pdf/pdf.js", "/assets/js/chart-custom.js", "/assets/js/customizer.js", "/assets/js/backend-bundle.min.js",
-        "/assets/vendor/fontawesome/css/solid.css", "/assets/vendor/fontawesome/css/solid.css", "/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css", "/assets/vendor/doc-viewer/include/verySimpleImageViewer/css/jquery.verySimpleImageViewer.css",
-        "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.css", "/assets/vendor/doc-viewer/include/PPTXjs/css/nv.d3.min.css", "/assets/vendor/doc-viewer/include/PPTXjs/css/pptxjs.css", "/assets/vendor/doc-viewer/include/pdf/pdf.viewer.css"
-    ];
+//     // Define an array of URLs to cache
+//     const urlsToCache = ["/assets/js/doc-viewer.js", "/assets/js/app.js", "/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.js", "/assets/vendor/doc-viewer/include/verySimpleImageViewer/js/jquery.verySimpleImageViewer.js",
+//         "/assets/vendor/doc-viewer/include/SheetJS/xlsx.full.min.js", "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/divs2slides.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/pptxjs.js"
+//         , "/assets/vendor/doc-viewer/include/PPTXjs/js/nv.d3.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/d3.min.js", "/assets/vendor/doc-viewer/include/PPTXjs/js/filereader.js", "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js",
+//         "/assets/vendor/doc-viewer/include/docx/mammoth.browser.min.js", "/assets/vendor/doc-viewer/include/docx/jszip-utils.js", "/assets/vendor/doc-viewer/include/pdf/pdf.js", "/assets/js/chart-custom.js", "/assets/js/customizer.js", "/assets/js/backend-bundle.min.js",
+//         "/assets/vendor/fontawesome/css/solid.css", "/assets/vendor/fontawesome/css/solid.css", "/assets/vendor/doc-viewer/include/officeToHtml/officeToHtml.css", "/assets/vendor/doc-viewer/include/verySimpleImageViewer/css/jquery.verySimpleImageViewer.css",
+//         "/assets/vendor/doc-viewer/include/SheetJS/handsontable.full.min.css", "/assets/vendor/doc-viewer/include/PPTXjs/css/nv.d3.min.css", "/assets/vendor/doc-viewer/include/PPTXjs/css/pptxjs.css", "/assets/vendor/doc-viewer/include/pdf/pdf.viewer.css"
+//     ];
 
-    // Open the cache
-    caches.open(cacheName)
-        .then(function (cache) {
-            // Iterate through the URLs and cache each one
-            urlsToCache.forEach(function (url) {
-                // Fetch the resource from the network
-                fetch(url)
-                    .then(async function (response) {
-                        if (response.status === 200) {
-                            // If the resource was fetched successfully, add it to the cache
-                            cache.put(url, response);
-                        }
-                    })
-                    .catch(function (error) {
-                        console.error('Error fetching resource:', error);
-                    });
-            });
-        });
-}
+//     // Open the cache
+//     caches.open(cacheName)
+//         .then(function (cache) {
+//             // Iterate through the URLs and cache each one
+//             urlsToCache.forEach(function (url) {
+//                 // Fetch the resource from the network
+//                 fetch(url)
+//                     .then(async function (response) {
+//                         if (response.status === 200) {
+//                             // If the resource was fetched successfully, add it to the cache
+//                             cache.put(url, response);
+//                         }
+//                     })
+//                     .catch(function (error) {
+//                         console.error('Error fetching resource:', error);
+//                     });
+//             });
+//         });
+// }
 
 
 window.onload = async () => {

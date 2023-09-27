@@ -157,16 +157,43 @@ const search=async(qry,user,is_admin)=>{
      return files;
 }
 
+const uploads_and_downloads=async(user)=>{
+    let {email} = user;
+    if (email==undefined) {
+        throw new Error(`invalid email..`);
+    }
+    let res  = await filemdl.findAll({
+        where:{
+            createdBy : email
+        },
+        attributes:[[Sequelize.literal(`count(file.id)`),"uploads"],[Sequelize.literal(`sum(file.downloads)`),"downloads"],
+                    [Sequelize.literal(`EXTRACT(MONTH FROM file."createdAt")`),"month"]],
+        group:['month'],
+        raw:true
+    })   
+    let totalups=0,totaldowns=0;
+    res.forEach((val)=>{
+        totalups+=Number.parseInt(val.uploads);
+        totaldowns+=Number.parseInt(val.downloads);
+    })
+    return {
+            uploads : totalups,
+            downloads : totaldowns,
+            data : res
+    }
+}
+
 // (async()=>{
 //     console.log(await get_files());
 // })()
 
 // setTimeout(async() => {
-//     console.time("time")
-// //   await  get_total_space_usage('svlmehul@gmail.com');
-// //   console.timeEnd("time")
-//     // console.log(await get_index_documents("svlmehul@gmail.com",0,10))
+    // console.time("time")
+//   await  get_total_space_usage('svlmehul@gmail.com');
+//   console.timeEnd("time")
+    // console.log(await get_index_documents("svlmehul@gmail.com",0,10))
 //    await get_storage_stats('yearly','svlmehul@gmail.com')
+//     console.log(await uploads_and_downloads({email:'svlmehul@gmail.com'}));
 // }, 500);
 
 module.exports = {
@@ -174,5 +201,6 @@ module.exports = {
     get_index_documents,
     get_total_space_usage,
     get_storage_stats,
-    search
+    search,
+    uploads_and_downloads
 }

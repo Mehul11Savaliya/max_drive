@@ -115,6 +115,17 @@ const get_file_audit=async(req,res)=>{
     }
 }
 
+const get_upsanddown=async(req,res)=>{
+    try {
+        let resx = await service.uploads_and_downloads(req.user_data);
+        res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg : error.message
+        })
+    }
+}
+
 module.exports={
     under_dev,
     get_file_list,
@@ -122,7 +133,8 @@ module.exports={
     get_storage_usage,
     get_storage_usage_stats,
     get_file_search,
-    get_file_audit
+    get_file_audit,
+    get_upsanddown
 }
 
 function check_gap(gap) {

@@ -96,6 +96,7 @@ const delete_multiple_folder=async(req,res)=>{
    let ress = await service.get_all_folder(req.user_data.email);
    res.status(200).json(ress);
     } catch (error) {
+        // console.log(error);
         res.status(500).json({
             errmsg : error.message
         })

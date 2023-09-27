@@ -43,6 +43,10 @@ const File = sq.define("file",{
     password:{
         type:DataTypes.STRING,
         defaultValue:null
+    },
+    downloads:{
+        type : DataTypes.BIGINT,
+        defaultValue:0
     }
 },
 {
