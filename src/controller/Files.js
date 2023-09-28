@@ -160,6 +160,7 @@ const get_file_content = async (req, res) => {
     }
 
     let file = req.file_info;
+    
 
     let share_settings = file.file_metadata.share_settings;
     let pth = path.join(__dirname, ".." + file.metadata.path);

@@ -747,28 +747,91 @@ async function file_download_functions(fileid,finame=undefined) {
         let filid = Number.parseInt(fileid);
         if (!isNaN(fileid) && filid != undefined && fileid != null) {
             const url = `/file/${fileid}/content?type=full`;
-            // fetch(url)
-            //     .then((response) => response.blob())
-            //     .then((blob) => {
-            //         const a = document.createElement('a');
-            //         const url = window.URL.createObjectURL(blob);
-            //         a.href = url;
-            //         if (finame!=undefined) {
-            //             file_name = finame;
-            //         }
-            //         a.download = file_name; // Replace with your desired file name
-            //         document.body.appendChild(a);
-            //         a.click();
-            //         window.URL.revokeObjectURL(url);
-            //     })
-            //     .catch((error) => {
-            //         notifier.alert(`Error downloading the file : ${error.message}`);
-            //     });
+            fetch(url)
+                .then((response) => response.blob())
+                .then((blob) => {
+                    const a = document.createElement('a');
+                    const url = window.URL.createObjectURL(blob);
+                    a.href = url;
+                    if (finame!=undefined) {
+                        file_name = finame;
+                    }
+                    a.download = file_name; // Replace with your desired file name
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                })
+                .catch((error) => {
+                    notifier.alert(`Error downloading the file : ${error.message}`);
+                });
             
 
         }
     }else{
         console.log("lol");
+    }
+}
+
+async function file_download_functions_live(fileid,finame=undefined) {
+    if (fileflag||folder_page) {
+        if (fileflag) {
+            let controls = document.querySelector("#downdisplay");
+            controls.innerHTML=`<progress id="downloadProgress" value="0" max="100"></progress><br>
+            <span id="progressText">0%</span><br>
+            <span id="downloadSpeed">0 KB/s</span><br>
+            <span id="remainingTime">Calculating...</span>`;
+
+            const downloadProgress = document.getElementById('downloadProgress');
+            const progressText = document.getElementById('progressText');
+            const downloadSpeed = document.getElementById('downloadSpeed');
+            const remainingTime = document.getElementById('remainingTime');
+    
+                const start = Date.now();
+    
+                // fetch(`/file/164/content?type=full`)
+    
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `/file/${fileid}/content?type=full`,true); // Replace 'sample.txt' with the actual file URL
+                xhr.responseType = 'blob';
+                xhr.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const percentage = (event.loaded / event.total) * 100;
+                        downloadProgress.value = percentage;
+                        progressText.textContent = `${percentage.toFixed(2)}%`;
+    
+                        const currentTime = new Date().getTime();
+                        const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                        const downloadRate = (event.loaded / elapsedTime);
+                        downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+    
+                        const remainingBytes = event.total - event.loaded;
+                        const remainingTimeInSeconds = remainingBytes / downloadRate;
+                        const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                        const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                        remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+                    }
+                });
+                const startTime = new Date().getTime();
+                xhr.onerror = function () {
+                    
+                }
+                xhr.send();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        const blob = xhr.response;
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = URL.createObjectURL(blob);
+                        downloadLink.download = file_name; // Specify the desired filename
+                        // Simulate a click on the download link to trigger the download
+                        downloadLink.style.display = 'none'; // Hide the link
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        downloadLink.onclick=function () {
+                            downloadLink.remove();
+                        }
+                    }
+                };
+        }
     }
 }
 
