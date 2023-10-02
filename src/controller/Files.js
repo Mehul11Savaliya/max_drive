@@ -15,6 +15,7 @@ const { generategeneralData } = require("../utils/PageData");
 
 const post_files = async (req, res) => {
     try {
+        // console.log(req);
         if (req.files == null)
             throw new Error(`file not provided..`);
 

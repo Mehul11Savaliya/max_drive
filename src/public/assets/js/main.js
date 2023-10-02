@@ -225,13 +225,19 @@ async function upload_file() {
         title: 'upload file',
         html: `
         <form id="filestoupload" enctype="multipart/form-data">
-        <div class="row" id="fm-wizard-holder">
-        </div>
+        <div class="row" id="fm-wizard-holder"></div>
         </form>
         <div class="row">
         <div class="col-lg-4 col-md-8 col-sm-11">
         <button class="btn btn-primary" onclick="generateWizardCard(event)">Add media</button>
         </div>
+        </div>
+        <br>
+        <div class="prog-container" style="display:none">
+        <progress style="width:100%" id="uploadp" value="0" max="100"></progress><br>
+        <span id="uploadpercp">0%</span><br>
+        <span id="uploadspeed">0 KB/s</span><br>
+        <span id="remainingTime">Calculating...</span>
         </div>`,
         showCloseButton: true,
         showCancelButton: true,
@@ -239,100 +245,88 @@ async function upload_file() {
         confirmButtonText: 'save',
         confirmButtonAriaLabel: 'save',
         cancelButtonText: 'cancel',
-        cancelButtonAriaLabel: 'cancel'
-    }).then(async (res) => {
-        if (res.isConfirmed) {
-            let formData = new FormData(document.querySelector("#filestoupload"));
-            let url = document.location.href;
-            let folder_id = url.split('/');
-            folder_id = folder_id[folder_id.length - 1];
-            folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
-            formData.append("folder", folder_id);
-            let config = {
-                method: "POST",
-                headers: {
-                    "Accept": "application/json"
-                },
-                body: formData
-            }
-            let data;
-            // new AWN().async(
-            //     data = await handleRequest("/file/", config, 201),
-            //     'Posts has been loaded',
-            // )
-            let notifier = new AWN({
-                icons: {
-                    enabled: false,
-                    prefix: '<i class="las la-check-double',
-                    suffix: '></i>'
+        cancelButtonAriaLabel: 'cancel',
+        preConfirm: () => {
+            return new Promise((reslv, rej) => {
+                const container = Swal.getHtmlContainer().querySelector('.prog-container');
+                const progressBar = Swal.getHtmlContainer().querySelector('#uploadp');
+                const progressText = Swal.getHtmlContainer().querySelector('#uploadpercp');
+                const speedText = Swal.getHtmlContainer().querySelector('#uploadspeed');
+                const remtime  = Swal.getHtmlContainer().querySelector('#remainingTime');
+                const startTime = Date.now();
+                container.style.display = 'block';
+                let notifier = new AWN({
+                    icons: {
+                        enabled: false,
+                        prefix: '<i class="las la-check-double',
+                        suffix: '></i>'
+                    }
+                });
+
+                let url = document.location.href;
+                let folder_id = url.split('/');
+                folder_id = folder_id[folder_id.length - 1];
+                folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+
+                let formData = new FormData(document.querySelector("#filestoupload"));
+                formData.append("folder", folder_id);
+
+
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/file/", true);
+                xhr.setRequestHeader("Accept", "application/json");
+                xhr.responseType = "json";
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        const loaded = e.loaded;
+                        const total = e.total;
+                        const percent = (loaded / total) * 100;
+
+                        // Calculate remaining time
+                        const currentTime = Date.now();
+                        const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
+                        const remainingBytes = total - loaded;
+                        const uploadSpeedBps = loaded / elapsedTime; // Bytes per second
+                        const uploadSpeedKbps = uploadSpeedBps * 8 / 1000; // Kilobits per second
+                        const remainingTime = remainingBytes / uploadSpeedBps; // Seconds
+
+                        // Update progress bar and text
+                        progressBar.value = percent;
+                        progressText.textContent = percent.toFixed(2) + '%';
+
+                        // Update speed text
+                        speedText.textContent = uploadSpeedKbps.toFixed(2) + ' kbps';
+
+                        // Calculate and display remaining time
+                        const minutes = Math.floor(remainingTime / 60);
+                        const seconds = Math.floor(remainingTime % 60);
+                        remtime.textContent= `Remaining Time: ${minutes}:${seconds}`;
+                    }
+                }
+                xhr.send(formData);
+                xhr.onreadystatechange = async function (ev) {
+                    if (xhr.status != 201) {
+                        notifier.alert(`error in uploading (${xhr.statusText})`);
+                    } else {
+                        let resp = xhr.response;
+                        let config = {
+                            method: "GET"
+                        }
+                        let folder_id = url.split('/');
+                        folder_id = folder_id[folder_id.length - 1];
+                        folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+                        let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
+                        generate_folder_file_cards(ress);
+                        notifier.success(`${resp.length} files has been loaded`)
+                        reslv();
+                    }
                 }
             });
-
-            // let res = await fetch('/file/', config);
-            notifier.async(fetch('/file/', config), async (resp) => {
-                if (resp.status != 201) {
-                    notifier.alert("not able to upload right now..");
-                } else {
-                    resp = await resp.json();
-                    let url = document.location.href;
-                    let folder_id = url.split('/');
-                    folder_id = folder_id[folder_id.length - 1];
-                    folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
-                    let config = {
-                        method: "GET"
-                    }
-                    let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
-                    generate_folder_file_cards(ress);
-                    notifier.success(`${resp.length} files has been loaded`)
-                }
-            }, err => {
-                notifier.alert("error in uploading..");
-            })
-            // if (res.status != 201) {
-            //     notifier.alert("not able to upload right now..");
-            // } else {
-            //     notifier.async(
-            //         res.json(),
-            //         async (resp) => {
-            //             let url = document.location.href;
-            //             let folder_id = url.split('/');
-            //             folder_id = folder_id[folder_id.length - 1];
-            //             folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
-            //             let config = {
-            //                 method: "GET"
-            //             }
-            //             let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
-            //             generate_folder_file_cards(ress);
-            //             notifier.success(`${resp.length} files has been loaded`)
-            //         },
-            //         error => {
-            //             notifier.alert("error in response..");
-            //         }
-            //     );
-
-            // }
-            // console.log(data);
-
+        }
+    }).then(async (res) => {
+        if (res.isConfirmed) {
         }
     });
-
-    // let file  = document.createElement("input");
-    //     file.setAttribute("type","file");
-    //     file.setAttribute("name","file");
-    //     file.click();
-    //     let formData = new FormData();
-    //     formData.append("file",file);
-    //     let config = {
-    //         method : "POST",
-    //         headers:{
-    //             "Content-Type":"application/multipart-formdata",
-    //             "Accept":"application/json"
-    //         },
-    //         body : formData
-    //     }
-    //     console.log(formData.entries());
-    //     let data = await handleRequest("/file/",config,201);
-    //     console.log(data);
 }
 
 let i = 0;
@@ -435,6 +429,7 @@ function generate_folder_file_cards(files) {
             </div>
             ${file.metadata.name}
         </div>
+        <div class="row d-flex" id="dctrl-${file.id}"></div>
     </td>
     <td>${file.createdBy}</td>
     <td>${new Date(file.createdAt).toDateString()}</td>
@@ -449,7 +444,7 @@ function generate_folder_file_cards(files) {
                 <button onclick="deleteFile(${file.id})" class="dropdown-item"><i class="fa-solid fa-trash"></i>Delete</button>
                 <a class="dropdown-item" href="#"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
                 <a class="dropdown-item" href="#"><i class="fa-solid fa-print"></i>Print</a>
-                <button onclick="file_download_functions(${file.id},'${file.metadata.name}')" class="dropdown-item"><i class="fa-solid fa-download"></i>Download</button>
+                <button onclick="file_download_functions_live(${file.id},'${file.metadata.name}')" class="dropdown-item"><i class="fa-solid fa-download"></i>Download</button>
             </div>
         </div>
     </td>`;
@@ -729,7 +724,7 @@ async function file_gen_timeline(fileid) {
             resx = resx.map((val) => {
                 return {
                     date: `${new Date(val.time).toDateString()}`,
-                    content: `accessed by <br> ${val.user} \n<br> msg :<span style="color:red"> ${val.message==undefined?"":val.message}</span>`
+                    content: `accessed by <br> ${val.user} \n<br> msg :<span style="color:red"> ${val.message == undefined ? "" : val.message}</span>`
                 }
             })
             $('#file-timeline').roadmap(resx, {
@@ -742,8 +737,8 @@ async function file_gen_timeline(fileid) {
     }
 }
 
-async function file_download_functions(fileid,finame=undefined) {
-    if (fileflag||folder_page) {
+async function file_download_functions(fileid, finame = undefined) {
+    if (fileflag || folder_page) {
         let filid = Number.parseInt(fileid);
         if (!isNaN(fileid) && filid != undefined && fileid != null) {
             const url = `/file/${fileid}/content?type=full`;
@@ -753,7 +748,7 @@ async function file_download_functions(fileid,finame=undefined) {
                     const a = document.createElement('a');
                     const url = window.URL.createObjectURL(blob);
                     a.href = url;
-                    if (finame!=undefined) {
+                    if (finame != undefined) {
                         file_name = finame;
                     }
                     a.download = file_name; // Replace with your desired file name
@@ -764,19 +759,20 @@ async function file_download_functions(fileid,finame=undefined) {
                 .catch((error) => {
                     notifier.alert(`Error downloading the file : ${error.message}`);
                 });
-            
+
 
         }
-    }else{
+    } else {
         console.log("lol");
     }
 }
 
-async function file_download_functions_live(fileid,finame=undefined) {
-    if (fileflag||folder_page) {
+async function file_download_functions_live(fileid, finame = undefined) {
+    if ((fileflag || folder_page) && (fileid != null || fileid != undefined)) {
+        fileid = Number.parseInt(fileid);
         if (fileflag) {
             let controls = document.querySelector("#downdisplay");
-            controls.innerHTML=`<progress id="downloadProgress" value="0" max="100"></progress><br>
+            controls.innerHTML = `<progress id="downloadProgress" value="0" max="100"></progress><br>
             <span id="progressText">0%</span><br>
             <span id="downloadSpeed">0 KB/s</span><br>
             <span id="remainingTime">Calculating...</span>`;
@@ -785,96 +781,156 @@ async function file_download_functions_live(fileid,finame=undefined) {
             const progressText = document.getElementById('progressText');
             const downloadSpeed = document.getElementById('downloadSpeed');
             const remainingTime = document.getElementById('remainingTime');
-    
-                const start = Date.now();
-    
-                // fetch(`/file/164/content?type=full`)
-    
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', `/file/${fileid}/content?type=full`,true); // Replace 'sample.txt' with the actual file URL
-                xhr.responseType = 'blob';
-                xhr.addEventListener('progress', (event) => {
-                    if (event.lengthComputable) {
-                        const percentage = (event.loaded / event.total) * 100;
-                        downloadProgress.value = percentage;
-                        progressText.textContent = `${percentage.toFixed(2)}%`;
-    
-                        const currentTime = new Date().getTime();
-                        const elapsedTime = (currentTime - startTime) / 1000; // seconds
-                        const downloadRate = (event.loaded / elapsedTime);
-                        downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
-    
-                        const remainingBytes = event.total - event.loaded;
-                        const remainingTimeInSeconds = remainingBytes / downloadRate;
-                        const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
-                        const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
-                        remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
-                    }
-                });
-                const startTime = new Date().getTime();
-                xhr.onerror = function () {
-                    
+
+            const start = Date.now();
+
+            // fetch(`/file/164/content?type=full`)
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/file/${fileid}/content?type=full`, true); // Replace 'sample.txt' with the actual file URL
+            xhr.responseType = 'blob';
+            xhr.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentage = (event.loaded / event.total) * 100;
+                    downloadProgress.value = percentage;
+                    progressText.textContent = `${percentage.toFixed(2)}%`;
+
+                    const currentTime = new Date().getTime();
+                    const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                    const downloadRate = (event.loaded / elapsedTime);
+                    downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+
+                    const remainingBytes = event.total - event.loaded;
+                    const remainingTimeInSeconds = remainingBytes / downloadRate;
+                    const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                    const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                    remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
                 }
-                xhr.send();
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                        const blob = xhr.response;
-                        const downloadLink = document.createElement('a');
-                        downloadLink.href = URL.createObjectURL(blob);
-                        downloadLink.download = file_name; // Specify the desired filename
-                        // Simulate a click on the download link to trigger the download
-                        downloadLink.style.display = 'none'; // Hide the link
-                        document.body.appendChild(downloadLink);
-                        downloadLink.click();
-                        downloadLink.onclick=function () {
-                            downloadLink.remove();
-                        }
+            });
+            const startTime = new Date().getTime();
+            xhr.onerror = function () {
+
+            }
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const blob = xhr.response;
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.download = file_name; // Specify the desired filename
+                    // Simulate a click on the download link to trigger the download
+                    downloadLink.style.display = 'none'; // Hide the link
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.onclick = function () {
+                        downloadLink.remove();
+                        controls.innerHTML = 'downloaded';
                     }
-                };
+                }
+            };
+        }
+        if (folder_page) {
+            let controlsx = document.querySelector(`#dctrl-${fileid}`);
+            controlsx.innerHTML = ` <progress id="downloadProgress-${fileid}"class="col-lg-7 col-md-6 col-sm-6 mx-2" value="0" max="100"></progress>
+            <span id="progressText-${fileid}" class="col-lg-2 col-md-2 col-sm-2 mx-2">0%</span>
+            <span id="downloadSpeed-${fileid}" class="col-lg-2 col-md-2 mx-2">0 KB/s</span>
+            <span id="remainingTime-${fileid}" class="col-lg-2 col-md-2 mx-2">Calculating...</span>`;
+
+            const downloadProgress = document.getElementById(`downloadProgress-${fileid}`);
+            const progressText = document.getElementById(`progressText-${fileid}`);
+            const downloadSpeed = document.getElementById(`downloadSpeed-${fileid}`);
+            const remainingTime = document.getElementById(`remainingTime-${fileid}`);
+
+            const start = Date.now();
+
+            // fetch(`/file/164/content?type=full`)
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/file/${fileid}/content?type=full`, true); // Replace 'sample.txt' with the actual file URL
+            xhr.responseType = 'blob';
+            xhr.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentage = (event.loaded / event.total) * 100;
+                    downloadProgress.value = percentage;
+                    progressText.textContent = `${percentage.toFixed(2)}%`;
+
+                    const currentTime = new Date().getTime();
+                    const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                    const downloadRate = (event.loaded / elapsedTime);
+                    downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+
+                    const remainingBytes = event.total - event.loaded;
+                    const remainingTimeInSeconds = remainingBytes / downloadRate;
+                    const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                    const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                    remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+                }
+            });
+            const startTime = new Date().getTime();
+            xhr.onerror = function () {
+
+            }
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const blob = xhr.response;
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.download = finame; // Specify the desired filename
+                    // Simulate a click on the download link to trigger the download
+                    downloadLink.style.display = 'none'; // Hide the link
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.onclick = function () {
+                        downloadLink.remove();
+                    }
+                    controlsx.innerHTML = 'downloaded';
+                }
+            };
         }
     }
 }
 
 async function file_pass_protect(event) {
-    let swit  = event.target;
+    let swit = event.target;
     if (fileflag) {
-        filid  = Number.parseInt(fileid);
-        if (!isNaN(fileid)&&fileid!=undefined) {
+        filid = Number.parseInt(fileid);
+        if (!isNaN(fileid) && fileid != undefined) {
             Swal.fire({
                 title: 'Set file password',
                 input: 'text',
                 inputAttributes: {
-                  autocapitalize: 'off'
+                    autocapitalize: 'off'
                 },
                 showCancelButton: true,
                 confirmButtonText: 'Set',
                 showLoaderOnConfirm: true,
                 preConfirm: (pass) => {
-                  return fetch(`/file/${fileid}`,{
-                    method:"PATCH",
-                    headers:{
-                        "Content-Type":"application/json"
-                    },
-                    body:JSON.stringify({password:pass==''?null:pass})
-                  })
-                    .then(response => {
-                      if (!response.ok) {
-                        throw new Error(response.statusText)
-                      }
-                      return response.json()
+                    return fetch(`/file/${fileid}`, {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ password: pass == '' ? null : pass })
                     })
-                    .catch(error => {
-                      Swal.showValidationMessage(
-                        `failed to set password`
-                      )
-                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(response.statusText)
+                            }
+                            return response.json()
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(
+                                `failed to set password`
+                            )
+                        })
                 },
                 allowOutsideClick: () => !Swal.isLoading()
-              }).then((result) => {
+            }).then((result) => {
                 if (result.isConfirmed) {
-                  Swal.fire("success..")
+                    Swal.fire("success..")
                 }
-              })
+            })
         }
     }
 }
@@ -1567,72 +1623,72 @@ async function generate_chart() {
         chart.render();
 
         //storage uploads and downloads
-        data = await handleRequest("/analytics/upanddowns",{method:"GET"},200);
-        document.querySelector("#ups").innerHTML = data.uploads;
-        document.querySelector("#downs").innerHTML = data.downloads;
+        data = await handleRequest("/analytics/upanddowns", { method: "GET" }, 200);
+        document.querySelector("#ups").innerHTML = data.downloads;
+        document.querySelector("#downs").innerHTML = data.uploads;
 
-        let uploads = [],downloads=[];
-        
+        let uploads = [], downloads = [];
+
         let mp = new Map();
-        data.data.forEach((val)=>{
-            mp.set(Number.parseInt(val.month),{up:val.uploads,dw:val.downloads});
+        data.data.forEach((val) => {
+            mp.set(Number.parseInt(val.month), { up: val.uploads, dw: val.downloads });
         })
-       for (let month = 1; month <= 12; month++) {
+        for (let month = 1; month <= 12; month++) {
             if (mp.has(month)) {
                 uploads[month] = Number.parseInt(mp.get(month).up);
                 downloads[month] = Number.parseInt(mp.get(month).dw);
             }
-            else{
+            else {
                 uploads[month] = 0;
-                downloads[month]=0;
+                downloads[month] = 0;
             }
-       }
-       uploads.shift();
-       downloads.shift();
+        }
+        uploads.shift();
+        downloads.shift();
         var options = {
             series: [{
-                    name: 'Uploads',
-                    data: uploads
-                  }, {
-                    name: 'Downloads',
-                    data: downloads
-                  }],
+                name: 'Uploads',
+                data: uploads
+            }, {
+                name: 'Downloads',
+                data: downloads
+            }],
             chart: {
-            type: 'bar',
-            height: 400
-          },
-          plotOptions: {
-            bar: {
-              horizontal: true,
-              dataLabels: {
-                position: 'top',
-              },
-            }
-          },
-          dataLabels: {
-            enabled: true,
-            offsetX: -6,
-            style: {
-              fontSize: '12px',
-              colors: ['#fff']
-            }
-          },
-          stroke: {
-            show: true,
-            width: 1,
-            colors: ['#fff']
-          },
-          tooltip: {
-            shared: true,
-            intersect: false
-          },
-          xaxis: {
-            categories: ['Jan','Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct','Nov','Dec'],
-          },
-          };
-  
-          var chart = new ApexCharts(document.querySelector("#downloadchart"), options);
-          chart.render();
+                type: 'bar',
+                height: 400
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    dataLabels: {
+                        position: 'top',
+                    },
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                offsetX: -6,
+                style: {
+                    fontSize: '12px',
+                    colors: ['#fff']
+                }
+            },
+            stroke: {
+                show: true,
+                width: 1,
+                colors: ['#fff']
+            },
+            tooltip: {
+                shared: true,
+                intersect: false
+            },
+            xaxis: {
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            },
+        };
+
+        var chart = new ApexCharts(document.querySelector("#downloadchart"), options);
+        chart.render();
 
     }
 }
