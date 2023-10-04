@@ -1225,16 +1225,17 @@ function send_queued_file() {
     let files = document.getElementsByClassName("queue-file");
     Array.from(files).forEach((file) => {
         if (file.files.length > 0) {
-            const reader = new FileReader();
+            socket.emit('file-upload', { id: roomid, data: file.files[0], name: fileName, type: type });
+            // const reader = new FileReader();
 
-            reader.onload = (e) => {
-                const fileData = e.target.result;
-                const fileName = file.files[0].name;
-                const type = file.files[0].type;
+            // reader.onload = (e) => {
+            //     const fileData = e.target.result;
+            //     const fileName = file.files[0].name;
+            //     const type = file.files[0].type;
 
-                socket.emit('file-upload', { id: roomid, data: fileData, name: fileName, type: type });
-            };
-            reader.readAsArrayBuffer(file.files[0]);
+            //     socket.emit('file-upload', { id: roomid, data: fileData, name: fileName, type: type });
+            // };
+            // reader.readAsArrayBuffer(file.files[0]);
         }
     })
 

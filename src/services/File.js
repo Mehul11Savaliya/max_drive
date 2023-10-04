@@ -4,6 +4,7 @@ const filehandler = require('../services/FileHandler');
 const path = require("path");
 const metadatamdl = require("../models/FileMetadata");
 const cryptosrv  = require("../utils/CryptoGraph");
+const filetimelinesrv  = require("../services/FileAudit");
 
 const sync=async()=>{
     await model.sync({alter:true});
@@ -63,6 +64,7 @@ const delete_file=async(id,user)=>{
         }
     });
     if(res>0){
+      await filetimelinesrv.delete_timeline(id);
         filehandler.delete_file(path.join(__dirname,`..${file.metadata.path}`));
     }
     return res;
