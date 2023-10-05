@@ -118,7 +118,8 @@ const get_file = async (req, res) => {
         if (id == undefined) throw new Error(`file id not provided..`)
         let resx = await service.get_by_id(id, req.user_data);
         resx.metadata.size = (((resx.metadata.size) / 1024) / 1024).toFixed(3);
-        let folder = await foldersrv.get_by_id(resx.folder);
+        let folder = await foldersrv.get_by_id(resx.folder,req.user_data);
+        console.log(folder);
         resx.folder = folder;
         console.log(resx);
         res.status(200).render('page-file-view.ejs', {
@@ -130,6 +131,7 @@ const get_file = async (req, res) => {
             }
         });
     } catch (error) {
+        console.log(error);
         res.status(400).send(error.message);
     }
 }

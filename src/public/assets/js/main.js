@@ -571,6 +571,128 @@ function generate_folder_file_cards(files) {
     }
 }
 
+//folder related function
+//by permission route
+async function folder_edit(id) {
+    if (folder_page) {
+        if (folder_id!=null) {
+            folder_id = Number.parseInt(folder_id);
+            if (!isNaN(folder_id)) {
+               let folder_data = await handleRequest(`/permission/folder/${id}/shardata`,{method:"GET"},200);
+               let sharedata = folder_data.data.share_settings;
+               if (Object.keys(sharedata).length === 0) {
+              sharedata = undefined;
+              }
+               if (sharedata == undefined) {
+                   sharedata = {
+                       share_with: [],
+                       is_public: false,
+                       is_unlimited: false,
+                       max_share_limit: 0,
+                       available_date: "",
+                       available_time: ""
+                   };
+               }
+               Swal.fire({
+                title:`Folder : ${folder_data.name}`,
+                html:`
+                <form class="form form-horizontal" id="folder_share_settings">
+               <div class="row">
+                 <div class="col-md-4">
+                   <label>Share With : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="text" id="first-name" class="form-control" value="${sharedata.share_with!=undefined?sharedata.share_with.join(','):''}" name="share_with" placeholder="user_names..">
+                 </div>
+                 <div class="col-md-4">
+                   <label>Available  at : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="time" id="availtime" class="form-control" name="available_time" value="${sharedata.available_time}" placeholder="Enter time">
+                 </div>
+                 <div class="col-md-4">
+                   <label>Available from : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="date" id="date-info" class="form-control" name="available_date" value="${sharedata.available_date}" placeholder="date">
+                 </div>
+                 <div class="col-md-4">
+                   <label>Max Access Limit : </label>
+                 </div>
+                 <div class="col-md-8 form-group">
+                   <input type="number" id="accesslimit" min="1" class="form-control" name="max_share_limit" value="${sharedata.max_share_limit}" placeholder="enter limit">
+                 </div>
+                 <div class="custom-control custom-switch">
+                 <input type="checkbox" class="custom-control-input" name="is_public" id="mackepublic" ${sharedata.is_public ? 'checked' : ''} >
+                 <label class="custom-control-label" for="mackepublic">Make Public</label>
+                 </div>
+                 <div class="custom-control custom-switch">
+                 <input type="checkbox" class="custom-control-input" name="is_unlimited" id="unlimited_access" ${sharedata.is_unlimited ? 'checked' : ''}>
+                 <label class="custom-control-label" for="unlimited_access">unlimited access</label>
+                 </div>
+               </div>
+             <input type="text" class="form form-control-sm w-100" value="${window.location.protocol}${window.location.host}/user/folder/${Number.parseInt(folder_id)}" id="filelink">
+           </form>
+                `
+               }).then(async(res)=>{
+                if (res.isConfirmed) {
+                    let updatedata  = new FormData(document.querySelector("#folder_share_settings"));
+                    // let obj = {
+                    //     "name": "<%-data.folder.name-%>",
+                    //     "sharewith": "",
+                    //     "available_time": "",
+                    //     "availabel_date": "",
+                    //     "max_limit": "",
+                    //     "make_public": "",
+                    //     "unlimited_access": ""
+                    // };
+                   let obj={};
+                    updatedata.forEach((val,key)=>{
+                        obj[key]=val;
+                    });
+                   
+                  let res = await handleRequest(`/permission/folder/${id}/shardata`,{
+                    method:"PATCH",
+                    headers:{
+                        'Content-Type':'application/json'
+                    },
+                    body:JSON.stringify(obj)
+                  },200);
+                  if (res==null) {
+                    notifier.alert("not updated..")
+                  }
+                  else{
+                    notifier.success("updaed..")
+                  }
+                }
+               })
+            }
+        }
+    }
+    // body:JSON.stringify({
+    //     share_settings:obj})
+}
+
+async function folder_update(id,datax){
+    if (folder_page) {
+        if (id!=null) {
+            id = Number.parseInt(id);
+            if (!isNaN(id)) {
+                let data  = await handleRequest(`/folder/${id}`,{
+                    method:"PATCH",
+                    headers:{
+                        'Content-Type':"application/json"
+                    },
+                    body:JSON.stringify(datax)
+                },200);
+                if (data==null) {
+                    notifier.alert("not able to update tags")
+                }
+            }
+        }
+    }
+}
+
 // file related scripts
 try {
     fileflag = fileflag;
@@ -644,7 +766,7 @@ const file_share_function = (fid) => {
                  </div>
                </div>
              </div>
-             <input type="text" class="form form-control-sm w-100" value="${window.location.protocol + "://" + window.location.host + "/share/file/" + fid}" id="filelink">
+             <input type="text" class="form form-control-sm w-100" value="${window.location.protocol + "//" + window.location.host + "/share/file/" + fid}" id="filelink">
            </form>
          `,
                 showCancelButton: true,
@@ -1480,7 +1602,7 @@ async function load_analytics_file() {
               <div class="icon-small bg-${theme} rounded mr-3">
                   ${icon}
               </div>
-              <div data-load-file="file" data-load-target="#resolte-contaniner" data-url="${file.path}" data-toggle="modal" data-target="#exampleModal" data-title="${file.name}" style="cursor: pointer;"><marquee>${file.name}</marquee></div>
+              <div style="cursor: pointer;" onclick="window.location.href='/file/${file.id}'"><marquee>${file.name}</marquee></div>
           </div>
       </td>
       <td><marquee>${new Date(file.lastedit).toDateString()} ${file.editor}</marquee></td>

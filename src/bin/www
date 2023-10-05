@@ -15,6 +15,7 @@ const foldersrv  = require("../services/Folder.js");
 const filesrv  = require("../services/File.js");
 const filemetadatsrv  = require("../services/FileMetadata.js");
 const mastersrv  = require("../services/Master.js");
+const permissionsrv = require("../services/Permission.js");
 
 var app = require('../../app');
 var debug = require('debug')('cloud-storage:server');
@@ -35,6 +36,7 @@ app.set('port', port);
   // await filesrv.sync();
   // await filemetadatsrv.sync();
   // await mastersrv.sync();
+  // await permissionsrv.sync({force:true});
 })()
 
 // const cpunum  = os.cpus().length;

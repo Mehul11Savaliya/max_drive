@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const {sq} = require("../config/db")
 
 const filemdl = require("./File");
+const permissionmdl = require("./Permission");
 
 const Folder = sq.define("folder",{
     id :{
@@ -34,15 +35,12 @@ const Folder = sq.define("folder",{
     isDeleted:{
         type : DataTypes.BOOLEAN,
         defaultValue:false
-    },
-    permissions:{
-        type : DataTypes.INTEGER,
-        defaultValue : 1
     }
 },{
     freezeTableName : true
 });
 
 Folder.hasMany(filemdl,{as:"files",sourceKey :"id",foreignKey:"folder"});
+// Folder.hasOne(permissionmdl,{as:"folder_permission",sourceKey:"id",foreignKey:"folder"});
 // filemdl.belongsTo(Folder)
 module.exports=Folder;

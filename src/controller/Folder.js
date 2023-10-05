@@ -1,4 +1,5 @@
 const service = require("../services/Folder");
+const permissionsrv = require("../services/Permission");
 
 const post_folder = async (req, res) => {
     try {
@@ -12,10 +13,10 @@ const post_folder = async (req, res) => {
         }
         data.name = name;
         data.tags = tags;
-        data.permission = 1; //1 write
         data.createdBy = user.email;
         data.updatedBy = user.email;
         let ress = await service.create(data);
+        let defpermi = await permissionsrv.create({email:user.email,folder:ress.id})  //create default permission
         res.status(201).json(ress);
     } catch (error) {
         res.status(400).json({
@@ -28,7 +29,7 @@ const get_folder =async (req, res) => {
     let { id } = req.params;
         try {
             if (id === undefined) throw new Error(`id not provided..`);
-            let ress = await service.get_by_id(id);
+            let ress = await service.get_by_id(id,req.user_data);
             res.status(200).json(ress);
         } catch (error) {
             res.status(400).json({
@@ -42,9 +43,10 @@ const patch_folder=async(req,res)=>{
     let {id}=req.params;
     try {
         let data = {updatedBy:req.user_data.email,...req.body};
-        let ress  = await service.updateFolder(id,data);
+        let ress  = await service.updateFolder(id,data,req.user_data);
         res.status(200).json(ress);
     } catch (error) {
+        // console.log(error);
         res.status(400).json({
             errmsg : error.message
         })
@@ -57,7 +59,7 @@ const delete_folder=async(req,res)=>{
 
     try {
         if(id==undefined) throw new Error(`folder id not provided..`);
-        await service.delete_by_id(id);
+        await service.delete_by_id(id,req.user_data);
         res.status(204).send();
     } catch (error) {
         res.status(400).json({
@@ -77,7 +79,7 @@ const delete_multiple_folder=async(req,res)=>{
            ids = ids.split(',');
            ids.forEach(async(id) => {
                 try {
-                    await service.delete_by_id(Number.parseInt(id));
+                    await service.delete_by_id(Number.parseInt(id),req.user_data);
                 } catch (error) {
                     console.log(error.message)
                 }

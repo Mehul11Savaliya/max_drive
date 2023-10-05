@@ -2,6 +2,8 @@ const model = require("../models/Folder");
 const filemdl = require("../models/File");
 const { Sequelize } = require("sequelize");
 
+const permissionsrv = require("./Permission");
+
 const sync = async () => {
     await model.sync({ force: true });
     console.log(model.name, "synced..");
@@ -12,25 +14,34 @@ const create = async (obj) => {
     return folder.dataValues;
 }
 
-const get_by_id = async (id, raw = false) => {
-    let res = await model.findByPk(id);
+const get_by_id = async (id,user,admin=false, raw = false) => {
+    let qryobj = { id: id };
+    if (!admin) {
+        qryobj.createdBy = user.email;
+    }
+    let res = await model.findOne({
+        where:qryobj,
+        raw:!raw});  //if raw = tru so we have to invert it if ve want raw
+    // let res = await model.findByPk(id);
     if (res == null) throw new Error(`folder with id = ${id} not exist..`);
-    if (raw) return res;
-    return res.dataValues;
+    return res;
 }
 
-const updateFolder=async(id,data)=>{
-    let old  = await get_by_id(id,true);
-    let {name,permissions,tags,isDeleted} = data;
+const updateFolder=async(id,data,user,admin)=>{
+    let qryob = {id:id};
+    if (!admin) {
+        qryob.createdBy = user.email;
+    }
+    let old  = await get_by_id(id,user,admin,true);
+    let {name,tags,isDeleted} = data;
+    console.log(data);
     if(name!==undefined)
     old.name = name;
-    if(permissions!==undefined)
-    old.permissions = permissions;
     if(tags!==undefined){
-        tags = tags.trim().split(',');
-        tags = tags.slice(0,tags.length);
-        tags = tags.filter((val)=>{
-            if(val!=="") return val;        })
+        // tags = tags.trim().split(',');
+        // tags = tags.slice(0,tags.length);
+        // tags = tags.filter((val)=>{
+        //     if(val!=="") return val;        })
         old.tags = tags;
     }
     if(isDeleted!==undefined)
@@ -40,12 +51,17 @@ const updateFolder=async(id,data)=>{
     return await old.save();
 }
 
-const delete_by_id=async(id)=>{
-    let res  = await model.destroy({
-        where :{
-            id  : id
-        }
+const delete_by_id=async(id,user,admin=false)=>{
+    // let old = await get_by_id(id,user,admin,true);
+    // let persid  = old.permission;
+    let qryobj = { id: id };
+    if (!admin) {
+        qryobj.createdBy = user.email;
+    }
+    let res = await model.destroy({
+        where:qryobj
     });
+    await permissionsrv.delete_by_type_id({folder:id},user,admin);
     if(res==0) throw new Error(`not able to delete a folder with id = ${id}`)
     else return res;
 }

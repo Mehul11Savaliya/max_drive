@@ -46,7 +46,7 @@ const get_folder_pages=async(req,res)=>{
     if (id==undefined) {
         throw new Error(`id not provided..`);
     }
-    let data  = await foldersrv.get_by_id(id);
+    let data  = await foldersrv.get_by_id(id,req.user_data);
     res.status(200).render('page-folder-view.ejs', {
         data: {
             ...generategeneralData(),
