@@ -32,7 +32,7 @@ app.set('port', port);
   // await sq.sync({alter:true})
   // await usersrv.sync();
   // await authsrv.sync();
-  // await foldersrv.sync();
+  // await foldersrv.sync({alter:true});
   // await filesrv.sync();
   // await filemetadatsrv.sync();
   // await mastersrv.sync();

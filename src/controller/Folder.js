@@ -1,6 +1,8 @@
 const service = require("../services/Folder");
 const permissionsrv = require("../services/Permission");
-
+const filesrv = require("../services/File");
+const path = require("path");
+const filehandler = require("../services/FileHandler");
 const post_folder = async (req, res) => {
     try {
         let user  = req.user_data;
@@ -105,4 +107,64 @@ const delete_multiple_folder=async(req,res)=>{
     }
  }
 
-module.exports = { post_folder, get_folder ,patch_folder,delete_folder,delete_multiple_folder,get_all_folder}
+ const get_list_file=async(req,res)=>{
+    try {
+        let {id}=req.params; //id = folder(folderid)
+        if (id==undefined) {
+        throw new Error(`folder id not provided..`);
+    }
+        let resx = await filesrv.get_files_from_folder(Number.parseInt(id));
+        res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg : error.message
+        })
+    }
+ }
+
+ const get_file_content=(req,res)=>{
+        try {
+       let { fid } = req.params;
+       let {type} = req.query;
+       if (type==undefined) {
+           type = "full"
+       }
+       else  if (["full","thumb"].includes(type)) {
+               type  = type;
+           }
+       else{
+           type = "full";
+       }
+   
+       let file = req.file_info;
+       
+   
+       let pth = path.join(__dirname, ".." + file.metadata.path);
+           if (file.metadata.mimetype.split("/")[0] == "image" && type=="thumb") {
+               filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
+                   if (err!=null) {
+                       sendError(res, err)
+                   } else {
+                       res.set('Content-Type', 'image/webp');
+                       res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
+                     return  res.status(200).send(data);
+                   }
+               })
+           }else{
+            // res.set('Content-Type', file.metadata.mimetype);
+            // res.set('Content-Disposition', `inline; filename=${file.metadata.name}`);
+            res.status(200).sendFile(pth, (err) => {
+               if (err) {
+                   res.status(500).send();
+               } else {
+                   console.log(`file ${pth} sended..`);
+               }
+           });
+       }
+   }catch(error){
+        console.log(error);
+       res.status(400).send();
+   }
+   }
+
+module.exports = { post_folder, get_folder ,patch_folder,delete_folder,delete_multiple_folder,get_all_folder,get_list_file,get_file_content}

@@ -252,7 +252,7 @@ async function upload_file() {
                 const progressBar = Swal.getHtmlContainer().querySelector('#uploadp');
                 const progressText = Swal.getHtmlContainer().querySelector('#uploadpercp');
                 const speedText = Swal.getHtmlContainer().querySelector('#uploadspeed');
-                const remtime  = Swal.getHtmlContainer().querySelector('#remainingTime');
+                const remtime = Swal.getHtmlContainer().querySelector('#remainingTime');
                 const startTime = Date.now();
                 container.style.display = 'block';
                 let notifier = new AWN({
@@ -300,7 +300,7 @@ async function upload_file() {
                         // Calculate and display remaining time
                         const minutes = Math.floor(remainingTime / 60);
                         const seconds = Math.floor(remainingTime % 60);
-                        remtime.textContent= `Remaining Time: ${minutes}:${seconds}`;
+                        remtime.textContent = `Remaining Time: ${minutes}:${seconds}`;
                     }
                 }
                 xhr.send(formData);
@@ -575,34 +575,34 @@ function generate_folder_file_cards(files) {
 //by permission route
 async function folder_edit(id) {
     if (folder_page) {
-        if (folder_id!=null) {
+        if (folder_id != null) {
             folder_id = Number.parseInt(folder_id);
             if (!isNaN(folder_id)) {
-               let folder_data = await handleRequest(`/permission/folder/${id}/shardata`,{method:"GET"},200);
-               let sharedata = folder_data.data.share_settings;
-               if (Object.keys(sharedata).length === 0) {
-              sharedata = undefined;
-              }
-               if (sharedata == undefined) {
-                   sharedata = {
-                       share_with: [],
-                       is_public: false,
-                       is_unlimited: false,
-                       max_share_limit: 0,
-                       available_date: "",
-                       available_time: ""
-                   };
-               }
-               Swal.fire({
-                title:`Folder : ${folder_data.name}`,
-                html:`
+                let folder_data = await handleRequest(`/permission/folder/${id}/shardata`, { method: "GET" }, 200);
+                let sharedata = folder_data.data.share_settings;
+                if (Object.keys(sharedata).length === 0) {
+                    sharedata = undefined;
+                }
+                if (sharedata == undefined) {
+                    sharedata = {
+                        share_with: [],
+                        is_public: false,
+                        is_unlimited: false,
+                        max_share_limit: 0,
+                        available_date: "",
+                        available_time: ""
+                    };
+                }
+                Swal.fire({
+                    title: `Folder Share Setttings`,
+                    html: `
                 <form class="form form-horizontal" id="folder_share_settings">
                <div class="row">
                  <div class="col-md-4">
                    <label>Share With : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="text" id="first-name" class="form-control" value="${sharedata.share_with!=undefined?sharedata.share_with.join(','):''}" name="share_with" placeholder="user_names..">
+                   <input type="text" id="first-name" class="form-control" value="${sharedata.share_with != undefined ? sharedata.share_with.join(',') : ''}" name="share_with" placeholder="user_names..">
                  </div>
                  <div class="col-md-4">
                    <label>Available  at : </label>
@@ -631,41 +631,45 @@ async function folder_edit(id) {
                  <label class="custom-control-label" for="unlimited_access">unlimited access</label>
                  </div>
                </div>
-             <input type="text" class="form form-control-sm w-100" value="${window.location.protocol}${window.location.host}/user/folder/${Number.parseInt(folder_id)}" id="filelink">
+             <input type="text" class="form form-control-sm w-100" value="${window.location.protocol}${window.location.host}/share/folder/${Number.parseInt(folder_id)}" id="filelink">
            </form>
-                `
-               }).then(async(res)=>{
-                if (res.isConfirmed) {
-                    let updatedata  = new FormData(document.querySelector("#folder_share_settings"));
-                    // let obj = {
-                    //     "name": "<%-data.folder.name-%>",
-                    //     "sharewith": "",
-                    //     "available_time": "",
-                    //     "availabel_date": "",
-                    //     "max_limit": "",
-                    //     "make_public": "",
-                    //     "unlimited_access": ""
-                    // };
-                   let obj={};
-                    updatedata.forEach((val,key)=>{
-                        obj[key]=val;
-                    });
-                   
-                  let res = await handleRequest(`/permission/folder/${id}/shardata`,{
-                    method:"PATCH",
-                    headers:{
-                        'Content-Type':'application/json'
-                    },
-                    body:JSON.stringify(obj)
-                  },200);
-                  if (res==null) {
-                    notifier.alert("not updated..")
-                  }
-                  else{
-                    notifier.success("updaed..")
-                  }
-                }
-               })
+                `,
+                    showCloseButton: true,
+                    showCancelButton: true,
+                    focusConfirm: false, cancelButtonText: 'cancel',
+                    cancelButtonAriaLabel: 'cancel',
+                }).then(async (res) => {
+                    if (res.isConfirmed) {
+                        let updatedata = new FormData(document.querySelector("#folder_share_settings"));
+                        // let obj = {
+                        //     "name": "<%-data.folder.name-%>",
+                        //     "sharewith": "",
+                        //     "available_time": "",
+                        //     "availabel_date": "",
+                        //     "max_limit": "",
+                        //     "make_public": "",
+                        //     "unlimited_access": ""
+                        // };
+                        let obj = { share_settings: {} };
+                        updatedata.forEach((val, key) => {
+                            obj.share_settings[key] = val;
+                        });
+
+                        let res = await handleRequest(`/permission/folder/${id}/shardata`, {
+                            method: "PATCH",
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(obj)
+                        }, 200);
+                        if (res == null) {
+                            notifier.alert("not updated..")
+                        }
+                        else {
+                            notifier.success("updaed..")
+                        }
+                    }
+                })
             }
         }
     }
@@ -673,22 +677,61 @@ async function folder_edit(id) {
     //     share_settings:obj})
 }
 
-async function folder_update(id,datax){
+async function folder_update(id, datax) {
     if (folder_page) {
-        if (id!=null) {
+        if (id != null) {
             id = Number.parseInt(id);
             if (!isNaN(id)) {
-                let data  = await handleRequest(`/folder/${id}`,{
-                    method:"PATCH",
-                    headers:{
-                        'Content-Type':"application/json"
+                let data = await handleRequest(`/folder/${id}`, {
+                    method: "PATCH",
+                    headers: {
+                        'Content-Type': "application/json"
                     },
-                    body:JSON.stringify(datax)
-                },200);
-                if (data==null) {
-                    notifier.alert("not able to update tags")
+                    body: JSON.stringify(datax)
+                }, 200);
+                if (data == null) {
+                    notifier.alert("not able to update")
                 }
             }
+        }
+    }
+}
+
+async function folder_edit2(id) {
+    if (folder_page) {
+        if (id != null) {
+            id = Number.parseInt(id);
+            Swal.fire({
+                title: 'Folder Edit',
+                html: `
+                <form class="row" id="fedit">
+                <div class="col-md-4">
+                <label>name : </label>
+              </div>
+              <div class="col-md-8 form-group">
+                <input type="text" id="" class="form-control" value="${folder_name}" name="name" placeholder="folder name.">
+              </div>
+              <div class="col-md-4">
+              <label>Password : </label>
+            </div>
+            <div class="col-md-8 form-group">
+              <input type="password" id="" class="form-control" value="${folder_pass}" name="password" placeholder="folder password.">
+            </div>
+            </form>
+                `,
+                showCancelButton:true
+            }).then(async(res) => {
+                if (res.isConfirmed) {
+                    let form = new FormData(document.querySelector("#fedit"));
+                    let obj = {};
+                    form.forEach((val, key) => {
+                        obj[key] = val;
+                    });
+                    folder_pass = obj.password;
+                    folder_name = obj.name;
+                   await folder_update(id,obj);
+                }
+            })
         }
     }
 }

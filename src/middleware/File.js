@@ -8,10 +8,12 @@ const shareemmiter = require("../subscriber/ShareEvents");
 const extract_file=async(req,res,next)=>{
     try {
         let {id} = req.params;
-        let resx = await filesrv.read(id);
+        let {fid} = req.params; //if access through folder
+        let resx = await filesrv.read(fid||id);
         req.file_info = resx;
         next(); 
     } catch (error) {
+        console.log(error);
         res.status(404).send();
     }
 }

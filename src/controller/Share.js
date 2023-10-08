@@ -134,10 +134,21 @@ const get_file = async (req, res) => {
 const get_live_share_page=(req,res)=>{
     res.status(200).render("page-live-share.ejs",{
         data:{
+            ...generategeneralData(),
             ...req.user_data,
             ...generategeneralData()
         }
     })
 }
 
-module.exports = { get_file,get_live_share_page ,emmiterx:emmiterx}
+const get_folder=(req,res)=>{
+    res.status(200).render('page-folder-share.ejs',{
+        data:{
+            ...generategeneralData(),
+            folder:req.folder_info,
+            user:req.user_data
+        }
+    });
+}
+
+module.exports = { get_file,get_live_share_page,get_folder ,emmiterx:emmiterx}

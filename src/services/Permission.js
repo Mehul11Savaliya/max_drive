@@ -92,17 +92,17 @@ const update_type_id = async (typeob, data, user, admin = false) => {
         qryobj.createdBy = user.email;
     }
     let old = await read_by_type_id(typeob, user, true, admin);
-    // let share_settings = data.share_settings;
-    // console.log("lol",data);
-    // if (share_settings!=undefined) {
+    let {share_settings} = data;
+  
+    if (share_settings!=undefined) {
+       
     let {
         share_with,
         is_public,
         is_unlimited,
         available_time,
         available_date,
-        max_share_limit } = data;
-        console.log(share_with)
+        max_share_limit } = share_settings;
     if (share_with != undefined)
         share_with = share_with.split(',').map((val) => {
             return (val != '') ? val : null;
@@ -122,7 +122,7 @@ const update_type_id = async (typeob, data, user, admin = false) => {
         old.data.share_settings.available_time = available_time;
     if (max_share_limit != undefined)
         old.data.share_settings.max_share_limit = max_share_limit;
-    // }
+    }
     old.changed("data", true);
 
     old.updatedBy = user.email;

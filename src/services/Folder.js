@@ -3,9 +3,10 @@ const filemdl = require("../models/File");
 const { Sequelize } = require("sequelize");
 
 const permissionsrv = require("./Permission");
+const { encrypt } = require("../utils/CryptoGraph");
 
-const sync = async () => {
-    await model.sync({ force: true });
+const sync = async (syntype) => {
+    await model.sync(syntype);
     console.log(model.name, "synced..");
 }
 
@@ -33,16 +34,24 @@ const updateFolder=async(id,data,user,admin)=>{
         qryob.createdBy = user.email;
     }
     let old  = await get_by_id(id,user,admin,true);
-    let {name,tags,isDeleted} = data;
+    let {name,tags,isDeleted,password} = data;
     console.log(data);
     if(name!==undefined)
     old.name = name;
+    
     if(tags!==undefined){
         // tags = tags.trim().split(',');
         // tags = tags.slice(0,tags.length);
         // tags = tags.filter((val)=>{
         //     if(val!=="") return val;        })
         old.tags = tags;
+    }
+
+    if (password!==undefined) {
+        if (password=="") 
+            old.password = null;
+        else
+        old.password = encrypt(password);
     }
     if(isDeleted!==undefined)
     old.isDeleted = isDeleted;
@@ -84,8 +93,20 @@ let res  = await model.findAll({
 return res;
 }
 
+const get_all_details=async(id,plain=true)=>{
+    let res = await model.findOne({
+        where:{
+            id:id
+        },
+        raw:plain
+    });
+    let permission = await permissionsrv.read_by_type_id({folder:id},null,false,true);
+    res.permission = permission.data;
+    return res;
+}
+
 // setTimeout(async() => {
 //     console.log((await get_all_folder("svlmehul@gmail.com")));
 // }, 500);
 
-module.exports = { sync, create, get_by_id,updateFolder,delete_by_id,get_all_folder}
+module.exports = { sync, create, get_by_id,updateFolder,delete_by_id,get_all_folder,get_all_details}

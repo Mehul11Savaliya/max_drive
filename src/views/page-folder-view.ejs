@@ -46,7 +46,9 @@
     <!-- loader END -->
     <script>
         var folder_page=true;
-        var folder_id='<%-data.folder.id-%>'
+        var folder_id='<%-data.folder.id-%>';
+        var folder_name = '<%-data.folder.name-%>';
+        var folder_pass = '<%-data.folder.password-%>';
     </script>
     <!-- Wrapper Start -->
     <div class="wrapper">
@@ -65,7 +67,7 @@
                             <nav aria-label="breadcrumb">
                                 <ul class="breadcrumb mb-0">
                                     <li class="breadcrumb-item"><a href="/user/">My Drive</a></li>
-                                    <li contenteditable="true" style="border: 2px solid black;border-radius: 3px;" id="fname" class="breadcrumb-item active" aria-current="page"><%=data.folder.name%></li>
+                                    <li contenteditable="true" style="border: 1px solid black;border-radius: 3px;" id="fname" class="breadcrumb-item active" aria-current="page"><%=data.folder.name%></li>
                                 </ul>
                             </nav>
                         </div>
@@ -82,13 +84,13 @@
                                     </a>
                                     <ul id="calander" class="iq-dropdown collapse list-inline m-0 p-0 mt-2">
                                         <li class="mb-2">
-                                            <a onclick="upload_file()" data-toggle="tooltip" data-placement="right" title="" data-original-title="Upload🐦"><i class="fa-solid fa-upload"></i></a>
+                                            <a onclick="upload_file()" data-toggle="tooltip" data-placement="right" title="Upload🐦" data-original-title="Upload🐦"><i class="fa-solid fa-upload"></i></a>
                                         </li>
                                         <li class="mb-2">
-                                            <a href="#" data-toggle="tooltip" data-placement="right" title="" data-original-title="Keep"><i class="fa-solid fa-lightbulb"></i></a>
+                                            <a onclick="folder_edit2('<%-data.folder.id-%>')" data-toggle="tooltip" data-placement="right" title="edit" data-original-title="edit"><i class="fa-solid fa-pen-to-square"></i></a>
                                         </li>
                                         <li>
-                                            <a onclick="folder_edit('<%-data.folder.id-%>')" data-toggle="tooltip" data-placement="right" title="" data-original-title="Edit"><i class="fa-solid fa-list-check"></i></a>
+                                            <a onclick="folder_edit('<%-data.folder.id-%>')" data-toggle="tooltip" data-placement="right" title="share" data-original-title="share"><i class="fa-solid fa-share"></i></a>
                                         </li>
                                     </ul>
                                 </div>

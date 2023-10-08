@@ -35,6 +35,10 @@ const Folder = sq.define("folder",{
     isDeleted:{
         type : DataTypes.BOOLEAN,
         defaultValue:false
+    },
+    password:{
+        type:DataTypes.STRING,
+        defaultValue:null
     }
 },{
     freezeTableName : true
