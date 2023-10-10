@@ -5,6 +5,8 @@ const { Sequelize } = require("sequelize");
 const permissionsrv = require("./Permission");
 const { encrypt } = require("../utils/CryptoGraph");
 
+const timelinesrv = require("./FolderAudit");
+
 const sync = async (syntype) => {
     await model.sync(syntype);
     console.log(model.name, "synced..");
@@ -71,6 +73,7 @@ const delete_by_id=async(id,user,admin=false)=>{
         where:qryobj
     });
     await permissionsrv.delete_by_type_id({folder:id},user,admin);
+    await timelinesrv.delete_timeline(id,user,admin);
     if(res==0) throw new Error(`not able to delete a folder with id = ${id}`)
     else return res;
 }

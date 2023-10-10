@@ -29,6 +29,15 @@ const get_pages = (req, res) => {
                 }
             });
             break;
+        
+        case 'files':
+            res.status(200).render('page-files-view.ejs',{
+                data:{
+                    ...generategeneralData(),
+                    ...req.user_data
+                }
+            })
+            break;
 
         default:
             res.status(404).render('pages-error.ejs', {

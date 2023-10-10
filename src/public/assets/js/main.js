@@ -44,7 +44,7 @@ function deleteFolder(id) {
     })
 }
 
-async function deleteFile(id) {
+async function deleteFile(id,event) {
     let rowcd = document.getElementById(`tr-${id}`);
     let gridcd = document.getElementById(`gridtr-${id}`);
     Swal.fire({
@@ -60,13 +60,22 @@ async function deleteFile(id) {
             let res = await fetch(`/file/${id}`, {
                 method: "DELETE"
             });
-            console.log(res);
+            // console.log(res);
             if (res.status != 204) {
                 notifier.alert("file not deleted..");
             } else {
                 notifier.success("file deleted..");
-                rowcd.remove();
-                gridcd.remove();
+                try {
+                    rowcd.remove();
+                    gridcd.remove();
+                } catch (error) {
+                }
+                try {
+                    document.getElementById(`row-${id}`).remove();
+                    this.draw();
+                } catch (error) {
+                    console.log(error);
+                }
                 return true;
             }
         }
@@ -719,8 +728,8 @@ async function folder_edit2(id) {
             </div>
             </form>
                 `,
-                showCancelButton:true
-            }).then(async(res) => {
+                showCancelButton: true
+            }).then(async (res) => {
                 if (res.isConfirmed) {
                     let form = new FormData(document.querySelector("#fedit"));
                     let obj = {};
@@ -729,9 +738,35 @@ async function folder_edit2(id) {
                     });
                     folder_pass = obj.password;
                     folder_name = obj.name;
-                   await folder_update(id,obj);
+                    await folder_update(id, obj);
                 }
             })
+        }
+    }
+}
+
+async function folder_gen_timeline(folderid) {
+    if (folder_page) {
+        if (folderid == undefined) {
+            notifier.alert("something went worng..");
+        } else {
+            folderid = Number.parseInt(folderid);
+            let resx = await handleRequest(`/analytics/folder/${folderid}/audit`, { method: "GET" }, 200);
+            resx = resx.map((val) => {
+                return {
+                    date: `${new Date(val.time).toDateString()}`,
+                    content: `accessed by <br> ${val.user} \n<br> msg :<span style="color:red"> ${val.message == undefined ? "" : val.message}</span>`
+                }
+            });
+            document.querySelector("#folder-timeline").scrollIntoView();
+            document.querySelector("#folder-timeline").innerHTML = `<h5>Time Line</h5>`;
+            // window.scrollTo(0,document.querySelector("#folder-timeline").scrollY+50);
+            $('#folder-timeline').roadmap(resx, {
+                eventsPerSlide: 10,
+                prevArrow: '<i class="fa-solid fa-arrow-left"></i>',
+                nextArrow: '<i class="fa-solid fa-arrow-right"></i>'
+            });
+
         }
     }
 }
@@ -1096,6 +1131,34 @@ async function file_pass_protect(event) {
                     Swal.fire("success..")
                 }
             })
+        }
+    }
+}
+
+//files related scripts
+try {
+    files_page = files_page;
+} catch (error) {
+    files_page = false;
+}
+let ix = 1;
+var table;
+async function populate_files_table(fromx, to) {
+    if (files_page) {
+        try {
+            let res = await fetch(`/file/range?from=${fromx}&to=${to + 1}`, { method: "GET" });
+            res = await res.json();
+            res.forEach((val) => {
+                let arr = [];
+                arr.push(ix++);
+                arr.push(val.id);
+                arr.push(val.metadata.name);
+                arr.push(`<a class="mx-2" href="/file/${val.id}"><i class="fa-solid fa-eye" style="color:green;"></i></a><span class="mx-2" onclick="deleteFile(${val.id},event);"><i class="fa-solid fa-trash" style="color:red"></i></span><span class="mx-2"><i class="fa-solid fa-pen-to-square" style="color:blue"></i></span>`);
+                arr.push(((val.metadata.size) / 1024 / 1024).toFixed(2));
+                table.row.add(arr).draw();
+            });
+        } catch (error) {
+            res = [];
         }
     }
 }

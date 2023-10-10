@@ -35,6 +35,7 @@
         <!-- new vander -->
         <link  rel="stylesheet" href="/assets/vendor/tokenfieldjs/tokenfield.css">
         <script  src="/assets/vendor/tokenfieldjs/tokenfield.web.js"></script>
+        <link rel="stylesheet" href="/assets/vendor/timeline-slider/jquery.roadmap.min.css">
         <!-- new vander -->
     </head>
   <body class=" color-light ">
@@ -76,6 +77,9 @@
                                 <span class="icon icon-grid i-grid"><i class="fa-solid fa-folder font-size-20"></i></span>
                                 <span class="icon icon-grid i-list"><i class="fa-solid fa-list font-size-20"></i></span>
                                 <span class="label label-list">List</span>
+                            </div>
+                            <div class="mr-4 align-items-center">
+                                <a onclick="folder_gen_timeline('<%-data.folder.id-%>')" data-toggle="tooltip" data-placement="up" title="Timeline" data-original-title="Timeline"><i class="fa-solid fa-code-branch"></i></a>
                             </div>
                             <div class="dashboard1-dropdown d-flex align-items-center">
                                 <div class="dashboard1-info rounded">
@@ -127,7 +131,7 @@
             </div>
             <div class="row">
                 <div class="col-lg-8 col-md-6 col-sm-6">
-                    <input  id="tags" type="text" class="basic form-control" placeholder="enter tags." name="tags" aria-label="tags" aria-describedby="enter tags." />
+                    <input  id="tags" type="text" class="form form-control basic" placeholder="enter tags." name="tags" aria-label="tags" aria-describedby="enter tags." />
                 </div>
             </div>
             <br>
@@ -214,6 +218,10 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div  id="folder-timeline"></div>
+               
+              </div>
         </div>
       </div>
     </div>
@@ -249,6 +257,10 @@
     <!-- app JavaScript -->
     <script src="/assets/js/app.js" defer></script>
     <script src="/assets/js/doc-viewer.js" defer></script>
+
+    <!-- new vadonr -->
+    <script src="/assets/vendor/timeline-slider/jquery.roadmap.min.js"></script>
+    <!-- new vandor -->
 
     <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
      <!-- Modal -->

@@ -111,8 +111,26 @@ const update_by_id=async(id,new_data)=>{
     return old.dataValues;
 }
 
+const get_in_range=async(from,to,user,admin=null)=>{
+    let gap = to;
+    if (!(gap>=0&&gap<=30)) {
+      throw new Error(`invalid range to = ${gap} must be in 30`)  
+    }
+    let query = {};
+    if (admin==null||admin==false) {
+        query.createdBy = user.email;
+    }
+    let res = await model.findAll({
+        where:query,
+        offset:from,
+        limit:to,
+        raw:true
+    });
+    return res;
+}
+
 // setTimeout(async() => {
 //    await update(69,'svlmehul@gmail.com',{});
 // }, 500);
 
-module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read,update,update_by_id}
+module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read,update,update_by_id,get_in_range}

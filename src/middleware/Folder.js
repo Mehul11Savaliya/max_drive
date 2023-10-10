@@ -3,6 +3,8 @@ const cryptosrv  = require("../utils/CryptoGraph");
 const usersrv  = require("../services/User");
 const tokensrv = require("../services/Token");
 
+const folderevents = require("../subscriber/FolderEvents");
+
 const extract_folder=async(req,res,next)=>{
     try {
         let {id} = req.params;
@@ -34,15 +36,14 @@ const check_password=async(req,res,next)=>{
         if (req.folder_info.password===cryptosrv.encrypt(password.trim().toString())) {
         return    next()
         }else{
-        //   let  filpth = folder_info.metadata.path.split("/");
-        //     shareemmiter.emit("share",{
-        //         fileid: folder_info.id,
-        //         filename: folder_info.metadata.name,
-        //         servername: filpth[filpth.length-1],
-        //         user: (user==undefined||user == null) ? "anonymous" : user.email,
-        //         time: Date.now(),
-        //         message:"invalid credintial"
-        //       })
+            folderevents.emit("access",{
+                folderid : folder_info.id,
+                name:folder_info.name,
+                user:`user : ${user_data==null?'':user_data.email}`,
+                msg:"auth failed",
+                author:folder_info.createdBy,
+                time:Date.now()
+            });
             throw new Error(`auth failed..`);
         }
     } catch (error) {
@@ -63,6 +64,13 @@ try {
      return  res.status(500).send();
     }
     if (share_settings.is_public) {
+        folderevents.emit("access",{
+            folderid : folder.id,
+            name:folder.name,
+            user:`user : ${user==null?'public':user.email}`,
+            author:folder.createdBy,
+            time:Date.now()
+        });
         next();
     }else{
         if (user!=null&&folder.createdBy==user.email) {
@@ -74,9 +82,23 @@ try {
                 next();
             }
             else{
+                folderevents.emit("access",{
+                    folderid : folder.id,
+                    name:folder.name,
+                    user:`unauthorized user : ${user.email}`,
+                    author:folder.createdBy,
+                    time:Date.now()
+                });
                 return res.status(401).send();
             }
         }else{
+            folderevents.emit("access",{
+                folderid : folder.id,
+                name:folder.name,
+                user:`unauthorized user : ${user==null?'':user.email}`,
+                author:folder.createdBy,
+                time:Date.now()
+            });
             return res.status(401).send();
         }
         return  res.status(500).send();

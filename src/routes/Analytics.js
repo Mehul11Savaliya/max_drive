@@ -20,5 +20,6 @@ router.get("/upanddowns",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessT
 
 //audit
 // tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,
-router.get("/file/:id/audit",controller.get_file_audit)
+router.get("/file/:id/audit",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_file_audit);
+router.get("/folder/:id/audit",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_folder_audit)
 module.exports=router;

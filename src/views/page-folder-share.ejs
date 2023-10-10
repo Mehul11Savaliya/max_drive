@@ -221,7 +221,7 @@ async function load_files(params) {
                 if (filelist.status!=200) {
                     alert(filelist.statusText);
                    await load_files();
-                }
+                }else{
                 let res  = await filelist.json();
                 let i =1;
                 res.forEach((val)=>{
@@ -231,8 +231,8 @@ async function load_files(params) {
                     arr.push(`<span class="mt-2 badge badge-primary" onclick="view_file('${val.id}','${val.metadata.name}')"><i class="fa-solid fa-eye"></i></span>&nbsp;<span onclick="download_file('${val.id}','${val.metadata.name}')" class="mt-2 badge badge-success"><i class="fa-solid fa-download"></i></span>`);
                     table.row.add(arr).draw(); 
                 });
-              
                 return;
+            }
             } catch (error) {
                 console.log(error);
             }
@@ -331,8 +331,8 @@ async function load_files(params) {
                 let filelist = await fetch(`/folder/${folder_id}/content?password=${password}`)
                 if (filelist.status!=200) {
                     alert(filelist.statusText);
-                   await load_files();
-                }
+                //    await load_files();
+                }else{
                 let res  = await filelist.json();
                 let i =1;
                 res.forEach((val)=>{
@@ -343,6 +343,7 @@ async function load_files(params) {
                     table.row.add(arr).draw(); 
                 });
                 return;
+                }
             } catch (error) {
                 console.log(error);
             }
@@ -492,8 +493,9 @@ async function load_files(params) {
     <!-- app JavaScript -->
     <script src="/assets/js/app.js" defer></script>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.dataTables.min.js" integrity="sha512-fQmyZE5e3plaa6ADOXBM17WshoZzDIvo7sR4GC1VsmSKqm13Ed8cO2kPwFPAOoeF0RcdhuQQlPq46X/HnPmllg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.dataTables.min.js" integrity="sha512-fQmyZE5e3plaa6ADOXBM17WshoZzDIvo7sR4GC1VsmSKqm13Ed8cO2kPwFPAOoeF0RcdhuQQlPq46X/HnPmllg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+     -->
   
   </body>
 

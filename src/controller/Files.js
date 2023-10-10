@@ -357,6 +357,24 @@ function sendError(res, err) {
     })
 }
 
+const get_range=async(req,res)=>{
+try {
+    let {from,to} = req.query;
+    from = Number.parseInt(from);
+    to = Number.parseInt(to);
+    // console.log(isNaN(from));
+    if (isNaN(from)||isNaN(to)) {
+        throw new Error(`invaid request..`);
+    }
+    let resx = await service.get_in_range(from,to,req.user_data);
+    res.status(200).json(resx);
+} catch (error) {
+    res.status(400).json({
+        errmsg : error.message
+    })
+}
+}
+
 module.exports = {
     post_files,
     get_all_folder_file,
@@ -365,7 +383,8 @@ module.exports = {
     get_file_content,
     get_crypto_file,
     post_decrypt_file,
-    patch_file
+    patch_file,
+    get_range
 }
 
 function genBlankMetadaObject(filedata) {
