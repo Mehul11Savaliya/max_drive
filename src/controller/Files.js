@@ -8,6 +8,7 @@ const commssrv = require("../services/Communication");
 const metadatasrv = require("../services/FileMetadata");
 const tokensrv = require("../services/Token");
 const usersrv = require("../services/User");
+const permissionsrv = require("../services/Permission");
 
 const filehandler = require("../services/FileHandler");
 const uuid = require("uuid");
@@ -46,7 +47,7 @@ const post_files = async (req, res) => {
                     tags: [metadata.name]
                 }
                 let resp = await service.create(file);
-                await metadatasrv.create(genBlankMetadaObject(resp));
+              await permissionsrv.create({createdBy:resp.createdBy,file:resp.id});
                 arr.push(resp);
             } catch (error) {
                 console.log(error);
@@ -80,7 +81,7 @@ const post_files = async (req, res) => {
                     }
 
                     let resp = await service.create(file);
-                    await metadatasrv.create(genBlankMetadaObject(resp));
+                    await permissionsrv.create({createdBy:resp.createdBy,file:resp.id});
                     arr.push(resp);
                 } catch (error) {
                     console.log(error);
@@ -88,7 +89,6 @@ const post_files = async (req, res) => {
 
             }
         }
-        console.log(arr);
         res.status(201).json(arr);
     } catch (error) {
         console.log(error);
@@ -119,9 +119,9 @@ const get_file = async (req, res) => {
         let resx = await service.get_by_id(id, req.user_data);
         resx.metadata.size = (((resx.metadata.size) / 1024) / 1024).toFixed(3);
         let folder = await foldersrv.get_by_id(resx.folder,req.user_data);
-        console.log(folder);
+        // console.log(folder);
         resx.folder = folder;
-        console.log(resx);
+        // console.log(resx);
         res.status(200).render('page-file-view.ejs', {
             data: {
                 ...req.user_data,
@@ -163,70 +163,30 @@ const get_file_content = async (req, res) => {
     }
 
     let file = req.file_info;
-    
-
-    let share_settings = file.file_metadata.share_settings;
     let pth = path.join(__dirname, ".." + file.metadata.path);
-    if (share_settings.is_public) {
-        if (file.metadata.mimetype.split("/")[0] == "image" && type=="thumb") {
-            filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
-                if (err!=null) {
-                    sendError(res, err)
-                } else {
-                    res.set('Content-Type', 'image/webp');
-                    res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
-                  return  res.status(200).send(data);
-                }
-            })
-        }else{
-         res.status(200).sendFile(pth, (err) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send();
+    if (file.metadata.mimetype.split("/")[0] == "image" && type=="thumb") {
+        filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
+            if (err!=null) {
+              return  sendError(res, err)
             } else {
-                console.log(`file ${pth} sended..`);
+                res.set('Content-Type', 'image/webp');
+                res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
+               return res.status(200).send(data);
             }
-        });
-    }
-    }
-    else {
-        try {
-           
-            let { email } = req.user;
-            // console.log(share_settings.share_with,typeof share_settings.share_with);
-            if (share_settings.share_with.includes(email) || email == file.createdBy) {
-                // res.status(200).send("u hab access");
-                // res.status(200).json(file)
-                if (file.metadata.mimetype.split("/")[0] == "image"  && type=="thumb") {
-                    filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
-                        if (err) {
-                            sendError(res, err)
-                        } else {
-                            res.set('Content-Type', 'image/webp');
-                            res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
-                          return  res.status(200).send(data);
-                        }
-                    })
-                }else{
-            return   res.status(200).sendFile(pth, (err) => {
-                    if (err) {
-                        console.log(err);
-                        res.status(500).send();
-                    } else {
-                        console.log(`file ${pth} sended..`);
-                    }
-                });
-            }
-            } else {
-                // res.status(200).send("u dont hab access");
-                res.status(401).send();
-            }
-
-        } catch (error) {
-            res.status(401).send();
+        })
+    }else{
+   return  res.status(200).sendFile(pth, (err) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send();
+        } else {
+            console.log(`file ${pth} sended..`);
         }
-    }
+    });
+}
+
 }catch(error){
+    // console.log(error)
     res.status(400).send();
 }
 }

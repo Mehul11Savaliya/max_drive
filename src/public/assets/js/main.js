@@ -6,6 +6,12 @@ let notifier = new AWN({
     }
 });
 
+try {
+    index_page = index_page
+} catch (error) {
+    index_page = false;
+}
+
 async function handleRequest(url, config, successcode, data = null) {
     let res = await fetch(url, config);
     if (res.status !== successcode) {
@@ -44,7 +50,7 @@ function deleteFolder(id) {
     })
 }
 
-async function deleteFile(id,event) {
+async function deleteFile(id, event) {
     let rowcd = document.getElementById(`tr-${id}`);
     let gridcd = document.getElementById(`gridtr-${id}`);
     Swal.fire({
@@ -788,22 +794,24 @@ async function file_delete_functions(folder_id) {
     }
 }
 
-const file_share_function = (fid) => {
+const file_share_function = async (fid) => {
     if (fileflag) {
         if (fid != null || fid != undefined) {
-            let sharedata = file_share_settings.share_settings;
-            if (sharedata == undefined) {
-                sharedata = {
-                    share_with: [],
-                    is_public: false,
-                    is_unlimited: false,
-                    max_share_limit: 0,
-                    available_date: "",
-                    available_time: ""
-                };
-            }
-            let uri = new URLSearchParams(window.location.href);
-            let id = Number.parseInt(fid);
+            let sharedata = await handleRequest(`/permission/file/${fid}/shardata`,{metadata:"GET"},200);
+            sharedata = sharedata.data.share_settings;
+                if (Object.keys(sharedata).length === 0) {
+                    sharedata = undefined;
+                }
+                if (sharedata == undefined) {
+                    sharedata = {
+                        share_with: [],
+                        is_public: false,
+                        is_unlimited: false,
+                        max_share_limit: 0,
+                        available_date: "",
+                        available_time: ""
+                    };
+                }
             Swal.fire({
                 title: "Share Settings",
                 html: `<div class="">
@@ -814,7 +822,7 @@ const file_share_function = (fid) => {
                    <label>Share With : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="text" id="first-name" class="form-control" value="${sharedata.share_with.join(',')}" name="sharewith" placeholder="user_names..">
+                   <input type="text" id="first-name" class="form-control" value="${(sharedata.share_with==undefined)?"":sharedata.share_with.join(',')}" name="share_with" placeholder="user_names..">
                  </div>
                  <div class="col-md-4">
                    <label>Available  at : </label>
@@ -826,20 +834,20 @@ const file_share_function = (fid) => {
                    <label>Available from : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="date" id="contact-info" class="form-control" name="availabel_date" value="${sharedata.available_date}" placeholder="Mobile">
+                   <input type="date" id="contact-info" class="form-control" name="available_date" value="${sharedata.available_date}" placeholder="Mobile">
                  </div>
                  <div class="col-md-4">
                    <label>Max Access Limit : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="number" id="password" min="1" class="form-control" name="max_limit" value="${sharedata.max_share_limit}" placeholder="enter limit">
+                   <input type="number" id="password" min="1" class="form-control" name="max_share_limit" value="${sharedata.max_share_limit}" placeholder="enter limit">
                  </div>
                  <div class="custom-control custom-switch">
-                 <input type="checkbox" class="custom-control-input" name="make_public" id="mackepublic" ${sharedata.is_public ? 'checked' : ''}>
+                 <input type="checkbox" class="custom-control-input" name="is_public" id="mackepublic" ${sharedata.is_public ? 'checked' : ''}>
                  <label class="custom-control-label" for="mackepublic">Make Public</label>
                  </div>
                  <div class="custom-control custom-switch">
-                 <input type="checkbox" class="custom-control-input" name="unlimited_access" id="unlimited_access" ${sharedata.is_unlimited ? 'checked' : ''}>
+                 <input type="checkbox" class="custom-control-input" name="is_unlimited" id="unlimited_access" ${sharedata.is_unlimited ? 'checked' : ''}>
                  <label class="custom-control-label" for="unlimited_access">unlimited access</label>
                  </div>
                </div>
@@ -853,9 +861,9 @@ const file_share_function = (fid) => {
                 if (result.isConfirmed) {
                     let form = document.querySelector("#share_settings");
                     let formData = new FormData(form);
-                    let object = {};
+                    let object = {share_settings:{}};
                     formData.forEach((val, key) => {
-                        object[key] = val;
+                        object.share_settings[key] = val;
                     });
                     let config = {
                         method: "PATCH",
@@ -864,11 +872,11 @@ const file_share_function = (fid) => {
                         },
                         body: JSON.stringify(object)
                     }
-                    res = await handleRequest(`/permission/${fid}/fmdata`, config, 200);
+                    console.log(object);
+                    res = await handleRequest(`/permission/file/${fid}/shardata`, config, 200);
                     if (res == null) {
                         notifier.alert("Not able to update..");
                     } else {
-                        file_share_settings = res;
                         notifier.success("Updated..");
                     }
                 }
@@ -1386,6 +1394,9 @@ function live_share() {
         socket.on("recieve-message", (data) => {
             handle_incoming_live_file_message(data.user, data.msg);
         });
+        socket.on("down-chunk", (data) => {
+            console.log("recv ", data);
+        })
 
         let i = 1;
         setInterval(() => {
@@ -1453,17 +1464,17 @@ function send_queued_file() {
     let files = document.getElementsByClassName("queue-file");
     Array.from(files).forEach((file) => {
         if (file.files.length > 0) {
-            socket.emit('file-upload', { id: roomid, data: file.files[0], name: fileName, type: type });
-            // const reader = new FileReader();
+            // socket.emit('file-upload', { id: roomid, data: file.files[0], name: file.files[0].name, type: file.files[0].type });
+            const reader = new FileReader();
 
-            // reader.onload = (e) => {
-            //     const fileData = e.target.result;
-            //     const fileName = file.files[0].name;
-            //     const type = file.files[0].type;
+            reader.onload = (e) => {
+                const fileData = e.target.result;
+                const fileName = file.files[0].name;
+                const type = file.files[0].type;
 
-            //     socket.emit('file-upload', { id: roomid, data: fileData, name: fileName, type: type });
-            // };
-            // reader.readAsArrayBuffer(file.files[0]);
+                socket.emit('file-upload', { id: roomid, data: fileData, name: fileName, type: type });
+            };
+            reader.readAsArrayBuffer(file.files[0]);
         }
     })
 
@@ -1509,7 +1520,7 @@ function handle_incoming_live_file_message(user, message) {
 
 function send_one_live_file(id) {
     let file = document.getElementsByName(id)[0];
-
+    // socket.emit('file-upload', { id: roomid, data: file.files[0], name: file.files[0].name, type: file.files[0].type });
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -1520,6 +1531,24 @@ function send_one_live_file(id) {
         socket.emit('file-upload', { id: roomid, data: fileData, name: fileName, type: type });
     };
     reader.readAsArrayBuffer(file.files[0]);
+    // file = file.files[0];
+
+    // if (file) {
+    //   const chunkSize = 1024 * 1024; // 1MB
+    //   let offset = 0;
+
+    //     while (offset < file.size) {
+    //       const chunk = file.slice(offset, offset + chunkSize);
+    //       offset += chunkSize;
+    //       console.log(chunk);
+    //       socket.emit('file-chunk', {id:roomid,chunkx:chunk});
+    //     }
+
+
+    // //   socket.on('transferComplete', () => {
+    // //     console.log('File transfer complete.');
+    // //   });
+    // }
 }
 
 function createComment(username, text) {
@@ -1645,11 +1674,6 @@ async function load_public_media(from, limit) {
     }
 }
 
-try {
-    index_page = index_page
-} catch (error) {
-    index_page = false;
-}
 
 async function load_analytics_file() {
     var from = 0, limit = 10;
@@ -2112,10 +2136,77 @@ function get_meta_card_from_ext(ext) {
 //         });
 // }
 
+//notifications..
+async function start_notification_srv() {
+  // Client-side code (in the browser)
+  let user_email_s = sessionStorage.getItem("user_email");
+    if (user_email_s==null) {
+        sessionStorage.setItem("user_email",user_email);
+        user_email_s = user_email;
+    }
+
+    let oldnotification = localStorage.getItem("notifications")==null?[]:JSON.parse(localStorage.getItem("notifications"));
+    console.log(oldnotification);
+    if (oldnotification.length>=15) {
+        oldnotification.shift();
+    }
+    oldnotification.forEach((val)=>{
+        add_notification(val,"notifictions");
+    })
+
+let notisocket=io("/user/notification");
+    notisocket.emit("join-room", { id: user_email_s });
+    notisocket.on("connect",(socket)=>{
+        notisocket.on("notification", (data) => {
+            oldnotification.push(data);
+            if (oldnotification.length>=15) {
+                oldnotification.shift();
+            }
+            localStorage.setItem("notifications",JSON.stringify(oldnotification));
+           add_notification(data, "notifictions");
+           const audio = new Audio("https://vgmsite.com/soundtracks/among-us-sound-effects/udbpcpqmyr/Notification.mp3");
+           audio.play();
+           notifier.success(`notification from ${data.author}`);
+   
+        });
+    })
+    notisocket.on("ping", (data) => {
+        // console.log(data);
+    })
+}
+
+function add_notification(data, contaniner = null) {
+    if (contaniner == null || contaniner == "") {
+        return;
+    }
+    let holder = document.querySelector(`#${contaniner}`);
+    let card = `<div class="rounded-circle iq-card-icon-small bg-primary" data-toggle="popover" data-placement="right" title="${data.author}" data-content="${data.author}">
+    ${data.author.charAt(0) + data.author.charAt(1)}
+</div>
+<div class="media-body ml-3">
+    <div class="media justify-content-between">
+        ${data.msg}
+   <!-- <p class="mb-0 font-size-12">${data.author}</p>-->
+    </div>
+    <p class="mb-0 font-size-12">
+    <a target="_blank" href='${data.data.url}' class="btn btn-sm btn-primary" >view</a>
+    </p>
+</div>     `;
+
+    let dv = document.createElement("div");
+    dv.setAttribute("class", "media align-items-center mb-3");
+    dv.innerHTML = card;
+    holder.appendChild(dv);
+}
 
 window.onload = async () => {
     try {
         update_sidebar();
+    } catch (error) {
+
+    }
+    try {
+        await start_notification_srv();
     } catch (error) {
 
     }

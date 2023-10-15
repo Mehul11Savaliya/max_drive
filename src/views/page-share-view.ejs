@@ -47,8 +47,8 @@
     </script>
 
     <%
-        let date  = data.file.file_metadata.share_settings.available_date;
-        let time = data.file.file_metadata.share_settings.available_time;
+        let date  = data.file.permission.share_settings.available_date;
+        let time = data.file.permission.share_settings.available_time;
        // if(date==""){
        //     date  = Date.now();
        //}
@@ -161,6 +161,7 @@
                                  <p class="card-text">Type : <%=data.file.metadata.mimetype%></p>
                                  <p class="card-text">Size : <%=(((data.file.metadata.size)/1024)/1024).toFixed(3)%> MB</p>
                                  <p class="card-text"><small class="text-muted">createdBy : <%=data.file.createdBy%></small></p>
+                                 <p class="card-text"><small class="text-muted">downloads : <%=data.file.downloads%></small></p>
                                  <button onclick="file_download_functions_live('<%=data.file.id%>')" type="button"  class="btn btn-success">Download</button>
                               </div>
                            </div>
@@ -258,7 +259,7 @@ async function file_download_functions_live(fileid,finame=undefined) {
         return password;
     }
  
-                   password = getPass();
+                password = getPass();
     if (fileid!=undefined) {
             let controls = document.querySelector("#downdisplay");
             controls.innerHTML=`<progress id="downloadProgress" value="0" max="100"></progress><br>

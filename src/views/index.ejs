@@ -34,6 +34,8 @@
     <!-- new-vender -->
     <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+
+    <script src="/assets/vendor/socketio/socket.io.min.js"></script>
     <!-- new-vender -->
 </head>
   <body class="  ">
@@ -45,6 +47,7 @@
     <!-- loader END -->
   <script>
     var index_page = true;
+    var user_email = '<%-data.email%>';
   </script>
 
     <!-- Wrapper Start -->
@@ -238,7 +241,7 @@
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-6">
                                     <div class="media align-items-center">
-                                        <div class="icon iq-icon-box bg-light rounded icon-statistic">
+                                        <div class="icon iq-icon-box bg-success rounded icon-statistic">
                                             <i class="fa-solid fa-upload"></i>
                                         </div>
                                         <div class="media-body ml-3">

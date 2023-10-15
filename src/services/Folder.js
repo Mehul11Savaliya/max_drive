@@ -3,6 +3,7 @@ const filemdl = require("../models/File");
 const { Sequelize } = require("sequelize");
 
 const permissionsrv = require("./Permission");
+const filesrv = require("../services/File");
 const { encrypt } = require("../utils/CryptoGraph");
 
 const timelinesrv = require("./FolderAudit");
@@ -72,6 +73,7 @@ const delete_by_id=async(id,user,admin=false)=>{
     let res = await model.destroy({
         where:qryobj
     });
+    await filesrv.delete_file();
     await permissionsrv.delete_by_type_id({folder:id},user,admin);
     await timelinesrv.delete_timeline(id,user,admin);
     if(res==0) throw new Error(`not able to delete a folder with id = ${id}`)

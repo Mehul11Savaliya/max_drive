@@ -1,5 +1,5 @@
 const model = require("../models/Permission");
-
+const notifemmiter = require("../subscriber/Notification");
 
 
 const sync = async (action) => {
@@ -18,10 +18,8 @@ const create = async (data, dummy = false) => {
     //     }
     let res = null;
     res = await model.create({
-        createdBy: data.email,
         data: { "share_settings": {} },
-        folder: data.folder
-
+   ...data
     });
     return res;
 }
@@ -103,11 +101,23 @@ const update_type_id = async (typeob, data, user, admin = false) => {
         available_time,
         available_date,
         max_share_limit } = share_settings;
-    if (share_with != undefined)
+    if (share_with != undefined){
+        
         share_with = share_with.split(',').map((val) => {
+            // console.log("lol");
+            // notifemmiter.
+            notifemmiter.emit("push-notification",{
+                author:user.email,
+                to:val,
+                msg:(Object.keys(typeob).includes("folder"))?`folder is shared `:(Object.keys(typeob).includes("file"))?"file is shared":"something else",
+                data:{
+                    url : (Object.keys(typeob).includes("folder"))?`/share/folder/${typeob.folder}`:(Object.keys(typeob).includes("file"))?`/share/file/${typeob.file}`:""
+                }
+            });
             return (val != '') ? val : null;
         })
     old.data.share_settings.share_with = share_with;
+}
     if (is_public != undefined)
         old.data.share_settings.is_public = is_public == 'on' ? true : false;
     else

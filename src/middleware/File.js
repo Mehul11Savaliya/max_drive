@@ -4,12 +4,13 @@ const usersrv  = require("../services/User");
 const tokensrv = require("../services/Token");
 
 const shareemmiter = require("../subscriber/ShareEvents");
+var filevents = require("../subscriber/FileEvents");
 
 const extract_file=async(req,res,next)=>{
     try {
         let {id} = req.params;
         let {fid} = req.params; //if access through folder
-        let resx = await filesrv.read(fid||id);
+        let resx = await filesrv.get_all_details(fid||id,true);
         req.file_info = resx;
         next(); 
     } catch (error) {
@@ -20,8 +21,9 @@ const extract_file=async(req,res,next)=>{
 
 const check_file_pass=(req,res,next)=>{
     try {
-        let {user,file_info} = req;
-        if (user!=undefined&&file_info.createdBy==user.email) {
+        let {user_data,file_info} = req;
+        // console.log("test",file_info.createdBy==user_data.email);
+        if (user_data!=undefined&&file_info.createdBy==user_data.email) {
             return  next();
         }
         if (req.file_info.password==null) {
@@ -39,7 +41,7 @@ const check_file_pass=(req,res,next)=>{
                 fileid: file_info.id,
                 filename: file_info.metadata.name,
                 servername: filpth[filpth.length-1],
-                user: (user==undefined||user == null) ? "anonymous" : user.email,
+                user: (user_data==undefined||user_data == null) ? "anonymous" : user_data.email,
                 time: Date.now(),
                 message:"invalid credintial"
               })
@@ -75,4 +77,61 @@ const get_user=async(req,res,next)=>{
     }
 }
 
-module.exports={extract_file,check_file_pass,get_user};
+const is_accessible=(req,res,next)=>{
+    try {
+        let file = req.file_info;
+        let user = req.user_data;
+        let {share_settings}=file.permission;
+        if (share_settings==undefined) {
+         return  res.status(500).send();
+        }
+        if (share_settings.is_public) {
+            shareemmiter.emit("share",{
+                fileid : file.id,
+                filename:file.metadata.name,
+                user:`user : ${user==null?'public':user.email}`,
+                author:file.createdBy,
+                time:Date.now()
+            });
+            // filevents.emit("download",{id:file.id,downloads:Number.parseInt(file.downloads)+1});
+          return  next();
+        }else{
+            if (user!=null&&file.createdBy==user.email) {
+           return  next();
+            }
+            let allowed_user = share_settings.share_with;
+            if (user!=null&&allowed_user!=null) {
+                if (allowed_user.includes(user.email)) {
+                    // filevents.emit("download",{id:file.id,downloads:Number.parseInt(file.downloads)+1});
+              return   next();
+                }
+                else{
+                    shareemmiter.emit("share",{
+                        fileid : file.id,
+                        name:file.metadata.name,
+                        user:`unauthorized user : ${user.email}`,
+                        author:file.createdBy,
+                        time:Date.now()
+                    });
+                    return res.status(401).send();
+                }
+            }else{
+                shareemmiter.emit("share",{
+                    fileid : file.id,
+                    name:file.metadata.name,
+                    user:`unauthorized user : ${user==null?'':user.email}`,
+                    author:file.createdBy,
+                    time:Date.now()
+                });
+                return res.status(401).send();
+            }
+            return  res.status(500).send();
+        }
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        });
+    }
+    }
+
+module.exports={extract_file,check_file_pass,get_user,is_accessible};

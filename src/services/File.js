@@ -5,7 +5,7 @@ const path = require("path");
 const metadatamdl = require("../models/FileMetadata");
 const cryptosrv  = require("../utils/CryptoGraph");
 const filetimelinesrv  = require("../services/FileAudit");
-
+const permissionsrv = require("../services/Permission")
 const sync=async()=>{
     await model.sync({alter:true});
     console.log("file model synced..");
@@ -27,7 +27,6 @@ const get_files_from_folder=async(id)=>{
 
 const get_by_id=async(id,user,raw=false)=>{
     let res = await model.findOne({
-        include:[{model:metadatamdl,as:"fkey_file_metadata"}],
         where :{
             id:id,
             createdBy:user.email
@@ -36,10 +35,7 @@ const get_by_id=async(id,user,raw=false)=>{
         // console.log(res);
     if(res==null) throw new Error(`file with id = ${id} not exist..`);
     if(raw) return res;
-    let metadata = res.dataValues.fkey_file_metadata;
-    if(metadata==null) metadata={};
-    delete res.dataValues['fkey_file_metadata'];
-     return {...res.dataValues,file_metadata:metadata.dataValues};
+     return {...res.dataValues};
 }
 
 const read=async(id,raw=false)=>{
@@ -65,6 +61,7 @@ const delete_file=async(id,user)=>{
     });
     if(res>0){
       await filetimelinesrv.delete_timeline(id);
+      await permissionsrv.delete_by_type_id({file:id},user);
         filehandler.delete_file(path.join(__dirname,`..${file.metadata.path}`));
     }
     return res;
@@ -129,8 +126,21 @@ const get_in_range=async(from,to,user,admin=null)=>{
     return res;
 }
 
+const get_all_details=async(id,plain=true)=>{
+    let res = await model.findOne({
+        where:{
+            id:id
+        },
+        raw:plain
+    });
+    let permission = await permissionsrv.read_by_type_id({file:id},null,false,true);
+    res.permission = permission.data;
+    // console.log("lol",res);
+    return res;
+}
+
 // setTimeout(async() => {
 //    await update(69,'svlmehul@gmail.com',{});
 // }, 500);
 
-module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read,update,update_by_id,get_in_range}
+module.exports={sync,create,get_files_from_folder,delete_file,get_by_id,read,update,update_by_id,get_in_range,get_all_details}

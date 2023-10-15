@@ -18,7 +18,7 @@ const post_folder = async (req, res) => {
         data.createdBy = user.email;
         data.updatedBy = user.email;
         let ress = await service.create(data);
-        let defpermi = await permissionsrv.create({email:user.email,folder:ress.id})  //create default permission
+        let defpermi = await permissionsrv.create({createdBy:user.email,folder:ress.id})  //create default permission
         res.status(201).json(ress);
     } catch (error) {
         res.status(400).json({

@@ -17,8 +17,12 @@ router.get("/file/:id",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessTok
 router.patch("/file/:id",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,(req,res)=>{
     res.status(503).send();
 });
+
 router.get("/folder/:id/shardata",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_folder_sharedata);
 router.patch("/folder/:id/shardata",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.patch_folder_sharedata);
+
+router.patch("/file/:id/shardata",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.patch_file_sharedata);
+router.get("/file/:id/shardata",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_file_sharedata);
 
 router.get('/:id/fmdata',controller.get_file_metadata);
 router.post('/:id/fmdata',controller.post_file_metadata);

@@ -12,7 +12,7 @@ console.log(`(${req.ip}) share route accessed at : `,Date.now());
 next();
 });
 
-router.get('/file/:id',filemdwr.extract_file,controller.get_file);
+router.get('/file/:id',usermdwr.get_user_from_cookie,filemdwr.extract_file,filemdwr.is_accessible,controller.get_file);
 
 router.get('/folder/:id',usermdwr.get_user_from_cookie,foldermdwr.extract_folder,foldermdwr.is_accessible,controller.get_folder);
 

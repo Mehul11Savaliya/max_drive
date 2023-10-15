@@ -127,6 +127,36 @@ const get_folder_sharedata=async(req,res)=>{
     }
 }
 
+const get_file_sharedata=async(req,res)=>{
+    try {
+        let {id}=req.params;
+        if (id==undefined) {
+            throw new Error(`file id not provided..`)
+        }
+        let ress = await permissionsrv.read_by_type_id({file:id},req.user_data);
+        res.status(200).json(ress);
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+    }
+}
+
+const patch_file_sharedata=async(req,res)=>{
+    try {
+        let {id}=req.params;
+        if (id==undefined) {
+            throw new Error(`file id not provided..`)
+        }
+        let ress = await permissionsrv.update_type_id({file:id},req.body,req.user_data);
+        res.status(200).json(ress);
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+    }
+}
+
 module.exports = {
     get_germissions,
     get_file_metadata,
@@ -134,5 +164,7 @@ module.exports = {
     patch_file_metadata,
     delete_file_metadata,
     patch_folder_sharedata,
-    get_folder_sharedata
+    get_folder_sharedata,
+    patch_file_sharedata,
+    get_file_sharedata
 };
