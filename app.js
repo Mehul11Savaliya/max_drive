@@ -18,6 +18,7 @@ const Share = require('./src/routes/Share');
 const Master  = require('./src/routes/Master');
 const Explore  = require("./src/routes/Explore");
 const Analytics = require("./src/routes/Analytics");
+const Test = require("./src/routes/Test");
 
 var app = express();
 
@@ -70,6 +71,7 @@ app.use('/share',Share);
 app.use('/master',Master);
 app.use("/explore",Explore);
 app.use("/analytics",Analytics);
+app.use("/test",Test);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

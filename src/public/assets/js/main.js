@@ -236,11 +236,25 @@ async function update_sidebar(data) {
 }
 
 async function upload_file() {
+    let folderlist = [];
+    let folderlists='';
+    if (index_page) {
+        folderlist = await handleRequest("/folder", { method: "GET" }, 200);
+        for (const folder of folderlist) {
+            folderlists+=`<option value="${folder.id}">${folder.name}</option>`;
+        }
+    }
     Swal.fire({
         title: 'upload file',
         html: `
         <form id="filestoupload" enctype="multipart/form-data">
         <div class="row" id="fm-wizard-holder"></div>
+        <div class="col-lg-12 col-md-8 col-sm-11">
+        ${(index_page?`<select class="form form-control" name="folder">
+        <option selected value="-1">Select Folder</option>
+        ${folderlists}
+         </select>`:"")}
+        </div>
         </form>
         <div class="row">
         <div class="col-lg-4 col-md-8 col-sm-11">
@@ -284,8 +298,9 @@ async function upload_file() {
                 folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
 
                 let formData = new FormData(document.querySelector("#filestoupload"));
-                formData.append("folder", folder_id);
-
+                if (formData.get("folder")==null||formData.get("folder")==-1) {
+                    formData.append("folder", folder_id);
+                }
 
                 const xhr = new XMLHttpRequest();
                 xhr.open("POST", "/file/", true);
@@ -324,6 +339,7 @@ async function upload_file() {
                         notifier.alert(`error in uploading (${xhr.statusText})`);
                     } else {
                         let resp = xhr.response;
+                        if (!index_page) {
                         let config = {
                             method: "GET"
                         }
@@ -334,6 +350,117 @@ async function upload_file() {
                         generate_folder_file_cards(ress);
                         notifier.success(`${resp.length} files has been loaded`)
                         reslv();
+                    }else{
+                        notifier.success(`${resp.length} files has been loaded`)
+                        reslv();
+                    }
+                    }
+                }
+            });
+        }
+    }).then(async (res) => {
+        if (res.isConfirmed) {
+        }
+    });
+}
+
+async function upload_folder() {
+    Swal.fire({
+        title: 'upload folder',
+        html: `
+        <form id="foldertoupload" enctype="multipart/form-data">
+        <div class="row" id="fm-wizard-holder"></div>
+        <input type="file" name="folder" id="folderInput" webkitdirectory directory multiple>
+        </div>
+        </form>
+    
+        <br>
+        <div class="prog-container" style="display:none">
+        <progress style="width:100%" id="uploadp" value="0" max="100"></progress><br>
+        <span id="uploadpercp">0%</span><br>
+        <span id="uploadspeed">0 KB/s</span><br>
+        <span id="remainingTime">Calculating...</span>
+        </div>`,
+        showCloseButton: true,
+        showCancelButton: true,
+        focusConfirm: false,
+        confirmButtonText: 'save',
+        confirmButtonAriaLabel: 'save',
+        cancelButtonText: 'cancel',
+        cancelButtonAriaLabel: 'cancel',
+        preConfirm: () => {
+            return new Promise((reslv, rej) => {
+                const container = Swal.getHtmlContainer().querySelector('.prog-container');
+                const progressBar = Swal.getHtmlContainer().querySelector('#uploadp');
+                const progressText = Swal.getHtmlContainer().querySelector('#uploadpercp');
+                const speedText = Swal.getHtmlContainer().querySelector('#uploadspeed');
+                const remtime = Swal.getHtmlContainer().querySelector('#remainingTime');
+                const startTime = Date.now();
+                container.style.display = 'block';
+                let notifier = new AWN({
+                    icons: {
+                        enabled: false,
+                        prefix: '<i class="las la-check-double',
+                        suffix: '></i>'
+                    }
+                });
+
+                let formData = new FormData(document.querySelector("#foldertoupload"));
+              formData.forEach((val,key)=>{
+                console.log(key,val);
+              })
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/test/", true);
+                xhr.setRequestHeader("Accept", "application/json");
+                xhr.responseType = "json";
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        const loaded = e.loaded;
+                        const total = e.total;
+                        const percent = (loaded / total) * 100;
+
+                        // Calculate remaining time
+                        const currentTime = Date.now();
+                        const elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
+                        const remainingBytes = total - loaded;
+                        const uploadSpeedBps = loaded / elapsedTime; // Bytes per second
+                        const uploadSpeedKbps = uploadSpeedBps * 8 / 1000; // Kilobits per second
+                        const remainingTime = remainingBytes / uploadSpeedBps; // Seconds
+
+                        // Update progress bar and text
+                        progressBar.value = percent;
+                        progressText.textContent = percent.toFixed(2) + '%';
+
+                        // Update speed text
+                        speedText.textContent = uploadSpeedKbps.toFixed(2) + ' kbps';
+
+                        // Calculate and display remaining time
+                        const minutes = Math.floor(remainingTime / 60);
+                        const seconds = Math.floor(remainingTime % 60);
+                        remtime.textContent = `Remaining Time: ${minutes}:${seconds}`;
+                    }
+                }
+                xhr.send(formData);
+                xhr.onreadystatechange = async function (ev) {
+                    if (xhr.status != 201) {
+                        notifier.alert(`error in uploading (${xhr.statusText})`);
+                    } else {
+                        let resp = xhr.response;
+                        if (!index_page) {
+                        let config = {
+                            method: "GET"
+                        }
+                        let folder_id = url.split('/');
+                        folder_id = folder_id[folder_id.length - 1];
+                        folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+                        let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
+                        generate_folder_file_cards(ress);
+                        notifier.success(`${resp.length} files has been loaded`)
+                        reslv();
+                    }else{
+                        notifier.success(`${resp.length} files has been loaded`)
+                        reslv();
+                    }
                     }
                 }
             });
@@ -797,21 +924,21 @@ async function file_delete_functions(folder_id) {
 const file_share_function = async (fid) => {
     if (fileflag) {
         if (fid != null || fid != undefined) {
-            let sharedata = await handleRequest(`/permission/file/${fid}/shardata`,{metadata:"GET"},200);
+            let sharedata = await handleRequest(`/permission/file/${fid}/shardata`, { metadata: "GET" }, 200);
             sharedata = sharedata.data.share_settings;
-                if (Object.keys(sharedata).length === 0) {
-                    sharedata = undefined;
-                }
-                if (sharedata == undefined) {
-                    sharedata = {
-                        share_with: [],
-                        is_public: false,
-                        is_unlimited: false,
-                        max_share_limit: 0,
-                        available_date: "",
-                        available_time: ""
-                    };
-                }
+            if (Object.keys(sharedata).length === 0) {
+                sharedata = undefined;
+            }
+            if (sharedata == undefined) {
+                sharedata = {
+                    share_with: [],
+                    is_public: false,
+                    is_unlimited: false,
+                    max_share_limit: 0,
+                    available_date: "",
+                    available_time: ""
+                };
+            }
             Swal.fire({
                 title: "Share Settings",
                 html: `<div class="">
@@ -822,7 +949,7 @@ const file_share_function = async (fid) => {
                    <label>Share With : </label>
                  </div>
                  <div class="col-md-8 form-group">
-                   <input type="text" id="first-name" class="form-control" value="${(sharedata.share_with==undefined)?"":sharedata.share_with.join(',')}" name="share_with" placeholder="user_names..">
+                   <input type="text" id="first-name" class="form-control" value="${(sharedata.share_with == undefined) ? "" : sharedata.share_with.join(',')}" name="share_with" placeholder="user_names..">
                  </div>
                  <div class="col-md-4">
                    <label>Available  at : </label>
@@ -861,7 +988,7 @@ const file_share_function = async (fid) => {
                 if (result.isConfirmed) {
                     let form = document.querySelector("#share_settings");
                     let formData = new FormData(form);
-                    let object = {share_settings:{}};
+                    let object = { share_settings: {} };
                     formData.forEach((val, key) => {
                         object.share_settings[key] = val;
                     });
@@ -2138,36 +2265,35 @@ function get_meta_card_from_ext(ext) {
 
 //notifications..
 async function start_notification_srv() {
-  // Client-side code (in the browser)
-  let user_email_s = sessionStorage.getItem("user_email");
-    if (user_email_s==null) {
-        sessionStorage.setItem("user_email",user_email);
+    // Client-side code (in the browser)
+    let user_email_s = sessionStorage.getItem("user_email");
+    if (user_email_s == null) {
+        sessionStorage.setItem("user_email", user_email);
         user_email_s = user_email;
     }
 
-    let oldnotification = localStorage.getItem("notifications")==null?[]:JSON.parse(localStorage.getItem("notifications"));
-    console.log(oldnotification);
-    if (oldnotification.length>=15) {
+    let oldnotification = localStorage.getItem("notifications") == null ? [] : JSON.parse(localStorage.getItem("notifications"));
+    if (oldnotification.length >= 15) {
         oldnotification.shift();
     }
-    oldnotification.forEach((val)=>{
-        add_notification(val,"notifictions");
+    oldnotification.forEach((val) => {
+        add_notification(val, "notifictions");
     })
 
-let notisocket=io("/user/notification");
+    let notisocket = io("/user/notification");
     notisocket.emit("join-room", { id: user_email_s });
-    notisocket.on("connect",(socket)=>{
+    notisocket.on("connect", (socket) => {
         notisocket.on("notification", (data) => {
             oldnotification.push(data);
-            if (oldnotification.length>=15) {
+            if (oldnotification.length >= 15) {
                 oldnotification.shift();
             }
-            localStorage.setItem("notifications",JSON.stringify(oldnotification));
-           add_notification(data, "notifictions");
-           const audio = new Audio("https://vgmsite.com/soundtracks/among-us-sound-effects/udbpcpqmyr/Notification.mp3");
-           audio.play();
-           notifier.success(`notification from ${data.author}`);
-   
+            localStorage.setItem("notifications", JSON.stringify(oldnotification));
+            add_notification(data, "notifictions");
+            const audio = new Audio("https://vgmsite.com/soundtracks/among-us-sound-effects/udbpcpqmyr/Notification.mp3");
+            audio.play();
+            notifier.success(`notification from ${data.author}`);
+
         });
     })
     notisocket.on("ping", (data) => {
