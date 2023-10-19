@@ -2,6 +2,7 @@ const service = require("../services/Folder");
 const permissionsrv = require("../services/Permission");
 const filesrv = require("../services/File");
 const path = require("path");
+const uuid = require("uuid");
 const filehandler = require("../services/FileHandler");
 const post_folder = async (req, res) => {
     try {
@@ -24,6 +25,59 @@ const post_folder = async (req, res) => {
         res.status(400).json({
             errmsg: error.message
         })
+    }
+}
+
+const post_folder_bulk=async(req,res)=>{
+    try {
+        let {folder} = req.files;
+        let {folder_name}=req.body;
+        if (folder==undefined||folder.length==0) {
+            throw new Error(`no files uploaded..`);
+        }
+        if (folder_name==undefined||folder_name=="") {
+            throw new Error(`folder name not provided..`);
+        }
+        let {user_data} = req;
+     let folderx =  await service.create({name:folder_name,createdBy:user_data.email,updatedBy:user_data.email});
+     let defpermi = await permissionsrv.create({createdBy:user_data.email,updatedBy:user_data.email,folder:folderx.id});
+     let files = [];
+        for (let index = 0; index < folder.length; index++) {
+            const file = folder[index];
+            let metadata = {};
+                let ext;
+                metadata.name = file.name.replaceAll(' ', '-');
+                ext = metadata.name.split('.').pop();
+                metadata.size = file.size;
+                metadata.encoding = file.encoding;
+                metadata.mimetype = file.mimetype;
+                metadata.checksum = file.md5;
+                try {
+                    let name = uuid.v4() + "." + ext;
+                    let pathx = filehandler.move_file_to(file.data, `../uploads/${name}`);
+                    console.log("path is : ", pathx);
+                    metadata = { ...metadata, path: pathx };
+                    let filex = {
+                        folder: folderx.id,
+                        metadata: metadata,
+                        createdBy: user_data.email,
+                        updatedBy: user_data.email,
+                        tags: [metadata.name]
+                    }
+
+                    let resp = await filesrv.create(filex);
+                    await permissionsrv.create({createdBy:resp.createdBy,updatedBy:resp.updatedBy,file:resp.id});
+                    files.push(resp.dataValues);
+                }catch(er){
+                    files.push({errmsg:er.message});
+                }
+        }
+        folderx.files = files;
+        res.status(201).json(folderx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        });
     }
 }
 
@@ -64,6 +118,7 @@ const delete_folder=async(req,res)=>{
         await service.delete_by_id(id,req.user_data);
         res.status(204).send();
     } catch (error) {
+        console.log(error);
         res.status(400).json({
             errmsg : error.message
         })
@@ -167,4 +222,4 @@ const delete_multiple_folder=async(req,res)=>{
    }
    }
 
-module.exports = { post_folder, get_folder ,patch_folder,delete_folder,delete_multiple_folder,get_all_folder,get_list_file,get_file_content}
+module.exports = { post_folder, get_folder ,patch_folder,delete_folder,delete_multiple_folder,get_all_folder,get_list_file,get_file_content,post_folder_bulk}

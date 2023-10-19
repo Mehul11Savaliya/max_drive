@@ -49,7 +49,7 @@ const delete_timeline=async(folderid,user,admin=null)=>{
                 console.log(err,res);
             }
         });
-        console.log("res from mongo : ",id,res);
+        console.log("res from mongo : ",folderid,res);
     } catch (error) {
         throw error;
     }finally{

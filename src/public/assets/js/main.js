@@ -370,10 +370,11 @@ async function upload_folder() {
         html: `
         <form id="foldertoupload" enctype="multipart/form-data">
         <div class="row" id="fm-wizard-holder"></div>
-        <input type="file" name="folder" id="folderInput" webkitdirectory directory multiple>
+        <input class="form form-control" type="file" name="folder" id="folderInput" webkitdirectory directory multiple>
+        <br>
+        <input class="form form-control" placeholder="Enter folder name" type="text" name="folder_name" id="" required>
         </div>
         </form>
-    
         <br>
         <div class="prog-container" style="display:none">
         <progress style="width:100%" id="uploadp" value="0" max="100"></progress><br>
@@ -406,11 +407,8 @@ async function upload_folder() {
                 });
 
                 let formData = new FormData(document.querySelector("#foldertoupload"));
-              formData.forEach((val,key)=>{
-                console.log(key,val);
-              })
                 const xhr = new XMLHttpRequest();
-                xhr.open("POST", "/test/", true);
+                xhr.open("POST", "/folder/bulk", true);
                 xhr.setRequestHeader("Accept", "application/json");
                 xhr.responseType = "json";
                 xhr.upload.onprogress = function (e) {
@@ -446,7 +444,7 @@ async function upload_folder() {
                         notifier.alert(`error in uploading (${xhr.statusText})`);
                     } else {
                         let resp = xhr.response;
-                        if (!index_page) {
+                        if (index_page!=true) {
                         let config = {
                             method: "GET"
                         }
@@ -458,7 +456,17 @@ async function upload_folder() {
                         notifier.success(`${resp.length} files has been loaded`)
                         reslv();
                     }else{
-                        notifier.success(`${resp.length} files has been loaded`)
+                        notifier.success(`${resp.name} folder has been created`);
+                        try {
+                          await  home_update_folders();
+                        } catch (error) {
+                    
+                        }
+                        try {
+                          await  update_sidebar();
+                        } catch (error) {
+                    
+                        }
                         reslv();
                     }
                     }

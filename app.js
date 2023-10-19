@@ -71,7 +71,7 @@ app.use('/share',Share);
 app.use('/master',Master);
 app.use("/explore",Explore);
 app.use("/analytics",Analytics);
-app.use("/test",Test);
+// app.use("/test",Test);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
