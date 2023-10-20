@@ -19,6 +19,15 @@ const varifyUser=async(email,pass)=>{
     return res;
 }
 
+const delete_by_email=async(email)=>{
+    let res = await model.destroy({
+        where:{
+            email : email
+        }
+    });
+    return res;
+}
+
 const getUserByEmail=async(email,raw=false)=>{
     let res = null;
     res = await model.findByPk(email);
@@ -34,5 +43,6 @@ module.exports={
     sync,
     create,
     varifyUser,
-    getUserByEmail
+    getUserByEmail,
+    delete_by_email
 }

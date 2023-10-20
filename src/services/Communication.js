@@ -64,8 +64,43 @@ const send_file_encryption_message=async (recever,key,iv,originalfilename,encryp
     return msg;
 }
 
+const send_otp_varify_msg=async(recever,otp,varifylink)=>{
+    let msg ;
+
+    const transporter = await nodemailer.createTransport(transporterconfig);
+    
+    try {
+     msg = await  transporter.sendMail({
+            from:`noreply-maxdrive <${process.env.COMM_EMAIL}>`,
+            to:recever,
+            subject:`Varify your account`,
+            html:`<div style="font-family: Helvetica,Arial,sans-serif;min-width:1000px;overflow:auto;line-height:2">
+            <div style="margin:50px auto;width:70%;padding:20px 0">
+              <div style="border-bottom:1px solid #eee">
+                <a href="" style="font-size:1.4em;color: #00466a;text-decoration:none;font-weight:600">${process.env['PROJECT_NAME']}</a>
+              </div>
+              <p style="font-size:1.1em">Hi,</p>
+              <p>Thank you for choosing ${process.env['PROJECT_NAME']}. Use the following OTP to complete your Sign Up procedures. OTP is valid for 3 attempts</p>
+              <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">${otp}</h2>
+              <p style="font-size:0.9em;">Regards,<br />${process.env['PROJECT_NAME']}</p>
+              <hr style="border:none;border-top:1px solid #eee" />
+              <div style="float:right;padding:8px 0;color:#aaa;font-size:0.8em;line-height:1;font-weight:300">
+                <p>${process.env['PROJECT_NAME']}</p>
+                <p>GJ14</p>
+                <p>India</p>
+              </div>
+            </div>
+          </div>`
+        });
+    } catch (error) {
+        console.log(error);
+        msg = null;
+    }
+    return msg;
+}
+
 // (async()=>{
 //    await send_file_encryption_message('testfor050@gmail.com',"123","123","123","123");
 // })()
 
-module.exports={send_file_encryption_message};
+module.exports={send_file_encryption_message,send_otp_varify_msg};

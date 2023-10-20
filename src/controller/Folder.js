@@ -39,7 +39,7 @@ const post_folder_bulk=async(req,res)=>{
             throw new Error(`folder name not provided..`);
         }
         let {user_data} = req;
-     let folderx =  await service.create({name:folder_name,createdBy:user_data.email,updatedBy:user_data.email});
+     let folderx =  await service.create({name:folder_name,createdBy:user_data.email,updatedBy:user_data.email,tags:[folder_name]});
      let defpermi = await permissionsrv.create({createdBy:user_data.email,updatedBy:user_data.email,folder:folderx.id});
      let files = [];
         for (let index = 0; index < folder.length; index++) {

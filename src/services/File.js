@@ -75,7 +75,12 @@ const delete_file = async (id, user) => {
     if (res > 0) {
         await filetimelinesrv.delete_timeline(id);
         await permissionsrv.delete_by_type_id({ file: id }, user);
-        filehandler.delete_file(path.join(__dirname, `..${file.metadata.path}`));
+        try {
+            filehandler.delete_file(path.join(__dirname, `..${file.metadata.path}`));
+        } catch (error) {
+            console.log(error);
+        }
+        
     }
     return res;
 }
@@ -91,7 +96,11 @@ const delete_file_by_folder = async (folderid, user, admin) => {
     });
     for (const f of file) {
         await permissionsrv.delete_by_type_id({file:f.id},user,admin);
-        filehandler.delete_file(path.join(__dirname, `..${f.metadata.path}`));
+        try {
+            filehandler.delete_file(path.join(__dirname, `..${f.metadata.path}`));
+        } catch (error) {
+         console.log(error);   
+        }
     }
 }
 

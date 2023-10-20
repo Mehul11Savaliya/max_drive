@@ -31,7 +31,7 @@ app.set('port', port);
   // testDbConnection();
   // await sq.sync({alter:true})
   // await usersrv.sync();
-  // await authsrv.sync();
+  // await authsrv.sync({force:true});
   // await foldersrv.sync({alter:true});
   // await filesrv.sync();
   // await filemetadatsrv.sync();
