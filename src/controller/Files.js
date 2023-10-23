@@ -47,7 +47,7 @@ const post_files = async (req, res) => {
                     tags: [metadata.name]
                 }
                 let resp = await service.create(file);
-              await permissionsrv.create({createdBy:resp.createdBy,file:resp.id});
+                await permissionsrv.create({ createdBy: resp.createdBy, file: resp.id });
                 arr.push(resp);
             } catch (error) {
                 console.log(error);
@@ -81,7 +81,7 @@ const post_files = async (req, res) => {
                     }
 
                     let resp = await service.create(file);
-                    await permissionsrv.create({createdBy:resp.createdBy,file:resp.id});
+                    await permissionsrv.create({ createdBy: resp.createdBy, file: resp.id });
                     arr.push(resp);
                 } catch (error) {
                     console.log(error);
@@ -105,7 +105,7 @@ const get_all_folder_file = async (req, res) => {
         let files = await service.get_files_from_folder(Number.parseInt(folder));
         res.status(200).json(files);
     } catch (error) {
-        console.log("err",error);
+        console.log("err", error);
         res.status(400).json({
             errmsg: error.message
         });
@@ -118,7 +118,7 @@ const get_file = async (req, res) => {
         if (id == undefined) throw new Error(`file id not provided..`)
         let resx = await service.get_by_id(id, req.user_data);
         resx.metadata.size = (((resx.metadata.size) / 1024) / 1024).toFixed(3);
-        let folder = await foldersrv.get_by_id(resx.folder,req.user_data);
+        let folder = await foldersrv.get_by_id(resx.folder, req.user_data);
         // console.log(folder);
         resx.folder = folder;
         // console.log(resx);
@@ -149,46 +149,46 @@ const delete_file = async (req, res) => {
 }
 
 const get_file_content = async (req, res) => {
-     try {
-    let { id } = req.params;
-    let {type} = req.query;
-    if (type==undefined) {
-        type = "full"
-    }
-    else  if (["full","thumb"].includes(type)) {
-            type  = type;
+    try {
+        let { id } = req.params;
+        let { type } = req.query;
+        if (type == undefined) {
+            type = "full"
         }
-    else{
-        type = "full";
-    }
+        else if (["full", "thumb"].includes(type)) {
+            type = type;
+        }
+        else {
+            type = "full";
+        }
 
-    let file = req.file_info;
-    let pth = path.join(__dirname, ".." + file.metadata.path);
-    if (file.metadata.mimetype.split("/")[0] == "image" && type=="thumb") {
-        filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
-            if (err!=null) {
-              return  sendError(res, err)
-            } else {
-                res.set('Content-Type', 'image/webp');
-                res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
-               return res.status(200).send(data);
-            }
-        })
-    }else{
-   return  res.status(200).sendFile(pth, (err) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send();
+        let file = req.file_info;
+        let pth = path.join(__dirname, ".." + file.metadata.path);
+        if (file.metadata.mimetype.split("/")[0] == "image" && type == "thumb") {
+            filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
+                if (err != null) {
+                    return sendError(res, err)
+                } else {
+                    res.set('Content-Type', 'image/webp');
+                    res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
+                    return res.status(200).send(data);
+                }
+            })
         } else {
-            console.log(`file ${pth} sended..`);
+            return res.status(200).sendFile(pth, (err) => {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send();
+                } else {
+                    console.log(`file ${pth} sended..`);
+                }
+            });
         }
-    });
-}
 
-}catch(error){
-    // console.log(error)
-    res.status(400).send();
-}
+    } catch (error) {
+        // console.log(error)
+        res.status(400).send();
+    }
 }
 
 const get_crypto_file = async (req, res) => {
@@ -317,22 +317,30 @@ function sendError(res, err) {
     })
 }
 
-const get_range=async(req,res)=>{
-try {
-    let {from,to} = req.query;
-    from = Number.parseInt(from);
-    to = Number.parseInt(to);
-    // console.log(isNaN(from));
-    if (isNaN(from)||isNaN(to)) {
-        throw new Error(`invaid request..`);
+const get_range = async (req, res) => {
+    try {
+        let { from, to, favorite, fromtime, totime } = req.query;
+        console.log(req.query);
+        let resx;
+        from = Number.parseInt(from);
+        to = Number.parseInt(to);
+        // console.log(isNaN(from));
+        // if (isNaN(from) || isNaN(to)) {
+        //     throw new Error(`invaid request..`);
+        // }
+
+        if ((fromtime != undefined && fromtime != '') && (totime != undefined && totime != ''))
+            resx = await service.get_recent(fromtime,totime,req.user_data);
+        else if (favorite != undefined && favorite == "true")
+            resx = await service.get_in_range(from, to, req.user_data, false, true);
+        else if(!isNaN(from) || !isNaN(to)) resx = await service.get_in_range(from, to, req.user_data);
+        else throw new Error(`invalid request`)
+        res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg: error.message
+        })
     }
-    let resx = await service.get_in_range(from,to,req.user_data);
-    res.status(200).json(resx);
-} catch (error) {
-    res.status(400).json({
-        errmsg : error.message
-    })
-}
 }
 
 module.exports = {

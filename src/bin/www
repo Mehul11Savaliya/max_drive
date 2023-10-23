@@ -36,7 +36,7 @@ app.set('port', port);
   // await filesrv.sync({ alter: true });
   // await filemetadatsrv.sync();
   // await mastersrv.sync();
-  // await permissionsrv.sync({force:true});
+  // await permissionsrv.sync({alter:true});
 })()
 
 // const cpunum  = os.cpus().length;

@@ -4,7 +4,8 @@ const filemdl = require("../models/File");
 const get_public_files = async (from = 0, limit = 10, all = false) => {
     let res = await filemdl.findAll({
         include: [{
-            model: permissionmdl, as: "permission", foreignKey: "file", where: {
+            model: permissionmdl, as: "file_permission",
+            where: {
                 data: {
                     share_settings: {
                         is_public: {

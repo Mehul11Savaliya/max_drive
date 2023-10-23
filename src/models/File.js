@@ -2,6 +2,7 @@ const { DataTypes } = require("sequelize");
 const {sq} = require("../config/db");
 
 const filemetadatamdl = require("./FileMetadata");
+const permissionmdl = require("./Permission");
 
 const File = sq.define("file",{
     id:{
@@ -63,5 +64,5 @@ File.addHook("afterBulkDestroy",(inst,options)=>{
 });
 
 File.hasOne(filemetadatamdl,{as:"fkey_file_metadata",sourceKey:"id",foreignKey:"file"});
-
+File.hasOne(permissionmdl,{as:"file_permission",sourceKey:"id",foreignKey:"file"});
 module.exports = File;

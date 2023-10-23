@@ -5,7 +5,8 @@ const path = require("path");
 const metadatamdl = require("../models/FileMetadata");
 const cryptosrv = require("../utils/CryptoGraph");
 const filetimelinesrv = require("../services/FileAudit");
-const permissionsrv = require("../services/Permission")
+const permissionsrv = require("../services/Permission");
+const { Sequelize, Op } = require("sequelize");
 const sync = async (type) => {
     await model.sync(type);
     console.log("file model synced..");
@@ -64,6 +65,8 @@ const read = async (id, raw = false) => {
     return { ...res.dataValues, file_metadata: metadata.dataValues };
 }
 
+
+
 const delete_file = async (id, user) => {
     let file = await get_by_id(id, user);
     let res = await model.destroy({
@@ -114,10 +117,13 @@ const update = async (id, user, new_data) => {
     }
 
     //tags updattion
-    let { tags } = new_data;
+    let { tags ,favorite} = new_data;
     // console.log(tags);
     if (tags != null || tags != undefined) {
         old.tags = tags;
+    }
+    if (favorite!=null||favorite!=undefined) {
+        old.favorite = favorite;
     }
 
     let { password } = new_data;
@@ -134,6 +140,35 @@ const update = async (id, user, new_data) => {
     return old.dataValues;
 }
 
+const get_recent=async(from,to,user,admin=null)=>{
+    from = Number.parseInt(from);
+    to = Number.parseInt(to);
+    if (isNaN(from)||isNaN(to)) {
+        throw new Error(`invalid value for from=${from} && to=${to}`);
+    }
+    let query = {};
+    if (admin == null || admin == false) {
+        query.createdBy = user.email;
+    }
+    let res = await model.findAll({
+        where:{
+            [Op.and]: [
+                Sequelize.where(
+                  Sequelize.literal(`(EXTRACT(EPOCH FROM "createdAt") * 1000)`),
+                  { [Op.gte]: from } 
+                ),
+                Sequelize.where(
+                  Sequelize.literal(`(EXTRACT(EPOCH FROM "createdAt") * 1000)`),
+                  { [Op.lte]: to } 
+                ),
+              ],
+              ...query
+        },
+        raw:true
+    });
+    return res;
+}
+
 const update_by_id = async (id, new_data) => {
     let old = await model.findOne({ where: { id: id } });
     if (old != null) {
@@ -147,7 +182,7 @@ const update_by_id = async (id, new_data) => {
     return old.dataValues;
 }
 
-const get_in_range = async (from, to, user, admin = null) => {
+const get_in_range = async (from, to, user, admin = null,favorite=false) => {
     let gap = to;
     if (!(gap >= 0 && gap <= 30)) {
         throw new Error(`invalid range to = ${gap} must be in 30`)
@@ -155,6 +190,9 @@ const get_in_range = async (from, to, user, admin = null) => {
     let query = {};
     if (admin == null || admin == false) {
         query.createdBy = user.email;
+    }
+    if (favorite==true) {
+        query.favorite=true;
     }
     let res = await model.findAll({
         where: query,
@@ -182,4 +220,4 @@ const get_all_details = async (id, plain = true) => {
 //    await update(69,'svlmehul@gmail.com',{});
 // }, 500);
 
-module.exports = { sync, create, get_files_from_folder, delete_file, get_by_id, read, update, update_by_id, get_in_range, get_all_details, delete_file_by_folder, get_by_folder }
+module.exports = { sync, create, get_files_from_folder, delete_file, get_by_id, read, update, update_by_id, get_in_range, get_all_details, delete_file_by_folder, get_by_folder,get_recent }

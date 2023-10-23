@@ -1057,6 +1057,37 @@ async function update_file_tags(id, tags) {
     }
 }
 
+async function update_file_likes(event,id,status) {
+    if (fileflag||fav_page) {
+        let data =await handleRequest(`/file/${id}`, {
+            method: "PATCH",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ favorite: status })
+        }, 200);
+        if (data == null) {
+            notifier.alert("not updated..");
+        }
+        if (data.favorite==false) {
+            if (fav_page) {
+                document.getElementById(`row-${id}`).remove();
+             this.draw();
+             return;
+            }
+            event.target.innerHTML="";
+            event.target.setAttribute("onclick",`update_file_likes(event,${id},true)`)
+            event.target.innerHTML="Add To Favorites";
+        }
+        if(data.favorite==true){
+            event.target.setAttribute("onclick",`update_file_likes(event,${id},false)`)
+            event.target.innerHTML="";
+            event.target.innerHTML=`Favorie <i class="fa-solid fa-heart">`;
+        }
+    }
+    
+}
+
 async function file_gen_timeline(fileid) {
     if (fileflag) {
         if (fileid == undefined) {
@@ -1284,6 +1315,16 @@ try {
 } catch (error) {
     files_page = false;
 }
+try {
+    fav_page = fav_page;
+} catch (error) {
+    fav_page = false;
+}
+try {
+    recent_page = recent_page;
+} catch (error) {
+    recent_page = false;
+}
 let ix = 1;
 var table;
 async function populate_files_table(fromx, to) {
@@ -1303,6 +1344,85 @@ async function populate_files_table(fromx, to) {
         } catch (error) {
             res = [];
         }
+    }
+    if (fav_page!=null&&fav_page==true) {
+         try {
+            let res = await fetch(`/file/range?from=${fromx}&to=${to + 1}&favorite=true`, { method: "GET" });
+            res = await res.json();
+            res.forEach((val) => {
+                let arr = [];
+                arr.push(ix++);
+                arr.push(val.id);
+                arr.push(val.metadata.name);
+                arr.push(`<a class="mx-2" href="/file/${val.id}"><i class="fa-solid fa-eye" style="color:green;"></i></a><span class="mx-2" onclick="deleteFile(${val.id},event);"><i class="fa-solid fa-trash" style="color:red"></i></span><button style="all:unset;" onclick="update_file_likes(event,'${val.id}',false)" class="mx-2"><i class="fa-solid fa-heart" style="color:blue"></i></button>`);
+                arr.push(((val.metadata.size) / 1024 / 1024).toFixed(2));
+                table.row.add(arr).draw();
+            });
+        } catch (error) {
+            res = [];
+        }
+    }
+    if (recent_page) {
+        try {
+            let res = await fetch(`/file/range?from=${fromx}&to=${to + 1}&favorite=true`, { method: "GET" });
+            res = await res.json();
+            res.forEach((val) => {
+                let arr = [];
+                arr.push(ix++);
+                arr.push(val.id);
+                arr.push(val.metadata.name);
+                arr.push(`<a class="mx-2" href="/file/${val.id}"><i class="fa-solid fa-eye" style="color:green;"></i></a><span class="mx-2" onclick="deleteFile(${val.id},event);"><i class="fa-solid fa-trash" style="color:red"></i></span><button style="all:unset;" onclick="update_file_likes(event,'${val.id}',false)" class="mx-2"><i class="fa-solid fa-heart" style="color:blue"></i></button>`);
+                arr.push(((val.metadata.size) / 1024 / 1024).toFixed(2));
+                table.row.add(arr).draw();
+            });
+        } catch (error) {
+            res = [];
+        }
+    }
+    if (recent_page) {
+        let form = document.querySelector("#timeform");
+        form = new FormData(form);
+        let obj = {};
+        form.forEach((val,key)=>{
+            obj[key]=val;
+        })
+        // console.table(obj);
+        
+    }
+}
+
+const find_in_time=async(event)=>{
+    if (recent_page) {
+        let form = document.querySelector("#timeform");
+        form = new FormData(form);
+        let obj = {};
+        form.forEach((val,key)=>{
+                val = new Date(val).getTime();
+            obj[key]=val;
+        });
+        // console.log(obj);
+        let {fromtime,totime} = obj;
+        if (fromtime==undefined||fromtime==''||totime==undefined||totime=='') {
+            return;
+        }
+        table.clear();
+        table.draw();
+        try {
+            let res = await fetch(`/file/range?fromtime=${fromtime}&totime=${totime}`, { method: "GET" });
+            res = await res.json();
+            res.forEach((val) => {
+                let arr = [];
+                arr.push(ix++);
+                arr.push(val.id);
+                arr.push(val.metadata.name);
+                arr.push(`<a class="mx-2" href="/file/${val.id}"><i class="fa-solid fa-eye" style="color:green;"></i></a><span class="mx-2" onclick="deleteFile(${val.id},event);"><i class="fa-solid fa-trash" style="color:red"></i></span><span class="mx-2"><i class="fa-solid fa-pen-to-square" style="color:blue"></i></span>`);
+                arr.push(((val.metadata.size) / 1024 / 1024).toFixed(2));
+                table.row.add(arr).draw();
+            });
+        } catch (error) {
+            res = [];
+        }
+        
     }
 }
 

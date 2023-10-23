@@ -71,8 +71,12 @@
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
              <li class="breadcrumb-item"><a href="/user/folder/<%=data.file.folder.id%>"><%=data.file.folder.name%></a></li>
-             <!-- <li class="breadcrumb-item"><a href="#">Library</a></li> -->
              <li class="breadcrumb-item active" aria-current="page"><%=data.file.metadata.name%></li>
+             <%if(data.file.favorite){%>
+              <span class="ms-4 btn btn-outline-primary favorite-btn" onclick="update_file_likes(event,'<%-data.file.id-%>',false)">Favorie <i class="fa-solid fa-heart"></i></span>
+              <%}else{%>
+                <button class="ms-4 btn btn-outline-primary favorite-btn" onclick="update_file_likes(event,'<%-data.file.id-%>',true)" >Add To Favorites</button>  
+                <%}%>
           </ol>
        </nav>
          <!-- <div class="row">

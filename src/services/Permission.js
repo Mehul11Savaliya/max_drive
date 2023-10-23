@@ -79,7 +79,7 @@ const delete_by_type_id = async (typeob, user, admin = false) => {
         where: qryobj
     });
     if (res == 0) {
-        throw new Error(`not able to delete permission with type-id = ${JSON.stringify(typeob)}`);
+        // throw new Error(`not able to delete permission with type-id = ${JSON.stringify(typeob)}`);
     }
     return res;
 }

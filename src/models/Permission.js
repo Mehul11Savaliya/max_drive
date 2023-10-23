@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const {sq} = require("../config/db");
+const filemdl=require("./File");
 
 const Permission = sq.define("permission",{
     id:{
@@ -35,6 +36,8 @@ const Permission = sq.define("permission",{
 },{
     freezeTableName:true,
     hooks:true
-})
+});
+
+// Permission.belongsTo(filemdl,{foreignKey:"file",as:"file_permission"});
 
 module.exports=Permission;
