@@ -30,7 +30,7 @@ app.set('port', port);
 (async function () {
   // testDbConnection();
   // await sq.sync({alter:true})
-  // await usersrv.sync();
+  // await usersrv.sync({force:true});
   // await authsrv.sync({force:true});
   // await foldersrv.sync({alter:true});
   // await filesrv.sync({ alter: true });

@@ -32,19 +32,20 @@ const auth_sign_in = async (req, res) => {
 }
 
 const auth_sign_up = async (req, res) => {
-    try {
-        let data = req.body;
-
-        // let regex  = /^[a-zA-Z@+\-]{100}/g;
-        // let regex= new RegExp('/^[a-zA-Z@+\-]{5,100}/g')
-        // for(let key in data) {
-        //   if(!regex.test(data[key])) throw new Error(`invalid request`);
-        // }
-        let ress;
-
         try {
-            data.password = encrypt(data.password);
-            ress = await usersrv.create(data);
+            let {username,email,first_name,last_name} = req.body;
+            if (username==undefined||username=="") {
+                throw new Error(`user name not valid`);
+            }
+            if (email==undefined||email=="") {
+                throw new Error(`email not valid`);
+            }
+            if (first_name==undefined||last_name==undefined||first_name==""||last_name=="") {
+                throw new Error(`first and last name not valid`);
+            }
+            
+            req.body.password = encrypt(req.body.password);
+            ress = await usersrv.create(req.body);
             let tkdt = JSON.parse(JSON.stringify(ress));
             delete tkdt['password']
             delete tkdt['phone']
@@ -72,15 +73,14 @@ const auth_sign_up = async (req, res) => {
         } catch (error) {
              console.log(error);
             // throw new Error(`not able to create a user ${error.message}`);
-            res.status(400).json({
-                data: {
-                    errmsg: "User Already Exist."
-                }
-            });
+            res.status(400).send(error.message);
+            // .json({
+            //     data: {
+            //         errmsg: error.message
+            //     }
+            // });
         }
-    } catch (error) {
-        res.status(400).json(error.message);
-    }
+  
 }
 
 const get_otp_sceen=async(req,res)=>{
@@ -126,7 +126,6 @@ const auth_varify_otp=async(req,res)=>{
                 await usersrv.delete_by_email(auth.email);
                 throw new Error(`your account deleted successfully!😂☠🐦`);
             }
-            console.log(auth);
             await authsrv.update(id,auth);
             throw new Error(`invalid otp`);
         }

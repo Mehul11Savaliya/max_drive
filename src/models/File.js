@@ -52,6 +52,14 @@ const File = sq.define("file",{
     favorite:{
         type:DataTypes.BOOLEAN,
         defaultValue:false
+    },
+    like:{
+        type:DataTypes.INTEGER,
+        defaultValue:0
+    },
+    dislike:{
+        type:DataTypes.INTEGER,
+        defaultValue:0
     }
 },
 {

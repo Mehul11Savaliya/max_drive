@@ -42,6 +42,9 @@ const post_folder_bulk=async(req,res)=>{
      let folderx =  await service.create({name:folder_name,createdBy:user_data.email,updatedBy:user_data.email,tags:[folder_name]});
      let defpermi = await permissionsrv.create({createdBy:user_data.email,updatedBy:user_data.email,folder:folderx.id});
      let files = [];
+     if (folder.length>=100) {
+        throw new Error(`file limit exceeded than 100`);
+     }
         for (let index = 0; index < folder.length; index++) {
             const file = folder[index];
             let metadata = {};

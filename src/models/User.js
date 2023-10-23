@@ -11,6 +11,11 @@ const User  = sq.define('user',{
         type : DataTypes.INTEGER,
         autoIncrement : true
     },
+    username:{
+        type:DataTypes.STRING(15),
+        unique:true,
+        allowNull:false
+    },
     email:{
         type : DataTypes.STRING,
         primaryKey:true 

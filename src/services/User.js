@@ -2,8 +2,8 @@ const model = require('../models/User');
 const { encrypt } = require('../utils/CryptoGraph');
 const authmdl=  require("../models/Auth");
 
-const sync=async()=>{
-   await model.sync();
+const sync=async(type)=>{
+   await model.sync(type);
 }
 
 const varifyUser=async(email,pass)=>{

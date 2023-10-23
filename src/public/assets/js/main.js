@@ -237,11 +237,11 @@ async function update_sidebar(data) {
 
 async function upload_file() {
     let folderlist = [];
-    let folderlists='';
+    let folderlists = '';
     if (index_page) {
         folderlist = await handleRequest("/folder", { method: "GET" }, 200);
         for (const folder of folderlist) {
-            folderlists+=`<option value="${folder.id}">${folder.name}</option>`;
+            folderlists += `<option value="${folder.id}">${folder.name}</option>`;
         }
     }
     Swal.fire({
@@ -250,10 +250,10 @@ async function upload_file() {
         <form id="filestoupload" enctype="multipart/form-data">
         <div class="row" id="fm-wizard-holder"></div>
         <div class="col-lg-12 col-md-8 col-sm-11">
-        ${(index_page?`<select class="form form-control" name="folder">
+        ${(index_page ? `<select class="form form-control" name="folder">
         <option selected value="-1">Select Folder</option>
         ${folderlists}
-         </select>`:"")}
+         </select>`: "")}
         </div>
         </form>
         <div class="row">
@@ -298,7 +298,7 @@ async function upload_file() {
                 folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
 
                 let formData = new FormData(document.querySelector("#filestoupload"));
-                if (formData.get("folder")==null||formData.get("folder")==-1) {
+                if (formData.get("folder") == null || formData.get("folder") == -1) {
                     formData.append("folder", folder_id);
                 }
 
@@ -340,20 +340,20 @@ async function upload_file() {
                     } else {
                         let resp = xhr.response;
                         if (!index_page) {
-                        let config = {
-                            method: "GET"
+                            let config = {
+                                method: "GET"
+                            }
+                            let folder_id = url.split('/');
+                            folder_id = folder_id[folder_id.length - 1];
+                            folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+                            let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
+                            generate_folder_file_cards(ress);
+                            notifier.success(`${resp.length} files has been loaded`)
+                            reslv();
+                        } else {
+                            notifier.success(`${resp.length} files has been loaded`)
+                            reslv();
                         }
-                        let folder_id = url.split('/');
-                        folder_id = folder_id[folder_id.length - 1];
-                        folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
-                        let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
-                        generate_folder_file_cards(ress);
-                        notifier.success(`${resp.length} files has been loaded`)
-                        reslv();
-                    }else{
-                        notifier.success(`${resp.length} files has been loaded`)
-                        reslv();
-                    }
                     }
                 }
             });
@@ -444,31 +444,31 @@ async function upload_folder() {
                         notifier.alert(`error in uploading (${xhr.statusText})`);
                     } else {
                         let resp = xhr.response;
-                        if (index_page!=true) {
-                        let config = {
-                            method: "GET"
+                        if (index_page != true) {
+                            let config = {
+                                method: "GET"
+                            }
+                            let folder_id = url.split('/');
+                            folder_id = folder_id[folder_id.length - 1];
+                            folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
+                            let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
+                            generate_folder_file_cards(ress);
+                            notifier.success(`${resp.length} files has been loaded`)
+                            reslv();
+                        } else {
+                            notifier.success(`${resp.name} folder has been created`);
+                            try {
+                                await home_update_folders();
+                            } catch (error) {
+
+                            }
+                            try {
+                                await update_sidebar();
+                            } catch (error) {
+
+                            }
+                            reslv();
                         }
-                        let folder_id = url.split('/');
-                        folder_id = folder_id[folder_id.length - 1];
-                        folder_id = Number.parseInt(folder_id.trim().replaceAll('?', '').replaceAll('#', ''));
-                        let ress = await handleRequest(`/file/all?folder=${folder_id}`, config, 200);
-                        generate_folder_file_cards(ress);
-                        notifier.success(`${resp.length} files has been loaded`)
-                        reslv();
-                    }else{
-                        notifier.success(`${resp.name} folder has been created`);
-                        try {
-                          await  home_update_folders();
-                        } catch (error) {
-                    
-                        }
-                        try {
-                          await  update_sidebar();
-                        } catch (error) {
-                    
-                        }
-                        reslv();
-                    }
                     }
                 }
             });
@@ -1057,9 +1057,9 @@ async function update_file_tags(id, tags) {
     }
 }
 
-async function update_file_likes(event,id,status) {
-    if (fileflag||fav_page) {
-        let data =await handleRequest(`/file/${id}`, {
+async function update_file_likes(event, id, status) {
+    if (fileflag || fav_page) {
+        let data = await handleRequest(`/file/${id}`, {
             method: "PATCH",
             headers: {
                 'Content-Type': 'application/json'
@@ -1069,23 +1069,23 @@ async function update_file_likes(event,id,status) {
         if (data == null) {
             notifier.alert("not updated..");
         }
-        if (data.favorite==false) {
+        if (data.favorite == false) {
             if (fav_page) {
                 document.getElementById(`row-${id}`).remove();
-             this.draw();
-             return;
+                this.draw();
+                return;
             }
-            event.target.innerHTML="";
-            event.target.setAttribute("onclick",`update_file_likes(event,${id},true)`)
-            event.target.innerHTML="Add To Favorites";
+            event.target.innerHTML = "";
+            event.target.setAttribute("onclick", `update_file_likes(event,${id},true)`)
+            event.target.innerHTML = "Add To Favorites";
         }
-        if(data.favorite==true){
-            event.target.setAttribute("onclick",`update_file_likes(event,${id},false)`)
-            event.target.innerHTML="";
-            event.target.innerHTML=`Favorie <i class="fa-solid fa-heart">`;
+        if (data.favorite == true) {
+            event.target.setAttribute("onclick", `update_file_likes(event,${id},false)`)
+            event.target.innerHTML = "";
+            event.target.innerHTML = `Favorie <i class="fa-solid fa-heart">`;
         }
     }
-    
+
 }
 
 async function file_gen_timeline(fileid) {
@@ -1345,8 +1345,8 @@ async function populate_files_table(fromx, to) {
             res = [];
         }
     }
-    if (fav_page!=null&&fav_page==true) {
-         try {
+    if (fav_page != null && fav_page == true) {
+        try {
             let res = await fetch(`/file/range?from=${fromx}&to=${to + 1}&favorite=true`, { method: "GET" });
             res = await res.json();
             res.forEach((val) => {
@@ -1383,26 +1383,26 @@ async function populate_files_table(fromx, to) {
         let form = document.querySelector("#timeform");
         form = new FormData(form);
         let obj = {};
-        form.forEach((val,key)=>{
-            obj[key]=val;
+        form.forEach((val, key) => {
+            obj[key] = val;
         })
         // console.table(obj);
-        
+
     }
 }
 
-const find_in_time=async(event)=>{
+const find_in_time = async (event) => {
     if (recent_page) {
         let form = document.querySelector("#timeform");
         form = new FormData(form);
         let obj = {};
-        form.forEach((val,key)=>{
-                val = new Date(val).getTime();
-            obj[key]=val;
+        form.forEach((val, key) => {
+            val = new Date(val).getTime();
+            obj[key] = val;
         });
         // console.log(obj);
-        let {fromtime,totime} = obj;
-        if (fromtime==undefined||fromtime==''||totime==undefined||totime=='') {
+        let { fromtime, totime } = obj;
+        if (fromtime == undefined || fromtime == '' || totime == undefined || totime == '') {
             return;
         }
         table.clear();
@@ -1422,7 +1422,7 @@ const find_in_time=async(event)=>{
         } catch (error) {
             res = [];
         }
-        
+
     }
 }
 
@@ -1843,10 +1843,11 @@ try {
 }
 
 async function load_public_media(from, limit) {
+
     if (explore_view) {
         let medias = document.querySelector("#medias");
-        let load = medias.lastChild;
-        medias.lastChild.remove();
+        // let load = medias.lastChild;
+        // medias.lastChild.remove();
         if (explore_view) {
             let res = await handleRequest(`/explore/data?from=${from}&limit=${limit}`, {
                 method: "GET"
@@ -1855,77 +1856,151 @@ async function load_public_media(from, limit) {
                 return;
             }
             res.forEach((val) => {
+
                 let card = document.createElement("div");
-                card.setAttribute("class", "col-lg-10 col-md-6");
+                card.setAttribute("class", "col-lg-12 col-md-12 col-sm-12");
                 try {
-                    card.innerHTML = `<div class="card col-lg-10 col-sm-7 col-md-7">
+                    let tagc = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light']
+                    let tagsx = "";
+                    Array.from(val.tags).forEach((v) => {
+                        tagsx += `<span class="mt-2 badge badge-${tagc[Number.parseInt(Math.random() * (7) + 0)]}">${v}</span>`;
+                    })
+
+                    card.innerHTML = `<div class="card col-lg-12 col-sm-12 col-md-12">
                 <div class="card-header">
                 ${val.createdBy} Shared publicaly at : ${new Date(val.updatedAt).toDateString()}
        </div>
            <div class="card-body">
            <img src="/file/${val.id}/content?type=thumb" loading="lazy" class="card-img-top" alt="#" onerror="this.remove()">
            <video src="/file/${val.id}/content" class="img-fluid rounded" alt="#" controls onerror="this.remove()"></video>
+           <br>
                <h4 class="card-title">${val.metadata.name}</h4>
+               <br>
+               <div class="d-flex flex-row flex-wrat"><span>${tagsx}</span></div>
                <p class="card-text"><small class="text-muted">Updated at :${new Date(val.createdAt).toDateString()}</small></p>
-               <div class="d-flex flex-row fs-12">
-               <button class="btn btn-sm btn-outline-success like p-2 cursor mx-2"><i class="fa-solid fa-thumbs-up"></i><span class="ml-1">Like</span></button>
-               <button class="btn btn-sm btn-outline-danger like p-2 cursor mx-2"><i class="fa-solid fa-thumbs-down"></i><span class="ml-1">Dislike</span></button>
-               <button class="btn btn-sm btn-outline-info like p-2 cursor mx-2"><i class="fa-solid fa-comment"></i><span class="ml-1">Comment</span></button>
+               <div class="d-flex flex-row flex-wrap fs-12">
+               <button onclick="handle_like_dislike(event,'${val.id}','like')" class="btn btn-sm btn-outline-success like p-2 cursor mx-2"><i class="fa-solid fa-thumbs-up"></i><span class="ml-1">Like(${val.like})</span></button>
+               <button onclick="handle_like_dislike(event,'${val.id}','dislike')" class="btn btn-sm btn-outline-danger like p-2 cursor mx-2"><i class="fa-solid fa-thumbs-down"></i><span class="ml-1">Dislike(${val.dislike})</span></button>
+               <button onclick="toggleCommentContainer('${val.id}')"s class="btn btn-sm btn-outline-info like p-2 cursor mx-2"><i class="fa-solid fa-comment"></i><span class="ml-1" >Comment</span></button>
                <button class="btn btn-sm btn-outline-primary like p-2 cursor mx-2"><i class="fa-solid fa-share"></i><span class="ml-1">Share</span></button>
            </div>
             </div>
+            <div class="card-footer">
+                    <div id="commentContainer-${val.id}" style="display: none;">
+                        <h5>Comments</h5>
+                        <ul id="commentList-${val.id}" class="list-unstyled" style="height:35vh;overflow-x:scroll;"></ul>
+                        <div class="input-group mt-2">
+                            <input type="text" id="commentInput-${val.id}" class="form-control" placeholder="Add a comment">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" onclick="addComment(${val.id})">Post</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
          </div>`;
-
-                    var commentsSection = document.createElement("div");
-                    commentsSection.setAttribute("class", "comments");
-                    card.append(commentsSection);
-
-                    // Create input fields for adding comments
-                    var usernameInput = document.createElement("input");
-                    usernameInput.setAttribute("class", "form-control");
-                    usernameInput.setAttribute("placeholder", "Enter your username");
-                    var commentInput = document.createElement("textarea");
-                    commentInput.setAttribute("class", "form-control");
-                    commentInput.setAttribute("rows", "3");
-                    commentInput.setAttribute("placeholder", "Add a comment");
-                    var submitButton = document.createElement("button");
-                    submitButton.setAttribute("class", "btn btn-primary");
-                    submitButton.innerHTML = `Submit`;
-
-
-                    // Event handler for adding a comment
-                    submitButton.addEventListener("click", function () {
-                        var username = usernameInput.value;
-                        var commentText = commentInput.value;
-                        if (username.trim() === "" || commentText.trim() === "") {
-                            alert("Please enter both a username and a comment.");
-                        } else {
-                            // Create a new comment element for this card
-                            var commentElement = createComment(username, commentText);
-
-                            // Append the comment to the comments section
-                            commentsSection.append(commentElement);
-
-                            // Clear the input fields
-                            usernameInput.value = "";
-                            commentInput.value = "";
-                        }
-                    });
-
-                    // Append input fields and submit button to the card
-                    // card.append("<div class='form-group'><label>Username:</label></div>");
-                    card.append(usernameInput);
-                    // card.append("<div class='form-group'><label>Comment:</label></div>");
-                    card.append(commentInput);
-                    card.append(submitButton);
 
                 } catch (error) {
                     console.log(error.message);
                 }
                 medias.appendChild(card);
             });
-            medias.append(load);
+            // medias.append(load);
         }
+    }
+}
+
+const handle_like_dislike=async(event,fid,type)=>{
+    let data;
+   
+    switch (type) {
+        case 'like':
+             data = await handleRequest(`/file/${fid}`, {
+                method: "PATCH",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ like : true })
+            }, 200);
+            event.target.innerHTML='';
+            event.target.innerHTML=`<i class="fa-solid fa-thumbs-up"></i><span class="ml-1">Like(${data.like})</span>`;
+            event.target.removeAttribute("onclick");
+            event.target.setAttribute("disabled",'');
+            break;
+        case 'dislike':
+            data = await handleRequest(`/file/${fid}`, {
+                method: "PATCH",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ dislike: true })
+            }, 200);
+            event.target.innerHTML='';
+            event.target.innerHTML=`<i class="fa-solid fa-thumbs-down"></i><span class="ml-1">Dislike(${data.dislike})</span>`;
+            event.target.removeAttribute("onclick");
+            event.target.setAttribute("disabled",'');
+            break;
+        default:
+            break;
+    }
+}
+// Function to toggle the comment container
+async function toggleCommentContainer(cardId) {
+    const commentContainer = document.getElementById(`commentContainer-${cardId}`);
+    const commentList = document.getElementById(`commentList-${cardId}`);
+    const commentInput = document.getElementById(`commentInput-${cardId}`);
+
+    if (commentContainer.style.display === "none") {
+        let comments = await handleRequest(`/explore/file/${cardId}/comments`, { method: "GET" }, 200);
+        commentList.innerHTML="";
+        for (const comment of comments) {
+            const commentItem = document.createElement("div");
+            commentItem.className = "media mt-2";
+            commentItem.innerHTML = `
+        <!--  <img src="user_avatar.jpg" class="mr-3" alt="${comment.username}" width="64">-->
+        <div style="width:50px;height:50px" class="rounded-circle profile-icon bg-primary">MS</div>
+          <div class="media-body">
+              <small class="mt-0">${comment.username} </small>|<small class="text-muted"> ${new Date(comment.time).toDateString()}</small>
+             <p> ${comment.text}</p>
+          </div>
+      `;
+            commentList.appendChild(commentItem);
+        }
+        commentContainer.style.display = "block";
+        commentInput.focus();
+    } else {
+        commentContainer.style.display = "none";
+    }
+}
+
+// Function to add a comment to a card
+async function addComment(cardId) {
+    const commentInput = document.getElementById(`commentInput-${cardId}`);
+    const commentList = document.getElementById(`commentList-${cardId}`);
+    const commentText = commentInput.value.trim();
+
+    if (commentText) {
+        const commentItem = document.createElement("div");
+        commentItem.className = "media mt-2";
+
+        let res = await handleRequest(`/explore/file/${cardId}/comments`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ comment: commentText })
+        }, 201);
+        if (res != null) {
+            commentItem.innerHTML = `
+            <!--  <img src="user_avatar.jpg" class="mr-3" alt="${res.username}" width="64">-->
+            <div style="width:50px;height:50px" class="rounded-circle profile-icon bg-primary">MS</div>
+              <div class="media-body">
+                  <small class="mt-0">${res.username} </small>|<small class="text-muted"> ${new Date(res.time).toDateString()}</small>
+                 <p> ${res.text}</p>
+              </div>
+          `;
+            commentList.insertBefore(commentItem,commentList.firstChild);
+        }
+        commentInput.value = "";
     }
 }
 

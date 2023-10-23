@@ -6,6 +6,7 @@ const metadatamdl = require("../models/FileMetadata");
 const cryptosrv = require("../utils/CryptoGraph");
 const filetimelinesrv = require("../services/FileAudit");
 const permissionsrv = require("../services/Permission");
+const commentsrv = require("../services/Explore");
 const { Sequelize, Op } = require("sequelize");
 const sync = async (type) => {
     await model.sync(type);
@@ -78,6 +79,7 @@ const delete_file = async (id, user) => {
     if (res > 0) {
         await filetimelinesrv.delete_timeline(id);
         await permissionsrv.delete_by_type_id({ file: id }, user);
+       await commentsrv.delete_comment(id);
         try {
             filehandler.delete_file(path.join(__dirname, `..${file.metadata.path}`));
         } catch (error) {
@@ -100,9 +102,9 @@ const delete_file_by_folder = async (folderid, user, admin) => {
     for (const f of file) {
         await permissionsrv.delete_by_type_id({file:f.id},user,admin);
         await filetimelinesrv.delete_timeline(f.id);
+        await commentsrv.delete_comment(f.id);
         try {
             filehandler.delete_file(path.join(__dirname, `..${f.metadata.path}`));
-            
         } catch (error) {
          console.log(error);   
         }
@@ -124,6 +126,15 @@ const update = async (id, user, new_data) => {
     }
     if (favorite!=null||favorite!=undefined) {
         old.favorite = favorite;
+    }
+
+    let {like}=new_data;
+    if (like!=undefined||like!="") {
+        old.like = old.like+1;
+    }
+    let {dislike}=new_data;
+    if (dislike!=undefined||dislike!="") {
+        old.dislike = old.dislike+1;
     }
 
     let { password } = new_data;

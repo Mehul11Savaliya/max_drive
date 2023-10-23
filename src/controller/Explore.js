@@ -29,7 +29,46 @@ const get_public_files=async(req,res)=>{
     })       
 }
 }
+
+const post_comments=async(req,res)=>{
+    try {
+        let {comment} = req.body;
+        let {id}=req.params;
+       let fileid = Number.parseInt(id);
+        if (comment==undefined||comment==""||isNaN(fileid)) {
+           throw new Error(`invalid comment`);
+        }
+        let resx = await service.add_comment(fileid,req.user_data,{
+            text:comment,
+            fileid : fileid
+        });
+        return res.status(201).send(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg : error.message
+        })
+    }
+}
+
+const get_comments=async(req,res)=>{
+    try {
+        let {id}=req.params;
+       let fileid = Number.parseInt(id);
+        if (isNaN(fileid)) {
+           throw new Error(`invalid id`);
+        }
+        let resx = await service.get_comments(fileid);
+        return res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg : error.message
+        })
+    }
+}
+
 module.exports={
     get_page,
-    get_public_files
+    get_public_files,
+    post_comments,
+    get_comments
 }
