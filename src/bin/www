@@ -33,7 +33,7 @@ app.set('port', port);
   // await usersrv.sync();
   // await authsrv.sync({force:true});
   // await foldersrv.sync({alter:true});
-  // await filesrv.sync();
+  // await filesrv.sync({ alter: true });
   // await filemetadatsrv.sync();
   // await mastersrv.sync();
   // await permissionsrv.sync({force:true});

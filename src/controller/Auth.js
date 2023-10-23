@@ -158,7 +158,11 @@ const send_otp=async(req,res)=>{
         if (auth.attempts.varify<=0) {
           return  res.status(400).send("🐦your account deleted successfully..☠😂");
         }
-        await commssrv.send_otp_varify_msg(auth.email,auth.otp);
+        try {
+            await commssrv.send_otp_varify_msg(auth.email,auth.otp);
+        } catch (error) {
+            return  res.status(200).send(error.message); 
+        }   
       return  res.status(200).send("otp sended..🕳");
     }catch(err){
         res.status(400).send(err.message);

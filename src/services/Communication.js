@@ -93,10 +93,8 @@ const send_otp_varify_msg=async(recever,otp,varifylink)=>{
           </div>`
         });
     } catch (error) {
-        console.log(error);
-        msg = null;
+       throw new Error(`not able to send otp try again..`)
     }
-    return msg;
 }
 
 // (async()=>{

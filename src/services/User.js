@@ -1,5 +1,6 @@
 const model = require('../models/User');
 const { encrypt } = require('../utils/CryptoGraph');
+const authmdl=  require("../models/Auth");
 
 const sync=async()=>{
    await model.sync();
@@ -30,8 +31,16 @@ const delete_by_email=async(email)=>{
 
 const getUserByEmail=async(email,raw=false)=>{
     let res = null;
-    res = await model.findByPk(email);
+    // res = await model.findByPk(email);
+    res = await model.findOne({
+        include:[{model:authmdl,as:"Auth"}],
+        where:{
+            email:email
+        },
+        // raw:!raw
+    })
     if(res===null) throw new Error(`user with email = ${email} not exist..`);
+    // return res;
     return raw?res:res.dataValues;
 }
 

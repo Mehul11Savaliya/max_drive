@@ -47,6 +47,10 @@ const File = sq.define("file",{
     downloads:{
         type : DataTypes.BIGINT,
         defaultValue:0
+    },
+    favorite:{
+        type:DataTypes.BOOLEAN,
+        defaultValue:false
     }
 },
 {

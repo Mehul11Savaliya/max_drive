@@ -1,23 +1,28 @@
 let service = require('../services/User');
 const tokensrv = require("../services/Token");
+const authmdwr = require("../middleware/Auth");
 
-const getUserFromTokeData =async(req,res,next)=>{
+const getUserFromTokeData = async (req, res, next) => {
     try {
-        let tokendata  = req.data;
-        let user  = await service.getUserByEmail(tokendata.email);
-        req.user_data  = user;
+        let tokendata = req.data;
+        let user = await service.getUserByEmail(tokendata.email);
+        req.user_data = JSON.parse(JSON.stringify(user));
+        // user = JSON.parse(JSON.stringify(user));
+        // console.log(user);
+        // res.status(200).json(user);
+        return authmdwr.isVarified(req,res,next);
         next();
     } catch (error) {
         console.log(error);
-        res.render('pages-error.ejs',{
-            data :{
-                errmsg : error.message
+        res.render('pages-error.ejs', {
+            data: {
+                errmsg: error.message
             }
         });
     }
 }
 
-const get_user_from_cookie=async(req,res,next)=>{
+const get_user_from_cookie = async (req, res, next) => {
     try {
         //extracting token from cookie
         let jwt = JSON.parse(req.cookies.jwt);
@@ -33,13 +38,13 @@ const get_user_from_cookie=async(req,res,next)=>{
         delete user['password'];
         req.user_data = user;
         next();
-   } catch (error) {
-       res.user = null;
-       next();
-   }
+    } catch (error) {
+        res.user = null;
+        next();
+    }
 }
 
-module.exports={
+module.exports = {
     getUserFromTokeData,
     get_user_from_cookie
 }
