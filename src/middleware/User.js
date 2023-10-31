@@ -39,7 +39,7 @@ const get_user_from_cookie = async (req, res, next) => {
         req.user_data = user;
         next();
     } catch (error) {
-        res.user = null;
+        req.user_data = null;
         next();
     }
 }

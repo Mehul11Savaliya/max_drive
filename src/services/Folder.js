@@ -18,31 +18,32 @@ const create = async (obj) => {
     return folder.dataValues;
 }
 
-const get_by_id = async (id,user,admin=false, raw = false) => {
+const get_by_id = async (id, user, admin = false, raw = false) => {
     let qryobj = { id: id };
     if (!admin) {
         qryobj.createdBy = user.email;
     }
     let res = await model.findOne({
-        where:qryobj,
-        raw:!raw});  //if raw = tru so we have to invert it if ve want raw
+        where: qryobj,
+        raw: !raw
+    });  //if raw = tru so we have to invert it if ve want raw
     // let res = await model.findByPk(id);
     if (res == null) throw new Error(`folder with id = ${id} not exist..`);
     return res;
 }
 
-const updateFolder=async(id,data,user,admin)=>{
-    let qryob = {id:id};
+const updateFolder = async (id, data, user, admin) => {
+    let qryob = { id: id };
     if (!admin) {
         qryob.createdBy = user.email;
     }
-    let old  = await get_by_id(id,user,admin,true);
-    let {name,tags,isDeleted,password} = data;
+    let old = await get_by_id(id, user, admin, true);
+    let { name, tags, isDeleted, password } = data;
     console.log(data);
-    if(name!==undefined)
-    old.name = name;
-    
-    if(tags!==undefined){
+    if (name !== undefined)
+        old.name = name;
+
+    if (tags !== undefined) {
         // tags = tags.trim().split(',');
         // tags = tags.slice(0,tags.length);
         // tags = tags.filter((val)=>{
@@ -50,62 +51,62 @@ const updateFolder=async(id,data,user,admin)=>{
         old.tags = tags;
     }
 
-    if (password!==undefined) {
-        if (password=="") 
+    if (password !== undefined) {
+        if (password == "")
             old.password = null;
         else
-        old.password = encrypt(password);
+            old.password = encrypt(password);
     }
-    if(isDeleted!==undefined)
-    old.isDeleted = isDeleted;
+    if (isDeleted !== undefined)
+        old.isDeleted = isDeleted;
     old.updatedBy = data.updatedBy
-       
+
     return await old.save();
 }
 
-const delete_by_id=async(id,user,admin=false)=>{
+const delete_by_id = async (id, user, admin = false) => {
     // let old = await get_by_id(id,user,admin,true);
     // let persid  = old.permission;
     let qryobj = { id: id };
     if (!admin) {
         qryobj.createdBy = user.email;
+        await filesrv.delete_file_by_folder(id, user, admin);
+        let res = await model.destroy({
+            where: qryobj
+        });
+        await permissionsrv.delete_by_type_id({ folder: id }, user, admin);
+        await timelinesrv.delete_timeline(id, user, admin);
+        if (res == 0) throw new Error(`not able to delete a folder with id = ${id}`)
+        else return res;
     }
-    let res = await model.destroy({
-        where:qryobj
-    });
-    await permissionsrv.delete_by_type_id({folder:id},user,admin);
-    await timelinesrv.delete_timeline(id,user,admin);
-    await filesrv.delete_file_by_folder(id,user,admin);
-    if(res==0) throw new Error(`not able to delete a folder with id = ${id}`)
-    else return res;
 }
 
-const get_all_folder=async(user)=>{
-let res  = await model.findAll({
-        include:[{
-            model:filemdl,
-            as:"files",
-            attributes:['folder']
+const get_all_folder = async (user) => {
+    let res = await model.findAll({
+        include: [{
+            model: filemdl,
+            as: "files",
+            attributes: ['folder']
         }],
-        where : {
-            createdBy : user
+        where: {
+            createdBy: user
         },
-        attributes:[[Sequelize.literal(`folder."id"`),"id"],[Sequelize.literal(`folder."name"`),"name"],"createdAt","updatedAt",Sequelize.literal(`COUNT(files."id")`)],
-        group:['folder.id',"files.folder"],
-        order:[['updatedAt',"ASC"]],
-        raw:true
-});
-return res;
+        attributes: [[Sequelize.literal(`folder."id"`), "id"], [Sequelize.literal(`folder."name"`), "name"], "createdAt", "updatedAt", Sequelize.literal(`COUNT(files."id")`)],
+        group: ['folder.id', "files.folder"],
+        order: [['updatedAt', "ASC"]],
+        raw: true
+    });
+    return res;
 }
 
-const get_all_details=async(id,plain=true)=>{
+const get_all_details = async (id, plain = true) => {
     let res = await model.findOne({
-        where:{
-            id:id
+        where: {
+            id: id
         },
-        raw:plain
+        raw: plain
     });
-    let permission = await permissionsrv.read_by_type_id({folder:id},null,false,true);
+    let permission = await permissionsrv.read_by_type_id({ folder: id }, null, false, true);
     res.permission = permission.data;
     return res;
 }
@@ -114,4 +115,4 @@ const get_all_details=async(id,plain=true)=>{
 //     console.log((await get_all_folder("svlmehul@gmail.com")));
 // }, 500);
 
-module.exports = { sync, create, get_by_id,updateFolder,delete_by_id,get_all_folder,get_all_details}
+module.exports = { sync, create, get_by_id, updateFolder, delete_by_id, get_all_folder, get_all_details }

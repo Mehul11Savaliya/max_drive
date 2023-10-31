@@ -26,7 +26,7 @@ describe('API Endpoint Tests', () => {
 });
 
 describe("user endpoint test ",()=>{
-    it("should return a index.ejs with status 200",(done)=>{
+    it("should return a index.ejs with status 400",(done)=>{
         chai.request(app)
         .get("/user/")
         .end((err,res)=>{

@@ -54,9 +54,7 @@ const get_by_folder = async (folderid, user, admin, plain = false) => {
 }
 
 const read = async (id, raw = false) => {
-    let res = await model.findByPk(id, {
-        include: [{ model: metadatamdl, as: "fkey_file_metadata" }]
-    });
+    let res = await model.findByPk(id);
     // console.log(res);
     if (res == null) throw new Error(`file with id = ${id} not exist..`);
     if (raw) return res;
@@ -100,6 +98,7 @@ const delete_file_by_folder = async (folderid, user, admin) => {
         where: qryobj
     });
     for (const f of file) {
+        // console.log(f);
         await permissionsrv.delete_by_type_id({file:f.id},user,admin);
         await filetimelinesrv.delete_timeline(f.id);
         await commentsrv.delete_comment(f.id);

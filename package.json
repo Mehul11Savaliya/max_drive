@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./src/bin/www",
     "startwatch": "node --trace-warnings --watch-path ./src ./src/bin/www",
-    "test":"npx mocha ./test/app.test.js"
+    "test": "npx mocha ./test/app.test.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
@@ -17,6 +17,7 @@
     "express-fileupload": "^1.4.0",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^9.0.1",
+    "jszip": "^3.10.1",
     "mongoose": "^7.4.5",
     "morgan": "~1.9.1",
     "nano": "^10.1.2",

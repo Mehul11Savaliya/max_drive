@@ -28,6 +28,43 @@ const post_folder = async (req, res) => {
     }
 }
 
+const get_folder_bulk=async(req,res)=>{
+    try {
+        let {id} =req.params;
+        id = Number.parseInt(id);
+        if (isNaN(id)) {
+            throw new Error(`folder id not provided..`);
+        }
+        let files
+        if (req.user_data==null) {
+            files = await filesrv.get_by_folder(id,req.user_data,true,true);
+        }else{
+        files = await filesrv.get_by_folder(id,req.user_data,false,true);
+    }
+        let filepaths = files.map((val)=>{
+            return {type:"file",name:val.metadata.name,path:val.metadata.path};
+        });
+        filehandler.make_zip(filepaths,(pathx)=>{
+            res.set('Content-Type', 'application/zip');  
+            res.set('Content-Disposition', `inline; filename=${Date.now()}.zip`);
+    
+            res.status(200).sendFile(pathx,(err)=>{
+                if (err) {
+                    console.log(err);
+                    // res.status(500).send(err.message);
+                }
+                // setTimeout(() => {
+                filehandler.delete_file(pathx);
+                // }, 5000);
+            })
+        })
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+    }
+}
+
 const post_folder_bulk=async(req,res)=>{
     try {
         let {folder} = req.files;
@@ -225,4 +262,4 @@ const delete_multiple_folder=async(req,res)=>{
    }
    }
 
-module.exports = { post_folder, get_folder ,patch_folder,delete_folder,delete_multiple_folder,get_all_folder,get_list_file,get_file_content,post_folder_bulk}
+module.exports = { post_folder, get_folder ,patch_folder,delete_folder,delete_multiple_folder,get_all_folder,get_list_file,get_file_content,post_folder_bulk,get_folder_bulk}

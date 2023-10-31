@@ -18,6 +18,7 @@ router.get("/",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,userm
 router.get("/:id",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_folder);
 router.post("/",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.post_folder);
 router.post("/bulk",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.post_folder_bulk);
+router.get("/:id/bulk",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,usermdwr.getUserFromTokeData,controller.get_folder_bulk)
 router.put("/:id",(req,res)=>{
     res.status(503).send();
 });

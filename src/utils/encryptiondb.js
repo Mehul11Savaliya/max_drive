@@ -3,7 +3,8 @@ let db  = {
       {
         "mode": "AES-CBC",
         "ivSize": 16,
-        "recommendedKeySizes": [128, 192, 256]
+        "recommendedKeySizes": [
+          , 192, 256]
       },
       {
         "mode": "AES-CFB",

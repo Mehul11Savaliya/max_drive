@@ -113,15 +113,14 @@ async function home_update_folders(data) {
                                 </span>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton2">
                                     <a class="dropdown-item" href="/user/folder/${data.id}"><i class="fa-solid fa-eye"></i>View</a>
-                                    <button onclick="deleteFolder(${data.id})" class="dropdown-item"><i class="fa-solid fa-trash"></i></button>
+                                    <button onclick="deleteFolder(${data.id})" class="dropdown-item"><i class="fa-solid fa-trash" style="color:red;"></i>Delete</button>
                                     <a class="dropdown-item" href="#"><i class="fa-solid fa-pen-to-square"></i>Edit</a>
-                                    <a class="dropdown-item" href="#"><i class="fa-solid fa-print"></i>Print</a>
-                                    <a class="dropdown-item" href="#"><i class="fa-solid fa-download"></i>Download</a>
+                                    <button class="dropdown-item" onclick="download_folder('${data.id}','${data.name}')"><i class="fa-solid fa-download"></i>Download</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <a href="" class="folder">
+                    <a href="/user/folder/${data.id}" class="folder">
                         <h5 class="mb-2">${data.name}</h5>
                         <p class="mb-2"><i class="fa-solid fa-clock"></i>${new Date(data.createdAt).toDateString()}</p>
                         <p class="mb-0"><i class="fa-solid fa-file"></i> ${data.count} Files</p>
@@ -477,6 +476,82 @@ async function upload_folder() {
         if (res.isConfirmed) {
         }
     });
+}
+
+async function download_folder(id, foldername = "bulk") {
+    id = Number.parseInt(id);
+    if (!isNaN(id)) {
+        if (index_page || folder_page) {
+            Swal.fire({
+                title: `bulk(${foldername}) download..`,
+                html: `
+                  <div id="progress-container">
+                    <progress id="progress" max="100"></progress>
+                    <p id="speed">0%</p>
+                    <p id="progress-text">0%</p>
+                    <p id="time-remaining">Calculating...</p>
+                  </div>
+                `,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    const progress = document.getElementById('progress');
+                    const speed = document.getElementById('speed');
+                    const timeRemaining = document.getElementById('time-remaining');
+                    const progressText = document.getElementById('progress-text');
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', `/folder/${id}/bulk`, true);
+                    xhr.responseType = 'arraybuffer';
+
+                    let startTime, lastTime, totalBytes, loadedBytes, elapsedTime;
+
+                    xhr.addEventListener('progress', (e) => {
+                        if (e.lengthComputable) {
+                            const percent = (e.loaded / e.total) * 100;
+                            progress.value = percent;
+                            progressText.textContent = `${percent.toFixed(2)}%`;
+
+                            const currentTime = new Date().getTime();
+                            if (!startTime) {
+                                startTime = lastTime = currentTime;
+                                totalBytes = e.total;
+                                loadedBytes = e.loaded;
+                            }
+                            elapsedTime = currentTime - startTime;
+                            const bytesPerSecond = (e.loaded - loadedBytes) / (elapsedTime / 1000);
+                            loadedBytes = e.loaded;
+
+                            const timeLeft = (totalBytes - e.loaded) / bytesPerSecond;
+                            timeRemaining.textContent = formatTimeRemaining(timeLeft);
+                            speed.textContent = `${(bytesPerSecond / 1024).toFixed(2)} Kb/s`;
+                            lastTime = currentTime;
+                        }
+                    });
+
+                    xhr.addEventListener('load', () => {
+                        if (xhr.status === 200) {
+                            const blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${foldername.replaceAll(" ", "_")}.zip`; // Specify the filename
+                            a.style.display = 'none';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        }
+                    });
+                    function formatTimeRemaining(seconds) {
+                        const hours = Math.floor(seconds / 3600);
+                        const minutes = Math.floor((seconds % 3600) / 60);
+                        const remainingSeconds = Math.floor(seconds % 60);
+                        return `${hours}h ${minutes}m ${remainingSeconds}s`;
+                    }
+                    xhr.send();
+                },
+            });
+        }
+    }
 }
 
 let i = 0;
@@ -1909,22 +1984,22 @@ async function load_public_media(from, limit) {
     }
 }
 
-const handle_like_dislike=async(event,fid,type)=>{
+const handle_like_dislike = async (event, fid, type) => {
     let data;
-   
+
     switch (type) {
         case 'like':
-             data = await handleRequest(`/file/${fid}`, {
+            data = await handleRequest(`/file/${fid}`, {
                 method: "PATCH",
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ like : true })
+                body: JSON.stringify({ like: true })
             }, 200);
-            event.target.innerHTML='';
-            event.target.innerHTML=`<i class="fa-solid fa-thumbs-up"></i><span class="ml-1">Like(${data.like})</span>`;
+            event.target.innerHTML = '';
+            event.target.innerHTML = `<i class="fa-solid fa-thumbs-up"></i><span class="ml-1">Like(${data.like})</span>`;
             event.target.removeAttribute("onclick");
-            event.target.setAttribute("disabled",'');
+            event.target.setAttribute("disabled", '');
             break;
         case 'dislike':
             data = await handleRequest(`/file/${fid}`, {
@@ -1934,10 +2009,10 @@ const handle_like_dislike=async(event,fid,type)=>{
                 },
                 body: JSON.stringify({ dislike: true })
             }, 200);
-            event.target.innerHTML='';
-            event.target.innerHTML=`<i class="fa-solid fa-thumbs-down"></i><span class="ml-1">Dislike(${data.dislike})</span>`;
+            event.target.innerHTML = '';
+            event.target.innerHTML = `<i class="fa-solid fa-thumbs-down"></i><span class="ml-1">Dislike(${data.dislike})</span>`;
             event.target.removeAttribute("onclick");
-            event.target.setAttribute("disabled",'');
+            event.target.setAttribute("disabled", '');
             break;
         default:
             break;
@@ -1951,7 +2026,7 @@ async function toggleCommentContainer(cardId) {
 
     if (commentContainer.style.display === "none") {
         let comments = await handleRequest(`/explore/file/${cardId}/comments`, { method: "GET" }, 200);
-        commentList.innerHTML="";
+        commentList.innerHTML = "";
         for (const comment of comments) {
             const commentItem = document.createElement("div");
             commentItem.className = "media mt-2";
@@ -1998,7 +2073,7 @@ async function addComment(cardId) {
                  <p> ${res.text}</p>
               </div>
           `;
-            commentList.insertBefore(commentItem,commentList.firstChild);
+            commentList.insertBefore(commentItem, commentList.firstChild);
         }
         commentInput.value = "";
     }

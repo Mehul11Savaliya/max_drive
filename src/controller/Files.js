@@ -237,6 +237,7 @@ const get_crypto_file = async (req, res) => {
             });
         });
     } catch (error) {
+        console.log(error);
         res.status(400).json({
             errmsg: error.message
         });

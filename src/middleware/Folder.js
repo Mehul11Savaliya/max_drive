@@ -79,6 +79,13 @@ try {
         let allowed_user = share_settings.share_with;
         if (user!=null&&allowed_user!=null) {
             if (allowed_user.includes(user.email)) {
+                folderevents.emit("access",{
+                    folderid : folder.id,
+                    name:folder.name,
+                    user:`user : ${user.email}`,
+                    author:folder.createdBy,
+                    time:Date.now()
+                });
                 next();
             }
             else{
