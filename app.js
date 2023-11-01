@@ -19,6 +19,7 @@ const Master  = require('./src/routes/Master');
 const Explore  = require("./src/routes/Explore");
 const Analytics = require("./src/routes/Analytics");
 const Test = require("./src/routes/Test");
+const Rooms = require("./src/routes/Rooms");
 
 var app = express();
 
@@ -52,11 +53,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, './src/public/'),{
   maxAge:"1day"
 }));
+app.use("/roomsthumb",express.static(path.join(__dirname,"./src/uploads/roomst")));
 app.use("/src/main.js",express.static(path.join(__dirname,"./src/public/assets/js/main.js")));
 app.use('/assets',express.static(path.join(__dirname,'./src/public/asset/')));
 app.use("/uploads",express.static(path.join(__dirname,"./src/uploads/")));
 app.use(fileUpload({
-  useTempFiles : false,
+  useTempFiles : true,
   tempFileDir : './src/tmp'
 }));
 
@@ -71,6 +73,7 @@ app.use('/share',Share);
 app.use('/master',Master);
 app.use("/explore",Explore);
 app.use("/analytics",Analytics);
+app.use("/rooms",Rooms);
 // app.use("/test",Test);
 
 // catch 404 and forward to error handler

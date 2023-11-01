@@ -1,6 +1,7 @@
 const { Server } = require("socket.io");
 
 const notifemmiter = require("../subscriber/Notification");
+const roommiiter = require("../subscriber/RoomEvents");
 
 let io = null;
 
@@ -63,6 +64,41 @@ function start_socket(httpserver) {
         notification.in(data.to).emit("notification",data);
     });
     
+    let rooms = io.of("/rooms");
+    rooms.on("connection",(socket)=>{
+        console.log("user connected to rooms namespace : ");
+    })
+    roommiiter.on("create_room",(data)=>{
+        console.log(data);
+        rooms.emit("create_room",data);
+    })
+    roommiiter.on("delete_room",(data)=>{
+        console.log(data);
+        rooms.emit("delete_room",data);
+    })
+
+    let roomviewmap = new Map();
+    let roomview = io.of("/rooms/view");
+     roomview.on("connection",(socket)=>{
+        console.log("user joined to room view namespace");
+        socket.on("join-room",(data)=>{
+            
+            if (!roomviewmap.has(data.roomid)) {
+                roomviewmap.set(data.roomid,new Set());
+                roomviewmap.get(data.roomid).add(data.user);
+            }
+            roomviewmap.get(data.roomid).add(data.user);
+            console.log(roomviewmap.get(data.roomid));
+            socket.join(data.roomid);
+            roomview.in(data.roomid).emit("update-user",Array.from(roomviewmap.get(data.roomid)))
+         })
+     });
+     roomview.on("leave-room",(data)=>{
+       roomviewmap.get(data.roomid).delete(data.user);
+       roomview.in(data.roomid).emit("update-user",Array.from(roomviewmap.get(data.roomid)))
+        
+        console.log("leave "+roomviewmap.get(data.roomid))
+     })
     setInterval(() => {
         notification.emit("ping",{msg:"🐦"});
     }, 30000);

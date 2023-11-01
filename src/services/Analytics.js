@@ -70,7 +70,7 @@ const get_total_space_usage = async (user = null, is_admin = false) => {
         where: {
             createdBy: user
         },
-        attributes: [[Sequelize.literal(`SUM(CAST(metadata->>'size' AS integer))`), 'size']]
+        attributes: [[Sequelize.literal(`SUM(CAST(metadata->>'size' AS bigint))`), 'size']]
     });
     data.used = res[0].dataValues.size
     let resx = await filemdl.findAll({
@@ -78,7 +78,7 @@ const get_total_space_usage = async (user = null, is_admin = false) => {
             createdBy: user
         },
         group: ['month'],
-        attributes: [[Sequelize.literal(`SUM(CAST(metadata->>'size' AS integer))`), 'size'], [Sequelize.literal('EXTRACT(MONTH FROM "createdAt")'), 'month']]
+        attributes: [[Sequelize.literal(`SUM(CAST(metadata->>'size' AS bigint))`), 'size'], [Sequelize.literal('EXTRACT(MONTH FROM "createdAt")'), 'month']]
     });
     data.monthly_usage = [];
     resx.forEach((val) => {

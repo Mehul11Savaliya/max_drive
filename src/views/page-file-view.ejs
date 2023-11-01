@@ -87,8 +87,22 @@
          <div class="row my-2">
           <div class="col-lg-6">
             <!-- <div class="card" style="width: 18rem;"> -->
-              <img src="<%='/file/'+data.file.id+'/content?type=thumb'%>" class="img-fluid rounded" loading="lazy" alt="loading image" aria-placeholder="loading..." onerror="this.remove()">
-              <video class="img-fluid rounded"  src="<%='/file/'+data.file.id+'/content'%>" controls onerror="this.remove()"></video>
+              <%
+              switch(data.file.metadata.mimetype.split("/")[0]){
+                case 'image':%>
+                <img src="<%='/file/'+data.file.id+'/content?type=thumb'%>" class="img-fluid rounded" loading="lazy" alt="loading image" aria-placeholder="loading..." onerror="this.remove()">
+                <%
+                break;
+                case 'video':%>
+                <video class="img-fluid rounded"  src="<%='/file/'+data.file.id+'/content'%>" controls onerror="this.remove()"></video>
+                <%
+                break;
+                default:%>
+                <img style="width: 40%;height: 50%;"  src="/assets/images/layouts/page-1/file.png" alt="file">
+                <%
+                break;
+              }
+              %>
         <!-- </div> -->
 
           </div>

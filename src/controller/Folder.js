@@ -94,8 +94,16 @@ const post_folder_bulk=async(req,res)=>{
                 metadata.checksum = file.md5;
                 try {
                     let name = uuid.v4() + "." + ext;
-                    let pathx = filehandler.move_file_to(file.data, `../uploads/${name}`);
-                    console.log("path is : ", pathx);
+                    let pathx = "/uploads/"+name;
+                    // let pathx = filehandler.move_file_to(file.data, `../uploads/${name}`);
+                    file.mv(path.join(__dirname,".."+pathx),(err)=>{
+                        if (err) {
+                            console.log("err in uplaoding  : "+err)
+                        }else{
+                            console.log("file loaded : "+pathx)
+                        }
+                    })
+                    // console.log("path is : ", pathx);
                     metadata = { ...metadata, path: pathx };
                     let filex = {
                         folder: folderx.id,

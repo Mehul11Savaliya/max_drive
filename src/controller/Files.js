@@ -36,7 +36,16 @@ const post_files = async (req, res) => {
 
             try {
                 let name = uuid.v4() + "." + ext;//Date.now() + metadata.name;
-                let pathx = filehandler.move_file_to(files.data, `../uploads/${name}`);
+
+                // let pathx = filehandler.move_file_to(files.data, `../uploads/${name}`);
+                let pathx = '/uploads/' + name;
+                files.mv(path.join(__dirname, ".." + pathx), (err) => {
+                    if (err) {
+                        console.log("err : " + err)
+                    } else {
+                        console.log("uploaded..");
+                    }
+                })
                 metadata = { ...metadata, path: pathx };
                 console.log("path is : ", pathx);
                 let file = {
@@ -67,9 +76,17 @@ const post_files = async (req, res) => {
                 metadata.checksum = filex.md5;
                 try {
                     let name = uuid.v4() + "." + ext;//Date.now() + metadata.name;
-                    let pathx = filehandler.move_file_to(filex.data, `../uploads/${name}`);
-                    console.log("path is : ", pathx);
-                    // metadata['path'] = pathx;
+                    // let pathx = filehandler.move_file_to(filex.data, `../uploads/${name}`);
+                    // console.log("path is : ", pathx);
+                    // // metadata['path'] = pathx;
+                    let pathx = '/uploads/' + name;
+                    filex.mv(path.join(__dirname, ".." + pathx), (err) => {
+                        if (err) {
+                            console.log("err : " + err)
+                        } else {
+                            console.log("uploaded..");
+                        }
+                    });
                     metadata = { ...metadata, path: pathx };
 
                     let file = {
@@ -331,10 +348,10 @@ const get_range = async (req, res) => {
         // }
 
         if ((fromtime != undefined && fromtime != '') && (totime != undefined && totime != ''))
-            resx = await service.get_recent(fromtime,totime,req.user_data);
+            resx = await service.get_recent(fromtime, totime, req.user_data);
         else if (favorite != undefined && favorite == "true")
             resx = await service.get_in_range(from, to, req.user_data, false, true);
-        else if(!isNaN(from) || !isNaN(to)) resx = await service.get_in_range(from, to, req.user_data);
+        else if (!isNaN(from) || !isNaN(to)) resx = await service.get_in_range(from, to, req.user_data);
         else throw new Error(`invalid request`)
         res.status(200).json(resx);
     } catch (error) {

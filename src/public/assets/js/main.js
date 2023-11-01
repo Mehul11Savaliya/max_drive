@@ -322,6 +322,9 @@ async function upload_file() {
                         // Update progress bar and text
                         progressBar.value = percent;
                         progressText.textContent = percent.toFixed(2) + '%';
+                        if (progressText.textContent == '100.00%') {
+                            progressText.textContent = "Processing";
+                        }
 
                         // Update speed text
                         speedText.textContent = uploadSpeedKbps.toFixed(2) + ' kbps';
@@ -641,16 +644,22 @@ function generate_folder_file_cards(files) {
                 thumdimg = '/assets/images/layouts/page-1/media.png'
                 break;
             default:
-                thumdimg = file.metadata.path;
-                if (file.metadata.mimetype.split("/")[0] == "image") {
-                    thumdimg = `/file/${file.id}/content?type=thumb`;
+                if (file.metadata.mimetype.split("/")[0] == 'image') {
+                    thumdimg = file.metadata.path;
+                    if (file.metadata.mimetype.split("/")[0] == "image") {
+                        thumdimg = `/file/${file.id}/content?type=thumb`;
+                    }
                 }
+                else {
+                    thumdimg = '/assets/images/layouts/page-1/file.png'
+                }
+
                 break;
         }
         tr.innerHTML = `<td>
         <div class="d-flex align-items-center">
             <div class="mr-3">
-                <a href="/file/${file.id}"><img src="${thumdimg}" class="img-fluid avatar-30" alt="image1"></a>
+                <a href="/file/${file.id}"><img src="${thumdimg}" class="img-fluid avatar-30" alt="${file.metadata.name}"></a>
             </div>
             ${file.metadata.name}
         </div>
@@ -769,7 +778,9 @@ function generate_folder_file_cards(files) {
                 break;
 
             default:
-                gridcard.innerHTML = `    <div class="card card-block card-stretch card-height">
+
+                if (file.metadata.mimetype.split("/")[0] == 'image') {
+                    gridcard.innerHTML = `    <div class="card card-block card-stretch card-height">
                 <div class="card-body image-thumb ">
                     <div class="mb-4 text-center p-3 rounded iq-thumb">
                         <a data-author="${file.createdBy}" data-title="${file.metadata.name}" class="image-popup-vertical-fit" href="/file/${file.id}/content?type=thumb">
@@ -780,6 +791,20 @@ function generate_folder_file_cards(files) {
                     <h6>${file.metadata.name}</h6>
                 </div>
             </div>`;
+                }
+                else {
+                    gridcard.innerHTML = `    <div class="card card-block card-stretch card-height">
+                <div class="card-body image-thumb ">
+                    <div class="mb-4 text-center p-3 rounded iq-thumb">
+                        <a data-author="${file.createdBy}" data-title="${file.metadata.name}" class="image-popup-vertical-fit" href="/file/${file.id}/content?type=thumb">
+                            <img src="/assets/images/layouts/page-1/file.png" alt="${file.metadata.name}" class="img-fluid" alt="images">
+                            <div class="iq-image-overlay"></div>
+                        </a>
+                    </div>
+                    <h6>${file.metadata.name}</h6>
+                </div>
+            </div>`;
+                }
                 break;
         }
 
@@ -1946,8 +1971,8 @@ async function load_public_media(from, limit) {
                 ${val.createdBy} Shared publicaly at : ${new Date(val.updatedAt).toDateString()}
        </div>
            <div class="card-body">
-           <img src="/file/${val.id}/content?type=thumb" loading="lazy" class="card-img-top" alt="#" onerror="this.remove()">
-           <video src="/file/${val.id}/content" class="img-fluid rounded" alt="#" controls onerror="this.remove()"></video>
+           <img src="/file/${val.id}/content?type=thumb" loading="lazy" class="card-img-top" style="width:50%" alt="#" onerror="this.remove()">
+           <video src="/file/${val.id}/content" class="img-fluid rounded" alt="#" style="width:50%" controls onerror="this.remove()"></video>
            <br>
                <h4 class="card-title">${val.metadata.name}</h4>
                <br>
@@ -2455,8 +2480,6 @@ async function update_storage_chart(gap) {
     }
 }
 
-
-
 // search bar related
 let holder = document.querySelector("#reslts");
 // sbar.addEventListener("input",async()=>{
@@ -2603,7 +2626,202 @@ function add_notification(data, contaniner = null) {
     holder.appendChild(dv);
 }
 
+try {
+    room_page = room_page;
+} catch (error) {
+    room_page = false;
+}
+
+async function start_room_srv() {
+    if (room_page) {
+        let roomsocket = io("/rooms");
+        console.log(roomsocket);
+        roomsocket.on("create_room", (data) => {
+            gen_roomcard(data,"rooms")
+        });
+        roomsocket.on("delete_room",(data)=>{
+            document.querySelector(`#room-${data.id}`).remove();    
+        })
+    }
+}
+
+function gen_roomcard(data,id) {
+    let date  = new Date(data.createdAt);
+    let holder = document.getElementById(id);
+    let dv = document.createElement("div");
+    dv.setAttribute("id",`room-${data.id}`)
+    dv.setAttribute("class","card col-lg-4 col-md-6 col-sm-6");
+    dv.innerHTML=`
+    <div class="card-header">room#${data.id}&nbsp;&nbsp;&nbsp;&nbsp;<span>${(data.createdBy==user)?`<button class="btn btn-danger btn-sm" onclick="delete_room('room-${data.id}',${data.id})">delete</button>`:""}</span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="/rooms/${data.id}/view" class="btn btn-success btn-sm">join</a></div>
+    <img src="${data.data.thumbnail}" style="width:25%;height:25%" class="card-img-top" alt="${data.name} thumbnail">
+  <div class="card-body">
+    <h5 class="card-title">${data.name}</h5>
+    <p class="card-text">${data.description}</p>
+  </div>
+  <div class="card-footer">
+    <small class="text-body-secondary">${date.toDateString()} | ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}</small><br>
+    <small class="text-body-secondary">Author : ${data.createdBy}</small>
+  </div>`;
+  holder.appendChild(dv);
+}
+
+async function load_rooms() {
+    if (room_page) {
+       let res = await handleRequest("/rooms/find?all=false",{method:"GET"},200);
+       if (res!=null) {
+        gen_roomcard(res,"myroom")
+       }
+       res = await handleRequest("/rooms/find?all=true",{method:"GET"},200);
+       res.forEach((data)=>{
+        gen_roomcard(data,"rooms");
+       })
+    }
+}
+
+async function delete_room(id,rid) {
+    if (room_page) {
+       rid = Number.parseInt(rid);
+       if (!isNaN(rid)) {
+            try {
+                let res = await handleRequest(`/rooms/${rid}`,{method:"DELETE"},204);
+                if (res==null) {
+                    document.querySelector(`#room-${id}`).remove();    
+                }
+            } catch (error) {
+                document.querySelector(`#room-${id}`).remove();    
+            }
+           
+       }
+    }
+}
+
+async function create_room() {
+    if (room_page) {
+        Swal.fire({
+            title: 'Create Rooom',
+            html: ` <form method="post" id="roomform" enctype="multipart/formdata">
+            <div class="row">
+            <div class="col-md-5">
+              <label>Room name : </label>
+            </div>
+            <div class="col-md-8 form-group">
+              <input type="text" class="form-control" value="" name="name" placeholder="room name">
+            </div>
+            <div class="col-md-4">
+              <label>Description : </label>
+            </div>
+            <div class="col-md-8 form-group">
+            <textarea rows=2 cols=30 name="description" placeholder="enter description about room"></textarea>
+          </div>
+            <div class="col-md-4">
+              <label>Thumbnail : </label>
+            </div>
+            <div class="col-md-8 form-group">
+              <input type="file" class="form-control" name="thumb">
+            </div>
+          </div> </form>`,
+            showCancelButton: true,
+            confirmButtonText: 'Create',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                let form = document.querySelector("#roomform");
+                form = new FormData(form);
+              return fetch(`/rooms`,{method:"POST",body:form})
+                .then(response => {
+                  if (response.status!=201) {
+                    throw new Error(response.statusText)
+                  }
+                  return response.json()
+                })
+                .catch(error => {
+                  Swal.showValidationMessage(
+                    `Request failed: ${error}`
+                  )
+                })
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+          }).then((result) => {
+            if (result.isConfirmed) {
+             gen_roomcard(result,"myroom");
+             gen_roomcard(result,"rooms");
+            }
+          })
+    }
+}
+
+try {
+    room_view_page = room_view_page;
+} catch (error) {
+    room_view_page = false;
+}
+var roomviewsocket = null;
+const start_room_view_srv=()=>{
+    if (room_view_page) {
+         roomviewsocket = io("/rooms/view");
+        roomviewsocket.emit("join-room",{
+            roomid : roomviewid,
+            user : user
+        })
+        roomviewsocket.on("update-user", (data) => {
+           let userlist =  document.querySelector("#joined_user")
+           userlist.innerHTML = "";
+            update_join_list(data,userlist);
+        });
+    }
+    function update_join_list(data,holder) {
+        for(let user of data) {
+          let u = document.createElement("div");
+          u.setAttribute("class","media align-items-center mb-3");
+          u.innerHTML=`
+          <div class="rounded-circle iq-card-icon-small bg-primary" data-toggle="popover" data-placement="right" title="svlmehul@gmail.comz" data-content="svlmehul@gmail.comz">
+                              MSX
+              </div>
+          <div class="media-body ml-3">
+              <div class="media justify-content-between">
+                 ${user}
+              </div>
+              <p class="mb-0 font-size-12">
+                  <a target="_blank" class="btn btn-sm btn-primary">Message</a>
+              </p>
+          </div>`;
+          holder.appendChild(u);
+        }
+        
+    }
+}
+
+window.addEventListener("beforeunload",(ev)=>{
+    roomviewsocket.emit("leave-room",{
+        roomid : roomviewid,
+        user : user
+    })
+})
+window.addEventListener('popstate', function (event) {
+    if (event.state && event.state.navigationType === 'back') {
+        roomviewsocket.emit("leave-room",{
+            roomid : roomviewid,
+            user : user
+        })
+        window.dispatchEvent(backActionEvent);
+    }
+});
+
 window.onload = async () => {
+    try {
+       await start_room_view_srv();
+    } catch (error) {
+        
+    }
+    try {
+       await load_rooms();
+    } catch (error) {
+        
+    }
+    try {
+        start_room_srv();
+    } catch (error) {
+        
+    }
     try {
         update_sidebar();
     } catch (error) {
