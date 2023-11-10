@@ -3,7 +3,7 @@ const path = require("path");
 const crypto = require("crypto");
 const uuid = require("uuid");
 const sharp = require("sharp");
-let jszip = require("jszip");
+const archiver = require("archiver");
 
 const { algometadata } = require("../utils/encryptiondb");
 
@@ -202,6 +202,32 @@ const make_zip =  (array, cb) => {
 
 }
 
+const make_zip_2=(dataarr,res)=>{
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename=${Date.now()}.zip`);
+    // const outputZip = fs.createWriteStream('./output.zip');
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // Compression level (0-9)
+    });
+    
+    // outputZip.on('close', () => {
+    //   console.log('Zip file created successfully.');
+    // });
+    
+    // archive.pipe(outputZip);
+    archive.pipe(res);
+    
+    // Define an array of file paths
+    const items = dataarr;
+    
+    items.forEach((item) => {
+        if (item.type=="file") {
+            archive.file(path.join(__dirname,".."+item.path), { name: item.name });
+        }
+    });
+    archive.finalize();
+  }
+
 // make_zip([
 //     {
 //         "type": "file",
@@ -215,6 +241,16 @@ const make_zip =  (array, cb) => {
 //     }], (path) => {
 //         console.log(path);
 //     })
+const fpath =[
+   
+    {
+      type: 'file',
+      name: 'xampp-windows-x64-8.1.2-0-VS16-installer.exe',
+      path: '/uploads/4bfe8b46-9fcf-4020-a4d6-576b9f915a83.exe'
+    }
+  ]
+
+// make_zip_2(fpath,undefined);
 
 module.exports = {
     move_file_to,
@@ -222,5 +258,6 @@ module.exports = {
     encrypt_file_v2,
     decrypt_file_v2,
     gen_thumb_nail,
-    make_zip
+    make_zip,
+    make_zip_2
 }

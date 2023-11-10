@@ -4,6 +4,7 @@ const filesrv = require("../services/File");
 const path = require("path");
 const uuid = require("uuid");
 const filehandler = require("../services/FileHandler");
+const fs  = require("fs");
 const post_folder = async (req, res) => {
     try {
         let user  = req.user_data;
@@ -35,29 +36,19 @@ const get_folder_bulk=async(req,res)=>{
         if (isNaN(id)) {
             throw new Error(`folder id not provided..`);
         }
-        let files
-        if (req.user_data==null) {
-            files = await filesrv.get_by_folder(id,req.user_data,true,true);
-        }else{
-        files = await filesrv.get_by_folder(id,req.user_data,false,true);
-    }
+        let files = null;
+        // if (req.user_data==null) {
+            // files = await filesrv.get_by_folder(id,req.user_data,true,true);
+        // }else{
+        files = await filesrv.get_by_folder(id,req.user_data,true,true);
+    // }
         let filepaths = files.map((val)=>{
             return {type:"file",name:val.metadata.name,path:val.metadata.path};
+            // return val.metadata.path;
         });
-        filehandler.make_zip(filepaths,(pathx)=>{
-            res.set('Content-Type', 'application/zip');  
-            res.set('Content-Disposition', `inline; filename=${Date.now()}.zip`);
-    
-            res.status(200).sendFile(pathx,(err)=>{
-                if (err) {
-                    console.log(err);
-                    // res.status(500).send(err.message);
-                }
-                // setTimeout(() => {
-                filehandler.delete_file(pathx);
-                // }, 5000);
-            })
-        })
+
+       return filehandler.make_zip_2(filepaths,res);
+
     } catch (error) {
         res.status(400).json({
             errmsg:error.message
@@ -123,6 +114,7 @@ const post_folder_bulk=async(req,res)=>{
         folderx.files = files;
         res.status(201).json(folderx);
     } catch (error) {
+        console.log(error);
         res.status(400).json({
             errmsg:error.message
         });
@@ -254,15 +246,27 @@ const delete_multiple_folder=async(req,res)=>{
                    }
                })
            }else{
-            // res.set('Content-Type', file.metadata.mimetype);
+            res.set('Content-Type', file.metadata.mimetype);
             // res.set('Content-Disposition', `inline; filename=${file.metadata.name}`);
-            res.status(200).sendFile(pth, (err) => {
-               if (err) {
-                   res.status(500).send();
-               } else {
-                   console.log(`file ${pth} sended..`);
-               }
-           });
+            res.set('Content-Disposition', `attachment; filename=${file.metadata.name}`);
+            res.set('Content-Length', file.metadata.size);
+
+          let rfs  =  fs.createReadStream(pth);
+          rfs.pipe(res);
+        //   rfs.on("data",(chuk)=>{
+        //     console.log(chuk);
+        //   })
+          rfs.on('error', (err) => {
+            console.error('Error streaming file:', err);
+            res.status(500).end('Internal Server Error');
+          });
+        //     res.status(200).sendFile(pth, (err) => {
+        //        if (err) {
+        //            res.status(500).send();
+        //        } else {
+        //            console.log(`file ${pth} sended..`);
+        //        }
+        //    });
        }
    }catch(error){
         console.log(error);

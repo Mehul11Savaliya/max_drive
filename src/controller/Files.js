@@ -192,14 +192,30 @@ const get_file_content = async (req, res) => {
                 }
             })
         } else {
-            return res.status(200).sendFile(pth, (err) => {
-                if (err) {
-                    console.log(err);
-                    res.status(500).send();
-                } else {
-                    console.log(`file ${pth} sended..`);
-                }
-            });
+            // res.set('Content-Disposition', `attachment; filename=${file.metadata.name}`);
+            // fs.createWriteStream(path.join(__dirname,'..'+file.metadata.path)).pipe(res);
+
+            res.set('Content-Type', file.metadata.mimetype);
+            res.set('Content-Disposition', `attachment; filename=${file.metadata.name}`);
+            res.set('Content-Length', file.metadata.size);
+
+          let rfs  =  fs.createReadStream(pth);
+          rfs.pipe(res);
+        //   rfs.on("data",(chuk)=>{
+        //     console.log(chuk);
+        //   })
+          rfs.on('error', (err) => {
+            console.error('Error streaming file:', err);
+            res.status(500).end('Internal Server Error');
+          });
+            // return res.status(200).sendFile(pth, (err) => {
+            //     if (err) {
+            //         console.log(err);
+            //         res.status(500).send();
+            //     } else {
+            //         console.log(`file ${pth} sended..`);
+            //     }
+            // });
         }
 
     } catch (error) {

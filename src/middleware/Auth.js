@@ -17,16 +17,17 @@ const isVarified=(req,res,next)=>{
                 next:`/auth/${user_data.Auth.id}/screen/varifyotp`
             });
         }
-        next();
+        console.log("going next")
+      return  next();
     } catch (error) {
-        console.log(error);
-        res.status(500).send();
+        console.log("lol",error);
+     return   res.status(500).send();
     }
     
 }
 
 const render_error_page=(res,data)=>{
-        res.status(data.status).render("pages-error.ejs",{
+     return   res.status(data.status).render("pages-error.ejs",{
             data:{
                 ...data
             }

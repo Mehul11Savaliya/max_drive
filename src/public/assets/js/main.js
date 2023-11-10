@@ -504,12 +504,14 @@ async function download_folder(id, foldername = "bulk") {
 
                     const xhr = new XMLHttpRequest();
                     xhr.open('GET', `/folder/${id}/bulk`, true);
-                    xhr.responseType = 'arraybuffer';
+                    xhr.responseType = "blob";
 
-                    let startTime, lastTime, totalBytes, loadedBytes, elapsedTime;
+                    let startTime = new Date().getTime(), lastTime, totalBytes, loadedBytes, elapsedTime;
 
                     xhr.addEventListener('progress', (e) => {
+                        console.log(e);
                         if (e.lengthComputable) {
+                            
                             const percent = (e.loaded / e.total) * 100;
                             progress.value = percent;
                             progressText.textContent = `${percent.toFixed(2)}%`;
@@ -528,6 +530,19 @@ async function download_folder(id, foldername = "bulk") {
                             timeRemaining.textContent = formatTimeRemaining(timeLeft);
                             speed.textContent = `${(bytesPerSecond / 1024).toFixed(2)} Kb/s`;
                             lastTime = currentTime;
+                        }else{
+                            timeRemaining.textContent = "";
+                            let mbyts = (e.loaded/1024/1024).toFixed(3);
+                           const currentTime = new Date().getTime();
+                            if (!startTime) {
+                                startTime = lastTime = currentTime;
+                                loadedBytes = e.loaded;
+                            }
+                            elapsedTime = currentTime - startTime;
+                            const bytesPerSecond = (e.loaded - loadedBytes) / (elapsedTime / 1000);
+                            loadedBytes = e.loaded;
+                            speed.textContent = `${(bytesPerSecond / 1024).toFixed(2)} Kb/s`;
+                            progressText.textContent = `${mbyts} Mb loaded.`
                         }
                     });
 

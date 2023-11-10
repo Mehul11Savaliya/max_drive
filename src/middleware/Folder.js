@@ -14,9 +14,9 @@ const extract_folder=async(req,res,next)=>{
         //     folder:resx,
         //     user : {...req.user_data}
         // });
-        next(); 
+       return next(); 
     } catch (error) {
-        res.status(404).send();
+      return  res.status(404).send();
     }
 }
 
@@ -71,14 +71,15 @@ try {
             author:folder.createdBy,
             time:Date.now()
         });
-        next();
+     return   next();
     }else{
         if (user!=null&&folder.createdBy==user.email) {
-            next();
+         return   next();
         }
         let allowed_user = share_settings.share_with;
         if (user!=null&&allowed_user!=null) {
             if (allowed_user.includes(user.email)) {
+               
                 folderevents.emit("access",{
                     folderid : folder.id,
                     name:folder.name,
@@ -86,7 +87,7 @@ try {
                     author:folder.createdBy,
                     time:Date.now()
                 });
-                next();
+               return next();
             }
             else{
                 folderevents.emit("access",{

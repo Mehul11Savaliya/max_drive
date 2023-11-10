@@ -177,12 +177,12 @@
         <div class="row">
             <div class="col-lg-3 col-md-3 col-sm-2"></div>
             <div class="col-lg-6 col-md-6 col-sm-8">
-                <button class="btn btn-success" onclick="download_folder('<%-data.folder.id-%>','<%-data.folder.name-%>')">Download</button>
+                <button class="btn btn-success" onclick="download_folder('<%-data.folder.id-%>','<%-data.folder.name-%>')">Download(Experimental)</button>
                 <script>
                     async function download_folder(id, foldername = "bulk") {
     id = Number.parseInt(id);
     if (!isNaN(id)) {
-            Swal.fire({
+        Swal.fire({
                 title: `bulk(${foldername}) download..`,
                 html: `
                   <div id="progress-container">
@@ -201,12 +201,14 @@
 
                     const xhr = new XMLHttpRequest();
                     xhr.open('GET', `/share/folder/${id}/bulk`, true);
-                    xhr.responseType = 'arraybuffer';
+                    xhr.responseType = "blob";
 
-                    let startTime, lastTime, totalBytes, loadedBytes, elapsedTime;
+                    let startTime = new Date().getTime(), lastTime, totalBytes, loadedBytes, elapsedTime;
 
                     xhr.addEventListener('progress', (e) => {
+                        console.log(e);
                         if (e.lengthComputable) {
+                            
                             const percent = (e.loaded / e.total) * 100;
                             progress.value = percent;
                             progressText.textContent = `${percent.toFixed(2)}%`;
@@ -225,6 +227,19 @@
                             timeRemaining.textContent = formatTimeRemaining(timeLeft);
                             speed.textContent = `${(bytesPerSecond / 1024).toFixed(2)} Kb/s`;
                             lastTime = currentTime;
+                        }else{
+                            timeRemaining.textContent = "";
+                            let mbyts = (e.loaded/1024/1024).toFixed(3);
+                           const currentTime = new Date().getTime();
+                            if (!startTime) {
+                                startTime = lastTime = currentTime;
+                                loadedBytes = e.loaded;
+                            }
+                            elapsedTime = currentTime - startTime;
+                            const bytesPerSecond = (e.loaded - loadedBytes) / (elapsedTime / 1000);
+                            loadedBytes = e.loaded;
+                            speed.textContent = `${(bytesPerSecond / 1024).toFixed(2)} Kb/s`;
+                            progressText.textContent = `${mbyts} Mb loaded.`
                         }
                     });
 
@@ -346,7 +361,7 @@ async function load_files(params) {
             // fetch(`/file/164/content?type=full`)
 
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', `/folder/${Number.parseInt(folder_id)}/file/${fileid}/content?password=${password}`, true); // Replace 'sample.txt' with the actual file URL
+            xhr.open('GET', `/folder/${Number.parseInt(folder_id)}/file/${fileid}/content?password=${password}&type=full`, true); // Replace 'sample.txt' with the actual file URL
             xhr.responseType = 'blob';
             xhr.addEventListener('progress', (event) => {
                 if (event.lengthComputable) {
