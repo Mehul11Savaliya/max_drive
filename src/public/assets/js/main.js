@@ -1431,6 +1431,11 @@ try {
     files_page = false;
 }
 try {
+    bug_page = bug_page;
+} catch (error) {
+    bug_page = false;
+}
+try {
     fav_page = fav_page;
 } catch (error) {
     fav_page = false;
@@ -2267,7 +2272,7 @@ async function generate_chart() {
         <span class="bg-primary iq-progress progress-1" data-percent="${(totgb / 20).toFixed(2) * 100}" style="transition: width 2s ease 0s; width: ${(totgb / 20).toFixed(2) * 100}%;">
         </span>
     </div>
-    <p>${(totgb / 20).toFixed(2) * 100}% Full - ${20 - totgb} GB Free</p>
+    <p>${((totgb / 20) * 100).toFixed(1)}% Full - ${20 - totgb} GB Free</p>
     <a class="btn btn-outline-primary view-more mt-4">Buy Storage</a>`;
     if (index_page) {
         let mb = [];
@@ -2805,6 +2810,90 @@ const start_room_view_srv=()=>{
     }
 }
 
+// bugs function
+const submit_bug=(event)=>{
+    if (bug_page) {
+        Swal.fire({
+            title:"submit bug",
+            html:`<form method="post" enctype="multipart/form-data" id="bform">
+            <input id="bugTitle" name="title" class="swal2-input" placeholder="Title">
+            <textarea id="bugDescription" name="description" class="swal2-textarea" placeholder="Bug Description"></textarea>
+            <input type="file" id="bugFile" name="attachments" class="swal2-file" multiple>
+            </form>
+            `, showCancelButton: true,
+            confirmButtonText: "Submit",
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+              try {
+                const api = `/bugs/`;
+                let form = new FormData(document.querySelector("#bform"))
+                const response = await fetch(api,{
+                    method:"POST",
+                    body:form
+                });
+                if (response.status!=201) {
+                  return Swal.showValidationMessage(`
+                    ${JSON.stringify(await response.json())}
+                  `);
+                }
+                return response.json();
+              } catch (error) {
+                Swal.showValidationMessage(`
+                  Request failed: ${error}
+                `);
+              }
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+          }).then((result) => {
+            if (result.isConfirmed) {
+              Swal.fire({
+                title: `submitted`,
+                icon: "success"
+              });
+            }
+        });
+    }
+}
+
+const load_bugs=async()=>{
+    let holder = document.querySelector("#bugs");
+    function gen_card(cd) {
+        let dv = document.createElement("div");
+        dv.setAttribute("class","col-lg-4 col-md-6 col-sm-6")
+        let cardc = "danger"
+        switch(cd.status){
+            case 'open':
+                cardc = 'warning'
+                break;
+            case 'progress':
+                cardc = 'secondary'
+                break;
+            case 'close':
+                cardc = 'danger'
+                break;
+        }
+        dv.innerHTML=`<div class="card text-white bg-primary" >
+        <div class="card-body">
+           <h4 class="card-title text-white">Bug : ${cd.title}</h4>
+           <small>Bug#${cd._id}</small>
+           <blockquote class="blockquote mb-0">
+              <p class="font-size-14">${cd.description}</p>
+              <footer class="blockquote-footer text-white font-size-12"><a class="mt-2 badge badge-${cardc}">${cd.status}</a></footer>
+           </blockquote>
+        </div>
+     </div>`;
+     
+     holder.appendChild(dv);
+    }
+    if (bug_page) {
+        let data = await handleRequest("/bugs/all",{method:"GET"},200);
+        for(let cd of data) {
+          gen_card(cd);
+        }
+        
+    }
+}
+
 window.addEventListener("beforeunload",(ev)=>{
     roomviewsocket.emit("leave-room",{
         roomid : roomviewid,
@@ -2822,6 +2911,11 @@ window.addEventListener('popstate', function (event) {
 });
 
 window.onload = async () => {
+    try {
+      await  load_bugs();
+    } catch (error) {
+        
+    }
     try {
        await start_room_view_srv();
     } catch (error) {

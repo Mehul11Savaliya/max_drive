@@ -27,6 +27,11 @@ const Auth = sq.define('auth',{
     },
     refresh_toke:{
         type : DataTypes.STRING(400)
+    },
+    role:{
+        type : DataTypes.STRING,
+        values:["admin","user","other"],
+        defaultValue:"user"
     }
 },{
     freezeTableName:true

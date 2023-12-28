@@ -20,6 +20,8 @@ const Explore  = require("./src/routes/Explore");
 const Analytics = require("./src/routes/Analytics");
 const Test = require("./src/routes/Test");
 const Rooms = require("./src/routes/Rooms");
+const Bugs = require("./src/routes/Bugs");
+const Admin = require("./src/routes/Admin");
 
 var app = express();
 
@@ -74,6 +76,8 @@ app.use('/master',Master);
 app.use("/explore",Explore);
 app.use("/analytics",Analytics);
 app.use("/rooms",Rooms);
+app.use("/bugs",Bugs);
+app.use("/admin",Admin);
 // app.use("/test",Test);
 
 // catch 404 and forward to error handler

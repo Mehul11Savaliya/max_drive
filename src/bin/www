@@ -23,8 +23,6 @@ var debug = require('debug')('cloud-storage:server');
 var http = require('http');
 const { start_socket } = require("../config/socketio.js");
 
-
-
 var port = normalizePort(process.env.PORT);
 app.set('port', port);
 

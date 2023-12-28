@@ -48,10 +48,19 @@ const create=async(obj)=>{
     return (await model.create(obj)).dataValues;
 }
 
+const get_list=async(role,plain)=>{
+    if (role!=="admin") {
+        throw new Error(`not authorized`)
+    }
+    let res = await model.findAll({raw:plain});
+    return res;
+}
+
 module.exports={
     sync,
     create,
     varifyUser,
     getUserByEmail,
-    delete_by_email
+    delete_by_email,
+    get_list
 }

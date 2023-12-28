@@ -38,6 +38,21 @@
                     <ul id="mydrive" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                     </ul>
                  </li>
+               
+                 <%if(data.Auth!==undefined&&data.Auth.role==="admin"){%>
+                 <li class=" ">
+                    <a href="#admintask" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                        <i class="fa-solid fa-list"></i><span>Admin Action</span>
+                    </a>
+                    <ul id="admintask" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                        <li>
+                        <a href="/admin/userlist">
+                            <i class="fa-solid fa-list-check"></i><span>User list</span>
+                        </a>
+                    </li>
+                    </ul>
+                 </li>
+                 <%}%>
                  <li class=" ">
                         <a href="/user/files" class="">
                             <i class="fa-solid fa-file"></i><span>Files</span>
@@ -75,7 +90,7 @@
                                    </a>
                            </li>
                            <li class=" ">
-                            <a href="#">
+                            <a href="/bugs">
                                 <i class="fa-solid fa-bug"></i><span>Report BUG</span>
                                </a>
                        </li>

@@ -44,7 +44,22 @@ const get_user_from_cookie = async (req, res, next) => {
     }
 }
 
+const check_admin=(req,res,next)=>{
+    try {
+        let {Auth} = req.user_data;
+        if (Auth.role!=="admin") {
+            throw new Error(`unauthorized`);
+        }
+        next();
+    } catch (error) {
+        res.status(401).json({
+            errmsg : error.message
+        });
+    }
+}
+
 module.exports = {
     getUserFromTokeData,
-    get_user_from_cookie
+    get_user_from_cookie,
+    check_admin
 }
