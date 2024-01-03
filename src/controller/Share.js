@@ -2,6 +2,7 @@ const filesrv = require("../services/File");
 const tokensrv = require('../services/Token');
 const usersrv = require("../services/User");
 const { generategeneralData } = require("../utils/PageData");
+const notificationsrv = require("../services/notification");
 
 const couchsrv = require("../services/couchdb");
 
@@ -22,12 +23,15 @@ const get_file = async (req, res) => {
     });
 }
 
-const get_live_share_page=(req,res)=>{
+const get_live_share_page=async(req,res)=>{
+    let notification = await notificationsrv.get_notification(req.user_data);
+  
     res.status(200).render("page-live-share.ejs",{
         data:{
             ...generategeneralData(),
             ...req.user_data,
-            ...generategeneralData()
+            ...generategeneralData(),
+            notification : notification
         }
     })
 }

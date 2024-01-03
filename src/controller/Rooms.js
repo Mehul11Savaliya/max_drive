@@ -3,11 +3,15 @@ const service = require("../services/Rooms");
 const uuid = require("uuid")
 const path = require("path");
 const filehandler = require("../services/FileHandler");
+const notificationsrv = require("../services/notification");
 
-const get_page=(req,res)=>{
+const get_page=async(req,res)=>{
+    let notification = await notificationsrv.get_notification(req.user_data);
+  
     res.status(200).render("page-rooms.ejs",{data:{
         ...generategeneralData(),
-        ...req.user_data
+        ...req.user_data,
+        notification : notification
     }});
 }
 

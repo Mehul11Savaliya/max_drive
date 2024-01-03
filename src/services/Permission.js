@@ -106,6 +106,9 @@ const update_type_id = async (typeob, data, user, admin = false) => {
         share_with = share_with.split(',').map((val) => {
             // console.log("lol");
             // notifemmiter.
+            if (val=="") {
+                return;
+            }
             notifemmiter.emit("push-notification",{
                 author:user.email,
                 to:val,

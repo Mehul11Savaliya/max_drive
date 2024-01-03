@@ -2593,23 +2593,23 @@ async function start_notification_srv() {
         user_email_s = user_email;
     }
 
-    let oldnotification = localStorage.getItem("notifications") == null ? [] : JSON.parse(localStorage.getItem("notifications"));
-    if (oldnotification.length >= 15) {
-        oldnotification.shift();
-    }
-    oldnotification.forEach((val) => {
-        add_notification(val, "notifictions");
-    })
+    // let oldnotification = localStorage.getItem("notifications") == null ? [] : JSON.parse(localStorage.getItem("notifications"));
+    // if (oldnotification.length >= 15) {
+    //     oldnotification.shift();
+    // }
+    // oldnotification.forEach((val) => {
+    //     add_notification(val, "notifictions");
+    // })
 
     let notisocket = io("/user/notification");
     notisocket.emit("join-room", { id: user_email_s });
     notisocket.on("connect", (socket) => {
         notisocket.on("notification", (data) => {
-            oldnotification.push(data);
-            if (oldnotification.length >= 15) {
-                oldnotification.shift();
-            }
-            localStorage.setItem("notifications", JSON.stringify(oldnotification));
+            // oldnotification.push(data);
+            // if (oldnotification.length >= 15) {
+            //     oldnotification.shift();
+            // }
+            // localStorage.setItem("notifications", JSON.stringify(oldnotification));
             add_notification(data, "notifictions");
             const audio = new Audio("https://vgmsite.com/soundtracks/among-us-sound-effects/udbpcpqmyr/Notification.mp3");
             audio.play();

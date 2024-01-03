@@ -9,6 +9,8 @@ const metadatasrv = require("../services/FileMetadata");
 const tokensrv = require("../services/Token");
 const usersrv = require("../services/User");
 const permissionsrv = require("../services/Permission");
+const notificationsrv = require("../services/notification");
+
 
 const filehandler = require("../services/FileHandler");
 const uuid = require("uuid");
@@ -131,6 +133,8 @@ const get_all_folder_file = async (req, res) => {
 
 const get_file = async (req, res) => {
     try {
+        let notification = await notificationsrv.get_notification(req.user_data);
+  
         let { id } = req.params;
         if (id == undefined) throw new Error(`file id not provided..`)
         let resx = await service.get_by_id(id, req.user_data);
@@ -143,7 +147,8 @@ const get_file = async (req, res) => {
             data: {
                 ...req.user_data,
                 ...generategeneralData(),
-                file: { ...resx }
+                file: { ...resx },
+            notification : notification
 
             }
         });

@@ -27,7 +27,7 @@ var port = normalizePort(process.env.PORT);
 app.set('port', port);
 
 (async function () {
-  // testDbConnection();
+  testDbConnection();
   // await sq.sync({alter:true})
   // await usersrv.sync({force:true});
   // await authsrv.sync({force:true});

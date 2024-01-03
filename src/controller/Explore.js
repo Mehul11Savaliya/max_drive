@@ -1,10 +1,14 @@
 const {generategeneralData}=require("../utils/PageData")
 const  service  = require("../services/Explore");
+const notificationsrv = require("../services/notification");
 
-const get_page=(req,res)=>{
+const get_page=async(req,res)=>{
+    let notification = await notificationsrv.get_notification(req.user_data);
+  
     res.status(200).render("page-explore.ejs",{data:{
         ...generategeneralData(),
-        ...req.user_data
+        ...req.user_data,
+        notification : notification
     }});
 }
 

@@ -144,6 +144,22 @@
                                         <a href="auth-sign-in.html" class="btn btn-primary">Sign Out</a>
                                     </div>
                                     <div class="profile-details mt-4 pt-4 border-top" style="max-height: 40vh;overflow-y: scroll;" id="notifictions">
+                                        <%
+                                        for(let datax of data.notification.data){
+                                            let author = datax.content.author;
+                                        %>
+                                        <div class="media align-items-center mb-3"><div class="rounded-circle iq-card-icon-small bg-primary" data-toggle="popover" data-placement="right" title="<%=datax.content.author%>" data-content="<%=datax.content.author%>">
+                                            <%=author.charAt(0)+author.charAt(1)%>                                </div>
+                                        <div class="media-body ml-3">
+                                            <div class="media justify-content-between">
+                                                <%=datax.content.msg%>
+                                           <!-- <p class="mb-0 font-size-12">svlmehul@gmail.com</p>-->
+                                            </div>
+                                            <p class="mb-0 font-size-12">
+                                            <a target="_blank" href="<%=datax.content.data.url%>" class="btn btn-sm btn-primary">view</a>
+                                            </p>
+                                        </div></div>
+                                        <%}%>
                                     </div>
                                 </div>
                             </div>

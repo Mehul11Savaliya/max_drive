@@ -108,7 +108,7 @@
                             <div class="d-flex flex-wrap align-items-center">
                                 <div class="col-lg-6 col-sm-6 p-0">
                                     <h3 class="mb-3">Welcome <%=data.first_name+" "+data.last_name%></h3>
-                                    <p class="mb-5">You have 32 new notifications and 23 unread messages to reply</p>
+                                    <p class="mb-5">You have <%=data.notification.count%>  new notifications. <span style="visibility: hidden;">and 23 unread messages to reply</span></p>
                                     <a href="#">Try Now<i class="las la-arrow-right ml-2"></i></a>
                                 </div>
                             </div>
