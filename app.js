@@ -1,4 +1,5 @@
 require("dotenv").config();
+var colors = require('colors');
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -23,8 +24,11 @@ const Rooms = require("./src/routes/Rooms");
 const Bugs = require("./src/routes/Bugs");
 const Admin = require("./src/routes/Admin");
 
+const auditsrv = require("./src/services/Audit");
+
 var app = express();
 
+colors.enable();
 // view engine setup
 app.set('views', path.join(__dirname, './src/views'));
 app.set('view engine', 'ejs');
@@ -46,8 +50,20 @@ app.use(logger(function (tokens, req, res) {
     tokens.res(req, res, 'content-length'), '-',
     tokens['response-time'](req, res), 'ms',
     `pid = ${process.pid}`
-  ].join(' ')
+  ].join(' ').red
 }));
+
+app.use(async(req,res,next)=>{
+  let urlsp = req.url.split("/");
+  if (urlsp[1]!="assets") {
+    try {
+      await auditsrv.set_page_by_user(urlsp,req.ip);
+    } catch (error) {
+      console.error("not able to audit : ",error.message);
+    }
+  }
+  next();
+})
 // app.use(express.json());
 app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: false }));
