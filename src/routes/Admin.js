@@ -5,6 +5,7 @@ const usermdwr = require("../middleware/User");
 const tokenmdwr = require("../middleware/Token");
 
 const controller = require("../controller/Admin");
+const storagectr = require("../controller/Storage");
 
 router.use(tokenmdwr.extractTokenFromCookie);
 router.use(tokenmdwr.checkAccessToken);
@@ -16,5 +17,7 @@ router.use((req,res,next)=>{
 })
 
 router.get("/userlist",usermdwr.check_admin,controller.user_list);
+router.get("/analytics",usermdwr.check_admin,controller.analytics_page);
+router.get("/storage",usermdwr.check_admin,storagectr.get_storage);
 
 module.exports=router;

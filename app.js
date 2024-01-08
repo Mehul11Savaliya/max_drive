@@ -55,7 +55,7 @@ app.use(logger(function (tokens, req, res) {
 
 app.use(async(req,res,next)=>{
   let urlsp = req.url.split("/");
-  if (urlsp[1]!="assets") {
+  if (urlsp[1]!="assets"||urlsp[1]!="src") {
     try {
       await auditsrv.set_page_by_user(urlsp,req.ip);
     } catch (error) {

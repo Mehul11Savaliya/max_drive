@@ -66,17 +66,17 @@ const get_total_space_usage = async (user = null, is_admin = false) => {
     if (user == null && is_admin == false) {
         throw new Error(`invalid user or must be admin..`)
     }
+    let qyeryob = {};
+    if (!is_admin) {
+        qyeryob.createdBy = user;
+    }
     let res = await filemdl.findAll({
-        where: {
-            createdBy: user
-        },
+        where: qyeryob,
         attributes: [[Sequelize.literal(`SUM(CAST(metadata->>'size' AS bigint))`), 'size']]
     });
     data.used = res[0].dataValues.size
     let resx = await filemdl.findAll({
-        where: {
-            createdBy: user
-        },
+        where: qyeryob,
         group: ['month'],
         attributes: [[Sequelize.literal(`SUM(CAST(metadata->>'size' AS bigint))`), 'size'], [Sequelize.literal('EXTRACT(MONTH FROM "createdAt")'), 'month']]
     });
