@@ -52,7 +52,25 @@ const analytics_page=async(req,res)=>{
     }
 }
 
+const bugs_list=async(req,res)=>{
+    try {
+        let notification = await notificationsrv.get_notification(req.user_data);
+        res.status(200).render("admin-bugs.ejs",{
+            data:{
+                ...generategeneralData(),
+                ...req.user_data,
+                notification : notification,
+            }
+        })
+    } catch (error) {
+        return res.status(400).json({
+            errmsg : error.message
+        })
+    }
+}
+
 module.exports={
     user_list,
-    analytics_page
+    analytics_page,
+    bugs_list
 }

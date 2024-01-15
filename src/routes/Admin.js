@@ -19,5 +19,6 @@ router.use((req,res,next)=>{
 router.get("/userlist",usermdwr.check_admin,controller.user_list);
 router.get("/analytics",usermdwr.check_admin,controller.analytics_page);
 router.get("/storage",usermdwr.check_admin,storagectr.get_storage);
+router.get("/bugs",usermdwr.check_admin,controller.bugs_list);
 
 module.exports=router;

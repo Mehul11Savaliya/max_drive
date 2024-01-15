@@ -27,5 +27,8 @@ router.get("/",tokenmdwr.extractTokenFromCookie,tokenmdwr.checkAccessToken,userm
 
 router.post("/",usermdwr.get_user_from_cookie,controller.post_bug);
 router.get("/all",usermdwr.get_user_from_cookie,controller.get_bugs);
+router.delete("/:id",usermdwr.get_user_from_cookie,usermdwr.check_admin,controller.delete_bug);
+router.patch("/:id",usermdwr.get_user_from_cookie,usermdwr.check_admin,controller.update_status);
+
 
 module.exports=router;

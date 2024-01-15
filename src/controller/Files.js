@@ -35,7 +35,7 @@ const post_files = async (req, res) => {
             metadata.encoding = files.encoding;
             metadata.mimetype = files.mimetype;
             metadata.checksum = files.md5;
-
+             if(["exe","sh","bash","bat"].includes(ext)) throw new Error(`invalid file format`);
             try {
                 let name = uuid.v4() + "." + ext;//Date.now() + metadata.name;
 
@@ -76,6 +76,7 @@ const post_files = async (req, res) => {
                 metadata.encoding = filex.encoding;
                 metadata.mimetype = filex.mimetype;
                 metadata.checksum = filex.md5;
+                if(["exe","sh","bash","bat"].includes(ext)) throw new Error(`invalid file format`);
                 try {
                     let name = uuid.v4() + "." + ext;//Date.now() + metadata.name;
                     // let pathx = filehandler.move_file_to(filex.data, `../uploads/${name}`);

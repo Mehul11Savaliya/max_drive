@@ -25,6 +25,7 @@ const auth_sign_in = async (req, res) => {
         res.cookie('jwt', tokens);
         res.redirect('/user/');
     } catch (error) {
+        console.log("Auth error".bgRed+error);
         res.status(400).render('auth-sign-in.ejs', {
             data: { errmsg: error.message, ...generateSigninPageData() }
         });

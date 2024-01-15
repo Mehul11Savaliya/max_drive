@@ -2894,6 +2894,10 @@ const load_bugs=async()=>{
     }
 }
 
+// const change_bug_status=(id)=>{
+   
+// }
+
 window.addEventListener("beforeunload",(ev)=>{
     roomviewsocket.emit("leave-room",{
         roomid : roomviewid,
