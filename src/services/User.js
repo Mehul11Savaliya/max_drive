@@ -56,11 +56,31 @@ const get_list=async(role,plain)=>{
     return res;
 }
 
+
+const delete_inactive_after=(sec,userid,authid)=>{
+    setTimeout(async() => {
+        let auth = await authmdl.findOne({
+            where:{
+                id:authid
+            }
+        });
+        if (!auth.varified) {
+            await model.destroy({
+                where:{
+                    id:userid
+                }
+            });
+            console.log(`user deleted after inactive for ${sec}`.bgBlue);
+        }
+    }, sec);
+}
+
 module.exports={
     sync,
     create,
     varifyUser,
     getUserByEmail,
     delete_by_email,
-    get_list
+    get_list,
+    delete_inactive_after
 }

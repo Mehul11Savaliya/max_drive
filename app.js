@@ -23,6 +23,7 @@ const Test = require("./src/routes/Test");
 const Rooms = require("./src/routes/Rooms");
 const Bugs = require("./src/routes/Bugs");
 const Admin = require("./src/routes/Admin");
+const LUpload = require("./src/routes/LUpload");
 
 const auditsrv = require("./src/services/Audit");
 
@@ -75,7 +76,11 @@ app.use("/roomsthumb",express.static(path.join(__dirname,"./src/uploads/roomst")
 app.use("/src/main.js",express.static(path.join(__dirname,"./src/public/assets/js/main.js")));
 app.use('/assets',express.static(path.join(__dirname,'./src/public/asset/')));
 app.use("/uploads",express.static(path.join(__dirname,"./src/uploads/")));
-app.use(fileUpload({
+app.use("/folder",fileUpload({
+  useTempFiles : true,
+  tempFileDir : './src/tmp'
+}));
+app.use("/file",fileUpload({
   useTempFiles : true,
   tempFileDir : './src/tmp'
 }));
@@ -94,6 +99,7 @@ app.use("/analytics",Analytics);
 app.use("/rooms",Rooms);
 app.use("/bugs",Bugs);
 app.use("/admin",Admin);
+app.use("/large-upload",LUpload);
 // app.use("/test",Test);
 
 // catch 404 and forward to error handler

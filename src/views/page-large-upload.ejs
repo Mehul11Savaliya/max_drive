@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+  
+<!--page-large-upload -->
+<head>
+    <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title>MaxDrive | Large Upload</title>
+      
+   <!-- Favicon -->
+   <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+       
+   <link rel="stylesheet" href="/assets/css/backend-plugin.min.css">
+   <link rel="stylesheet" href="/assets/css/backende209.css?v=1.0.0">
+
+    <!-- new Vendors -->
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+    <script src="/assets/vendor/timeline-slider/jquery.roadmap.min.js"></script>
+     <link rel="stylesheet" href="/assets/vendor/tagsinput/bootstrap-tagsinput.css">
+     <link rel="stylesheet" href="/assets/vendor/timeline-master/style.css">
+     <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
+     <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
+     <script src="/assets/vendor/socketio/socket.io.min.js"></script>
+     <script src="/assets/vendor/tus-js-client/min.js"></script>
+     <!-- new Vendors -->
+    </head>
+  <body class=" color-light ">
+    <!-- loader Start -->
+    <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+    <!-- loader END -->
+
+    <!-- nav scriot -->
+    <script>
+        var large_upload_page  = true;
+    </script>
+    <!-- nav scriot -->
+
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+      
+        <%-include('components/sidebar.ejs',{}) -%>
+            <div class="iq-top-navbar">
+                <%-include('components/header.ejs',{}) -%>
+      </div>
+      <div class="content-page">
+      <div class="container-fluid">
+         <div class="row">
+                <ul id="files">
+                
+                </ul>
+            
+            
+                <div class="container mt-4">
+                    <input type="file" id="fileInput" multiple>
+                   Folder :  <select name="" id="folder">
+
+                    </select>
+                    <script>
+                        let res  = fetch("/folder",{
+                            method:"GET"
+                        });
+                        res.then((result) => {
+                            return result.json();
+                        }).then((res) => {
+                            let select = document.querySelector("#folder");
+                            for(let folder of res) {
+                          let options = `<option value="${folder.id}">${folder.name}</option>`;
+                          select.innerHTML = select.innerHTML+options;
+                        }
+                        }).catch((err) => {
+                          
+                        });
+                       
+                    </script>
+                    <div class="col-lg-12 col-md-6 col-sm-6" id="list_file">
+            </div>
+            </div>
+                <script>
+
+                    class Upload{
+                        constructor(fileobj,folderid,callback){
+                            let {lastModified,name,size,type }= fileobj;
+                            this.lastModified = lastModified;
+                            this.name = name;
+                            this.size = size;
+                            this.type = type;
+                            this.uploadUrl = null;
+                            this.current  = 0;
+                            this.xhr = null;
+                            this.folder = folderid;
+                            this.file  = fileobj;
+                            this.startUpload(callback);
+                        }
+                       async startUpload(callback) {
+                            let res  = await fetch("/large-upload",{
+                                             method : "POST",
+                                              headers : {
+                                             "Content-Type":"application/json"
+                                             },
+                                              body : JSON.stringify(this)
+                                                 })
+                                 res = await res.json();
+                                 console.log(res);
+                                     this.metadata = res;
+                                        this.uploadUrl =  `/${res.idx}`;
+                                    callback(this);
+                        }   
+
+                        async getCurrentUploadStatus(){
+                            if (this.uploadUrl===null) {
+                                throw new Error(`upload start is pending...`)
+                            }
+                            let res  = await fetch("/large-upload"+this.uploadUrl,{
+                                             method : "HEAD",
+                                                 });
+                                 this.current = Number.parseInt(res.headers.get("Current"));
+                                 return this.current;
+                        }
+
+                        async stopUpload(){
+                           if (this.xhr!==null) {
+                              this.xhr.abort();
+                              console.log("aborted")
+                           }else{
+                            console.log("not aborted")
+                           }
+                        }
+
+                        async resumeUpload(callback,done){
+                            let offset = await this.getCurrentUploadStatus();
+                            console.time("slicing");
+                            const blob = this.file.slice(offset);
+                            console.log("current blob",blob.length);
+                            console.timeEnd("slicing");
+
+                          let  formData = new FormData();
+                          formData.set("file",this.file.slice(offset));
+
+                            this.xhr = new XMLHttpRequest();
+                          this.xhr.open('PATCH',"/large-upload"+this.uploadUrl);
+            // xhr.setRequestHeader("Content-Type","application/octet-stream")
+            this.xhr.onload = function() {
+                if (this.status === 200) {
+                    console.log('Upload complete:', this.responseText);
+                    done(this.responseText);
+                } else {
+                    console.error('Upload failed:', this.statusText);
+                    done(this.statusText);
+                }
+            };
+            this.xhr.onerror = function() {
+                console.error('Upload failed');
+            };
+            this.xhr.upload.onprogress = function(event) {
+                console.log(offset,event.loaded,event.total+offset);
+                if (event.lengthComputable) {
+                    const percentComplete = (((event.loaded+offset) / (event.total+offset)) * 100).toFixed(2);
+                    callback(percentComplete);
+                }
+            };
+            this.xhr.send(formData);
+
+                        }
+
+                       
+
+                    }    
+                
+                const uploads = [];
+                document.getElementById('fileInput').addEventListener('change', (event) => {
+                    const filex = event.target.files;
+                    Array.from(filex).forEach(file => {
+                        if (file) {
+                            let folder = document.querySelector("#folder");
+                            folder = Number.parseInt(folder.value);
+                            if (isNaN(folder)) {
+                                return alert("folder not selected...");
+                            }
+                            let initial  = null;
+                            let upload = new Upload(file,folder,(recv)=>{
+                                initial = recv;
+                                let l = document.createElement("div");
+                                console.log("lol",initial);
+                        l.setAttribute("class","card");
+                        l.setAttribute("id",`f-${initial.metadata.idx}`)
+                        l.innerHTML=`
+                    <div class="card-body">
+                        <h5 class="card-title" id="fileName"><marquee>${initial.metadata.name}</marquee></h5>
+                        <div class="progress mb-3">
+                             <div class="progress-bar" id="f-${initial.metadata.idx}-progress" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div><span style="position:relative;" id="f-${initial.metadata.idx}-progress-text">0%</span></div>
+                        <p id="timeRemaining">Time Remaining: <span id="f-${initial.metadata.idx}-rt"></span></p>
+                        <p>File url = <a id="f-${initial.metadata.idx}-url">open</a></p>
+                        <p id="uploadSpeed">Upload Speed: <span id="f-${initial.metadata.idx}-ups"></span></p>
+                        <button class="btn btn-primary" onclick="startUpload('${initial.metadata.idx}',event)">Start</button>
+                        <button class="btn btn-danger" onclick="pauseUpload('${initial.metadata.idx}')">Stop</button>
+                        <button class="btn btn-warning" onclick="pauseUpload('${initial.metadata.idx}')">Pause</button>
+                        <button class="btn btn-success" onclick="resumeUpload('${initial.metadata.idx}')">Resume</button>
+                    </div>
+                `;
+                document.querySelector("#list_file").appendChild(l);
+                            });
+                       
+                uploads.push(upload);
+                    }
+                    });
+                });
+                
+                function getCurrentUpload(id) {
+                    console.log(id);
+                    let uid = Number.parseInt(id);
+                    if (isNaN(uid)) {
+                        console.log("uid is nan");
+                        return null;
+                    }
+                    for(let currop of uploads) {
+                        if (currop.metadata.idx == id) {
+                            return currop;
+                        }
+                    }
+                    return null;
+                }
+            
+                function startUpload(id,event) {
+                    let currop = getCurrentUpload(id);
+                    // currop.options.metadata.startTime = new Date().getTime();
+                    // console.log(currop);
+                    // currop.start();
+
+                    currop.resumeUpload((p)=>{
+                        // document.querySelector(`#f-${id}-progress`).style.width = p;
+                        p = Number.parseFloat(p);
+                        if (p>=100) {
+                            document.querySelector(`#f-${id}-rt`).innerHTML = "Uploaded";
+                        }else{
+                            document.querySelector(`#f-${id}-rt`).innerHTML = "Uploading";
+                        }
+                        document.querySelector(`#f-${id}-rt`).innerHTML = "Paused";
+                        document.querySelector(`#f-${id}-progress-text`).innerText  = `${p}%`;
+                            document.querySelector(`#f-${id}-progress`).setAttribute("style",`width: ${p}%`);
+                    },(text)=>{
+                        try {
+                            let uploaded = JSON.parse(text);
+                            notifier.success(`${uploaded.metadata.name} file has been loaded`);
+                            document.querySelector(`#f-${id}`).remove();
+                        } catch (error) {
+                            notifier.alert(`err in uploading a file`);
+                            document.querySelector(`#f-${id}`).remove();
+                        }
+                    });
+                    event.target.remove();
+                }
+                
+                function pauseUpload(id) {
+                    let currop = getCurrentUpload(id);
+                    currop.stopUpload();
+                        console.log('Upload paused.');
+                        document.querySelector(`#f-${id}-rt`).innerHTML = "Paused";
+                        document.querySelector(`#f-${id}-progress-text`).innerHTML = "Paused";
+                }
+                
+                function resumeUpload(id) {
+                    let currop = getCurrentUpload(id);
+                        currop.resumeUpload((p)=>{
+                            p = Number.parseFloat(p);
+                            if (p>=100) {
+                            document.querySelector(`#f-${id}-rt`).innerHTML = "Uploaded";
+                        }else{
+                            document.querySelector(`#f-${id}-rt`).innerHTML = "Uploading";
+                        }
+                            document.querySelector(`#f-${id}-progress-text`).innerText  = `${p}%`;
+                            document.querySelector(`#f-${id}-progress`).setAttribute("style",`width: ${p}%`);
+                    },(text)=>{
+                        try {
+                            let uploaded = JSON.parse(text);
+                            notifier.success(`${uploaded.metadata.name} file has been loaded`);
+                            document.querySelector(`#f-${id}`).remove();
+                        } catch (error) {
+                            notifier.alert(`err in uploading a file`);
+                            document.querySelector(`#f-${id}`).remove();
+                        }
+                    });
+                        console.log('Upload resumed.');
+                        document.querySelector(`#f-${id}-rt`).innerHTML = "Upload resumed.";
+                        document.querySelector(`#f-${id}-progress-text`).innerHTML = "Upload resumed.";
+                }
+                </script>
+           
+         </div>
+      </div>
+      </div>
+    </div>
+    <!-- Wrapper End-->
+    <%-include('components/footer.ejs',{}) -%>
+    <!-- Backend Bundle JavaScript -->
+    <script src="/assets/js/backend-bundle.min.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script src="/assets/js/customizer.js" defer></script>
+    
+   
+    <!-- app JavaScript -->
+    <script src="/assets/js/app.js" defer></script>
+    <script src="/assets/js/doc-viewer.js" defer></script>
+  </body>
+
+<!-- page-large-upload  -->
+</html>
