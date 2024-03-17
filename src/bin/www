@@ -18,6 +18,7 @@ const mastersrv  = require("../services/Master.js");
 const permissionsrv = require("../services/Permission.js");
 const roomsrv = require("../services/Rooms.js");
 const audit_jobs = require("../jobs/clean_audit_collection.js");
+const file_jobs = require("../jobs/clean_large_files.js");
 
 var app = require('../../app');
 var debug = require('debug')('cloud-storage:server');
@@ -40,6 +41,7 @@ app.set('port', port);
   // await roomsrv.sync({force:true});
   
   audit_jobs.start();
+  file_jobs.file_cleanup(24*60*60*1000);
 })()
 
 // const cpunum  = os.cpus().length;

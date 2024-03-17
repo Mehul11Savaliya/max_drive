@@ -9,8 +9,8 @@ const Busboy = require('busboy');
 const path = require("path");
 const fs = require("fs");
 const uuid = require("uuid");
-var Datastore = require('nedb')
-var db = new Datastore({ filename: './filequeue.db', autoload: true });
+
+var db = require("../config/nedb");
 
 const fileservice = require("../services/File")
 const permissionsrv = require("../services/Permission");
@@ -39,7 +39,7 @@ router.post("/", async (req, res) => {
         let ps = `/uploads/${uuid.v4()}.${ext}`;
         fs.openSync(path.join(__dirname, ".." + ps), 'w');
         const insertPromise = new Promise((resolve, reject) => {
-            db.insert({ idx: Date.now(),folder:folder, name : name, path: ps, total: size,mimetype:type }, (err, indoc) => {
+            db.insert({ idx: Date.now(),folder:folder, name : name, path: ps, total: size,mimetype:type,uploaded:false }, (err, indoc) => {
                 if (err) {
                     console.log("err", err);
                     reject(err);
@@ -66,7 +66,7 @@ router.patch("/:id", (req, res) => {
             throw new Error(`invaild resumable file id ${id}`);
         }
         const busboy = Busboy({ headers: req.headers });
-        db.findOne({ idx: id }, (err, doc) => {
+        db.findOne({ idx: id,uploaded:false }, (err, doc) => {
             if (!doc || err) {
                 return res.status(404).send();
             }
