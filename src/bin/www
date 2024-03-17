@@ -6,6 +6,8 @@ require("dotenv").config();
  */
 const os  = require("os");
 const cluster  = require("cluster");
+const path = require("path");
+const fs = require("fs");
 
 
 const {testDbConnection,sq} = require("../config/db.js");
@@ -22,11 +24,13 @@ const file_jobs = require("../jobs/clean_large_files.js");
 
 var app = require('../../app');
 var debug = require('debug')('cloud-storage:server');
-var http = require('http');
+ var http = require('http');
+var https = require("https");
 const { start_socket } = require("../config/socketio.js");
 
-var port = normalizePort(process.env.PORT);
-app.set('port', port);
+// var port = normalizePort(process.env.PORT);
+var hport = normalizePort(process.env.PORT);
+app.set('port', hport);
 
 (async function () {
   testDbConnection();
@@ -44,22 +48,38 @@ app.set('port', port);
   file_jobs.file_cleanup(24*60*60*1000);
 })()
 
-// const cpunum  = os.cpus().length;
-// if (cluster.isPrimary) {
-//   console.log(`main pid  = ${process.pid}`);
-//     for (let i = 0; i < cpunum; i++) {
-//           cluster.fork();  
-//     }
-//     cluster.on("exit",()=>{
-//         cluster.fork();
-//     })
-// }else{
-  var server = http.createServer(app);
-  server.listen(port)
-  server.on('error', onError);
-  server.on('listening', onListening);
-    start_socket(server);
-// }
+//  const cpunum  = os.cpus().length;
+//  if (cluster.isPrimary) {
+//    console.log(`main pid  = ${process.pid}`);
+//      for (let i = 0; i < cpunum; i++) {
+//            cluster.fork();  
+//      }
+//      cluster.on("exit",()=>{
+//          cluster.fork();
+//      })
+//  }else{
+  //  var server = http.createServer(app);
+   var serverhttps = https.createServer({
+    key: fs.readFileSync(path.join(__dirname,"../../",process.env.HTTPS_KEY)),
+    cert:fs.readFileSync(path.join(__dirname,"../../",process.env.HTTPS_CERT))
+  },app);
+ 
+  //serverhttps.on("listening",()=>{
+   
+  //})
+
+  //  server.listen(port)
+  serverhttps.listen(hport);
+
+  //  server.on('error', onError);
+  //  server.on('listening', onListening);
+
+  serverhttps.on('error', onError);
+  serverhttps.on('listening', onListening);
+
+    //  start_socket(server);
+   start_socket(serverhttps);
+//  }
 
 /**
  * Normalize a port into a number, string, or false.
@@ -82,7 +102,7 @@ function normalizePort(val) {
 }
 
 /**
- * Event listener for HTTP server "error" event.
+ * Event listener for HTTP/HTTPS server "error" event.
  */
 
 function onError(error) {
@@ -114,11 +134,40 @@ function onError(error) {
  */
 
 function onListening() {
-  var addr = server.address();
+  //  var addr = server.address();
+  //  var bind = typeof addr === 'string'
+  //    ? 'pipe ' + addr
+  //    : 'port ' + addr.port;
+  //    console.log(`Listening on http://localhost:${addr.port} pid = ${process.pid}`);
+  //  debug('Listening on ' + bind);
+  var addr = serverhttps.address();
   var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-    console.log(`Listening on http://localhost:${addr.port} pid = ${process.pid}`);
+   ? 'pipe ' + addr
+    : 'port ' + 443;
+    console.log(`Listening on https://${networkip()}:${addr.port} pid = ${process.pid}`);
   debug('Listening on ' + bind);
+}
+
+function networkip() {
+  const networkInterfaces = require("os").networkInterfaces();
+  let ipAddress;
+
+  // Iterate through network interfaces to find the IPv4 address in the LAN
+  Object.keys(networkInterfaces).forEach(interfaceName => {
+    const interfaces = networkInterfaces[interfaceName];
+    for (let i = 0; i < interfaces.length; i++) {
+      const iface = interfaces[i];
+      if (iface.family === 'IPv4' && !iface.internal) {
+        ipAddress = iface.address;
+        break;
+      }
+    }
+  });
+
+  if (ipAddress) {
+    return ipAddress
+  } else {
+    return "127.0.0.1"
+  }
 }
 

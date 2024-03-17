@@ -2,3 +2,5 @@ node_modules/*
 .env
 src/tmp/*
 src/uploads/*
+keys/*
+src/public/*

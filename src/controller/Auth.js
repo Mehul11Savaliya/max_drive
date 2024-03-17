@@ -67,7 +67,7 @@ const auth_sign_up = async (req, res) => {
                 varified:false
             });
             await commssrv.send_otp_varify_msg(to,otp);
-            usersrv.delete_inactive_after(1000*60*3,ress.id,auth.id);
+            usersrv.delete_inactive_after(1000*60*10,ress.id,auth.id);
             res.cookie('jwt', tokens);
             res.status(201).json({
                 next: `/auth/${auth.id}/screen/varifyotp`

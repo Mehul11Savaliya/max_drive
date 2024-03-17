@@ -20,8 +20,8 @@ const insert_notification = async (type,data) => {
 }
 
 const get_notification=async(user)=>{
-    let con=null;
-    try {
+let con;    
+try {
          con = await mongosrv.connect();
         let collection = con.db.collection("notification");
         let res = await collection.find({["content.to"]:user.email}).sort({time:-1}).toArray();

@@ -21,7 +21,7 @@ const start=()=>{
             }).catch(erxr=>{
                 console.log("audit collection cleanup job error : ".bgBlue,erxr);
             })
-    }, 24*60*60*1000);
+    }, 24*60*60*1000); //1 day interval
 }
 
 start();

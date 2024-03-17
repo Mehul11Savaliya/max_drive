@@ -111,12 +111,15 @@
                      },
                      body : JSON.stringify(bodyx)
                   });
+                 
+		  
 
                   if(res.status!=201){
-                     document.querySelector('#errmsg').innerHTML=await res.text()+" | user already exist change some data";
+                     document.querySelector('#errmsg').innerHTML=" | user already exist change some data";
                   }
                   else{
-                     window.location.href= (await res.json()).next;
+		res =await res.json();
+                     window.location.href= res.next;
                   }
 
                // let texts  = await res.text();

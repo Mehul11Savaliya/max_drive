@@ -20,6 +20,20 @@
  
          <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
          <!-- <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script> -->
+	
+<meta property="article:published_time" content="2019-11-17T13:22:55+00:00" />
+<meta property="article:modified_time" content="2023-11-14T13:36:14+00:00" />
+<meta property="og:title" content="<%=data.file.metadata.name%>">
+<meta property="og:description" content="name : <%=data.file.metadata.name%> | type:<%=data.file.metadata.mimetype%> | downloads: <%=data.file.downloads%>  | like:<%=data.file.like%>">
+<meta property="og:image" content="/file/<%=data.file.id%>/content?type=thumb">
+<meta property="og:url" content="/share/file/<%=data.file.id%>">
+<meta property="og:site_name" content="maxdrive.kstar.us">
+<meta property="og:video" content="/file/<%=data.file.id%>/content">	
+
+<meta name="twitter:card" content="summary" />
+
+
+</head>
  <body class=" color-light ">
 
     <style>
@@ -153,7 +167,8 @@
                     <div class="card mb-2">
                         <div class="row no-gutters">
                            <div class="col-md-6 col-lg-4">
-                              <img onclick="file_download_functions_live('<%=data.file.id%>',event)" src="/assets/images/share-download.png" class="card-img" alt="downloadfile">
+                            <img onclick="file_download_functions_live('<%=data.file.id%>',event)" src="/assets/images/share-download.png" class="card-img" alt="downloadfile">
+  <!-- <video src="/file/123/content?type=full"></video>-->
                            </div>
                            <div class="col-md-6 col-lg-8">
                               <div class="card-body">
