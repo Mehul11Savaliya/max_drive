@@ -16,7 +16,6 @@
          <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
  
          <!-- new Vendors -->
-         <link rel="stylesheet" href="/assets/vendor/tagsinput/bootstrap-tagsinput.css">
          <!-- new Vendors -->
  
          <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
@@ -43,13 +42,13 @@
 
     <script> 
         var fileid  = "<%=data.file.id%>";
-        var filename  = "<%=data.file.metadata.name%>";
+        var file_name  = "<%=data.file.metadata.name%>";
        
     </script>
 
     <%
-        let date  = data.file.file_metadata.share_settings.available_date;
-        let time = data.file.file_metadata.share_settings.available_time;
+        let date  = data.file.permission.share_settings.available_date;
+        let time = data.file.permission.share_settings.available_time;
        // if(date==""){
        //     date  = Date.now();
        //}
@@ -154,7 +153,7 @@
                     <div class="card mb-2">
                         <div class="row no-gutters">
                            <div class="col-md-6 col-lg-4">
-                              <img onclick="getContent('<%=data.file.id%>')" src="/assets/images/share-download.png" class="card-img" alt="downloadfile">
+                              <img onclick="file_download_functions_live('<%=data.file.id%>',event)" src="/assets/images/share-download.png" class="card-img" alt="downloadfile">
                            </div>
                            <div class="col-md-6 col-lg-8">
                               <div class="card-body">
@@ -162,13 +161,19 @@
                                  <p class="card-text">Type : <%=data.file.metadata.mimetype%></p>
                                  <p class="card-text">Size : <%=(((data.file.metadata.size)/1024)/1024).toFixed(3)%> MB</p>
                                  <p class="card-text"><small class="text-muted">createdBy : <%=data.file.createdBy%></small></p>
-                                 <button onclick="getContent('<%=data.file.id%>')" type="button"  class="btn btn-success">Download</button>
+                                 <p class="card-text"><small class="text-muted">downloads : <%=data.file.downloads%></small></p>
+                                 <button onclick="file_download_functions_live('<%=data.file.id%>')" type="button"  class="btn btn-success">Download</button>
                               </div>
                            </div>
                         </div>
+                        <div class="col-lg-12 col-md-6 col-sm-6">
+                            <div class="row" id="downdisplay">
+                              
+                            </div>
+                        </div>
                      </div>
                 </div>
-                <div class="col-lg-4 col-md-6 col-sm-6"></div>
+                
              </div>
             </div>
          </div>
@@ -179,125 +184,205 @@
         if(data.user!=undefined&&data.file.createdBy==data.user.email){
             %>
             <script>
-                async function getContent(id) {
-                   try {
-                       id = Number.parseInt(id);
-                       let res = await fetch(`/file/${id}/content`,{
-                           method : "GET",
-                           headers:{
-                               "Accept":"*/*"
-                           }
-                       });
-                       if (res.status!=200) {
-                        throw new Error(res.statusText);
-                       }
-                      res.blob().then((resx)=>{
-                       const file = new File([resx], filename, { type: resx.type });
-           
-           
-           const downloadLink = document.createElement('a');
-           downloadLink.href = URL.createObjectURL(file);
-           downloadLink.download = filename; // Set the desired filename and extension
-           downloadLink.textContent = 'Download File';
-           
-           document.body.appendChild(downloadLink);
-           
-           // Clean up after the download link is clicked or no longer needed
-           downloadLink.addEventListener('click', () => {
-           //   URL.revokeObjectURL(blobUrl);
-             document.body.removeChild(downloadLink);
-           });
-           downloadLink.click();
-           });
-                   } catch (error) {
-                    alert(error.message)
-                    //  window.localStorage.href = window.localStorage.href;  
-                   } 
-                   }
-               </script>
+                         async function file_download_functions_live(fileid,finame=undefined) {
+    if (fileid!=undefined) {
+            let controls = document.querySelector("#downdisplay");
+            controls.innerHTML=`<progress id="downloadProgress" value="0" max="100"></progress><br>
+            <span id="progressText">0%</span><br>
+            <span id="downloadSpeed">0 KB/s</span><br>
+            <span id="remainingTime">Calculating...</span>`;
+
+            const downloadProgress = document.getElementById('downloadProgress');
+            const progressText = document.getElementById('progressText');
+            const downloadSpeed = document.getElementById('downloadSpeed');
+            const remainingTime = document.getElementById('remainingTime');
+    
+                const start = Date.now();
+    
+                fileid = Number.parseInt(fileid);
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `/file/${fileid}/content?type=full`,true);
+                xhr.responseType = 'blob';
+                xhr.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const percentage = (event.loaded / event.total) * 100;
+                        downloadProgress.value = percentage;
+                        progressText.textContent = `${percentage.toFixed(2)}%`;
+    
+                        const currentTime = new Date().getTime();
+                        const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                        const downloadRate = (event.loaded / elapsedTime);
+                        downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+    
+                        const remainingBytes = event.total - event.loaded;
+                        const remainingTimeInSeconds = remainingBytes / downloadRate;
+                        const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                        const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                        remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+                    }
+                });
+                const startTime = new Date().getTime();
+                xhr.send();
+                xhr.onreadystatechange =async function() {
+                    if (xhr.status!=200) {
+                        return alert(JSON.parse(await xhr.response.text()).errmsg)
+                    }
+                  if (xhr.readyState === 4 && xhr.status === 200) {
+                        const blob = xhr.response;
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = URL.createObjectURL(blob);
+                        downloadLink.download = file_name;
+                        downloadLink.style.display = 'none';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        downloadLink.onclick=function () {
+                            document.body.removeChild(downloadLink);
+                        }
+                    }
+                };
+        }
+    }
+           </script>
             <%
         }
-        if(data.file.password!=null){
+      else if(data.file.password!=null){
             %>
             <script>
-                var res;
-                async function getContent(id) {
-                    let password = prompt("enter password..");
-                   try {
-                       id = Number.parseInt(id);
-                        res = await fetch(`/file/${id}/content?password=${password}`,{
-                           method : "GET",
-                           headers:{
-                               "Accept":"*/*"
-                           }
-                       });
-                       if (res.status!=200) {
-                        throw new Error(res.statusText);
-                       }
-                      res.blob().then((resx)=>{
-                       const file = new File([resx], filename, { type: resx.type });
-           
-           
-           const downloadLink = document.createElement('a');
-           downloadLink.href = URL.createObjectURL(file);
-           downloadLink.download = filename; // Set the desired filename and extension
-           downloadLink.textContent = 'Download File';
-           
-           document.body.appendChild(downloadLink);
-           
-           // Clean up after the download link is clicked or no longer needed
-           downloadLink.addEventListener('click', () => {
-           //   URL.revokeObjectURL(blobUrl);
-             document.body.removeChild(downloadLink);
-           });
-           downloadLink.click();
-           });
-                   } catch (error) {
-                    alert(error.message)
-                   } 
-                   }
-              
+
+async function file_download_functions_live(fileid,finame=undefined) {
+    let password=undefined;
+    function getPass() {
+        let password = prompt("enter password..");
+        if (password=="") {
+            getPass();
+        }
+        return password;
+    }
+ 
+                password = getPass();
+    if (fileid!=undefined) {
+            let controls = document.querySelector("#downdisplay");
+            controls.innerHTML=`<progress id="downloadProgress" value="0" max="100"></progress><br>
+            <span id="progressText">0%</span><br>
+            <span id="downloadSpeed">0 KB/s</span><br>
+            <span id="remainingTime">Calculating...</span>`;
+
+            const downloadProgress = document.getElementById('downloadProgress');
+            const progressText = document.getElementById('progressText');
+            const downloadSpeed = document.getElementById('downloadSpeed');
+            const remainingTime = document.getElementById('remainingTime');
+    
+                const start = Date.now();
+    
+                fileid = Number.parseInt(fileid);
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `/file/${fileid}/content?password=${password}`,true); // Replace 'sample.txt' with the actual file URL
+                xhr.responseType = 'blob';
+                xhr.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const percentage = (event.loaded / event.total) * 100;
+                        downloadProgress.value = percentage;
+                        progressText.textContent = `${percentage.toFixed(2)}%`;
+    
+                        const currentTime = new Date().getTime();
+                        const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                        const downloadRate = (event.loaded / elapsedTime);
+                        downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+    
+                        const remainingBytes = event.total - event.loaded;
+                        const remainingTimeInSeconds = remainingBytes / downloadRate;
+                        const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                        const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                        remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+                    }
+                });
+                const startTime = new Date().getTime();
+                xhr.send();
+                xhr.onreadystatechange =async function() {
+                    if (xhr.status!=200) {
+                        return alert(JSON.parse(await xhr.response.text()).errmsg)
+                    }
+                  if (xhr.readyState === 4 && xhr.status === 200) {
+                        xhr.responseType = 'application/json';
+                        const blob = xhr.response;
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = URL.createObjectURL(blob);
+                        downloadLink.download = file_name; // Specify the desired filename
+                        // Simulate a click on the download link to trigger the download
+                        downloadLink.style.display = 'none'; // Hide the link
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        downloadLink.onclick=function () {
+                            document.body.removeChild(downloadLink);
+                        }
+                    }
+                };
+        }
+    }
         </script>
             <%
         }
         else{
             %>
             <script>
-                async function getContent(id) {
-                   try {
-                       id = Number.parseInt(id);
-                       let res = await fetch(`/file/${id}/content`,{
-                           method : "GET",
-                           headers:{
-                               "Accept":"*/*"
-                           }
-                       });
-                       if (res.status!=200) {
-                        throw new Error(res.statusText);
-                       }
-                      res.blob().then((resx)=>{
-                       const file = new File([resx], filename, { type: resx.type });
-           
-           
-           const downloadLink = document.createElement('a');
-           downloadLink.href = URL.createObjectURL(file);
-           downloadLink.download = filename; // Set the desired filename and extension
-           downloadLink.textContent = 'Download File';
-           
-           document.body.appendChild(downloadLink);
-           
-           // Clean up after the download link is clicked or no longer needed
-           downloadLink.addEventListener('click', () => {
-           //   URL.revokeObjectURL(blobUrl);
-             document.body.removeChild(downloadLink);
-           });
-           downloadLink.click();
-           });
-                   } catch (error) {
-                    alert(error.message)
-                    //  window.localStorage.href = window.localStorage.href;  
-                   } 
-                   }
+                   async function file_download_functions_live(fileid,finame=undefined) {
+    if (fileid!=undefined) {
+            let controls = document.querySelector("#downdisplay");
+            controls.innerHTML=`<progress id="downloadProgress" value="0" max="100"></progress><br>
+            <span id="progressText">0%</span><br>
+            <span id="downloadSpeed">0 KB/s</span><br>
+            <span id="remainingTime">Calculating...</span>`;
+
+            const downloadProgress = document.getElementById('downloadProgress');
+            const progressText = document.getElementById('progressText');
+            const downloadSpeed = document.getElementById('downloadSpeed');
+            const remainingTime = document.getElementById('remainingTime');
+    
+                const start = Date.now();
+    
+                fileid = Number.parseInt(fileid);
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `/file/${fileid}/content?type=full`,true);
+                xhr.responseType = 'blob';
+                xhr.addEventListener('progress', (event) => {
+                    if (event.lengthComputable) {
+                        const percentage = (event.loaded / event.total) * 100;
+                        downloadProgress.value = percentage;
+                        progressText.textContent = `${percentage.toFixed(2)}%`;
+    
+                        const currentTime = new Date().getTime();
+                        const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                        const downloadRate = (event.loaded / elapsedTime);
+                        downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+    
+                        const remainingBytes = event.total - event.loaded;
+                        const remainingTimeInSeconds = remainingBytes / downloadRate;
+                        const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                        const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                        remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+                    }
+                });
+                const startTime = new Date().getTime();
+                xhr.send();
+                xhr.onreadystatechange = async function() {
+                    if (xhr.status!=200) {
+                        return alert(JSON.parse(await xhr.response.text()).errmsg)
+                    }
+                  if (xhr.readyState === 4 && xhr.status === 200) {
+                        const blob = xhr.response;
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = URL.createObjectURL(blob);
+                        downloadLink.download = file_name;
+                        downloadLink.style.display = 'none';
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        downloadLink.onclick=function () {
+                            document.body.removeChild(downloadLink);
+                        }
+                    }
+                };
+        }
+    }
                </script>
             <%
         }
@@ -334,6 +419,9 @@
         <%
     }
     %>
+
+    
+
     <!-- Wrapper End-->
     <footer class="iq-footer">
         <div class="container-fluid">

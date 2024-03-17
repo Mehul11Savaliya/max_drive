@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  
+<!-- admin user list -->
+<head>
+    <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title>MaxDrive | User list</title>
+      
+   <!-- Favicon -->
+   <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+       
+   <link rel="stylesheet" href="/assets/css/backend-plugin.min.css">
+   <link rel="stylesheet" href="/assets/css/backende209.css?v=1.0.0">
+
+    <!-- new Vendors -->
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+    <script src="/assets/vendor/timeline-slider/jquery.roadmap.min.js"></script>
+     <link rel="stylesheet" href="/assets/vendor/tagsinput/bootstrap-tagsinput.css">
+     <link rel="stylesheet" href="/assets/vendor/timeline-master/style.css">
+     <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
+     <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
+     <script src="/assets/vendor/socketio/socket.io.min.js"></script>
+         <link href="https://cdn.datatables.net/v/dt/dt-1.13.6/datatables.min.css" rel="stylesheet">
+         <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+     <!-- new Vendors -->
+    </head>
+  <body class=" color-light ">
+    <!-- loader Start -->
+    <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+    <!-- loader END -->
+
+    <!-- nav scriot -->
+    <script>
+        var admin_user_list  = true;
+        var table = null;
+                    $(document).ready(function() {
+           table =  $('#list').DataTable({
+                responsive: true,
+                scrollX: true,
+                header: true
+            });
+        });
+    </script>
+    <!-- nav scriot -->
+
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+      
+        <%-include('components/sidebar.ejs',{}) -%>
+            <div class="iq-top-navbar">
+                <%-include('components/header.ejs',{}) -%>
+      </div>
+      <div class="content-page">
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-lg-12">
+                <table id="list" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>First name</th>
+                            <th>Last name</th>
+                            <th>user name</th>
+                            <th>email</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <%for(user of data.list){%>
+                            <tr>
+                                <td><%=user.id%></td>
+                                <td><%=user.first_name%></td>
+                                <td><%=user.last_name%></td>
+                                <td><%=user.username%></td>
+                                <td><%=user.email%></td>
+                                <td>Active</td>
+                            </tr>
+                            <%}%>
+                    </tbody>
+                </table>
+            </div>
+         </div>
+      </div>
+      </div>
+    </div>
+    <!-- Wrapper End-->
+    <%-include('components/footer.ejs',{}) -%>
+    <!-- Backend Bundle JavaScript -->
+    <script src="/assets/js/backend-bundle.min.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script src="/assets/js/customizer.js" defer></script>
+    
+   
+    <!-- app JavaScript -->
+    <script src="/assets/js/app.js" defer></script>
+    <script src="/assets/js/doc-viewer.js" defer></script>
+  </body>
+
+<!-- admin user list -->
+</html>

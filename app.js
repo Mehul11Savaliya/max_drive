@@ -1,4 +1,5 @@
 require("dotenv").config();
+var colors = require('colors');
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -18,9 +19,17 @@ const Share = require('./src/routes/Share');
 const Master  = require('./src/routes/Master');
 const Explore  = require("./src/routes/Explore");
 const Analytics = require("./src/routes/Analytics");
+const Test = require("./src/routes/Test");
+const Rooms = require("./src/routes/Rooms");
+const Bugs = require("./src/routes/Bugs");
+const Admin = require("./src/routes/Admin");
+const LUpload = require("./src/routes/LUpload");
+
+const auditsrv = require("./src/services/Audit");
 
 var app = express();
 
+colors.enable();
 // view engine setup
 app.set('views', path.join(__dirname, './src/views'));
 app.set('view engine', 'ejs');
@@ -42,8 +51,20 @@ app.use(logger(function (tokens, req, res) {
     tokens.res(req, res, 'content-length'), '-',
     tokens['response-time'](req, res), 'ms',
     `pid = ${process.pid}`
-  ].join(' ')
+  ].join(' ').red
 }));
+
+app.use(async(req,res,next)=>{
+  let urlsp = req.url.split("/");
+  if (urlsp[1]!="assets"||urlsp[1]!="src") {
+    try {
+      await auditsrv.set_page_by_user(urlsp,req.ip);
+    } catch (error) {
+      console.error("not able to audit : ",error.message);
+    }
+  }
+  next();
+})
 // app.use(express.json());
 app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: false }));
@@ -51,11 +72,16 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, './src/public/'),{
   maxAge:"1day"
 }));
+app.use("/roomsthumb",express.static(path.join(__dirname,"./src/uploads/roomst")));
 app.use("/src/main.js",express.static(path.join(__dirname,"./src/public/assets/js/main.js")));
 app.use('/assets',express.static(path.join(__dirname,'./src/public/asset/')));
 app.use("/uploads",express.static(path.join(__dirname,"./src/uploads/")));
-app.use(fileUpload({
-  useTempFiles : false,
+app.use("/folder",fileUpload({
+  useTempFiles : true,
+  tempFileDir : './src/tmp'
+}));
+app.use("/file",fileUpload({
+  useTempFiles : true,
   tempFileDir : './src/tmp'
 }));
 
@@ -70,6 +96,11 @@ app.use('/share',Share);
 app.use('/master',Master);
 app.use("/explore",Explore);
 app.use("/analytics",Analytics);
+app.use("/rooms",Rooms);
+app.use("/bugs",Bugs);
+app.use("/admin",Admin);
+app.use("/large-upload",LUpload);
+// app.use("/test",Test);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

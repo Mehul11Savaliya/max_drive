@@ -16,8 +16,22 @@ const Auth = sq.define('auth',{
         onDelete:'CASCADE',
         onUpdate:'CASCADE'
     },
+    otp:{
+        type:DataTypes.STRING(6)
+    },
+    attempts:{
+        type:DataTypes.JSONB
+    },
+    varified:{
+        type:DataTypes.BOOLEAN
+    },
     refresh_toke:{
         type : DataTypes.STRING(400)
+    },
+    role:{
+        type : DataTypes.STRING,
+        values:["admin","user","other"],
+        defaultValue:"user"
     }
 },{
     freezeTableName:true

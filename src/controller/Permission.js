@@ -1,4 +1,5 @@
 const filemetadatsrv = require("../services/FileMetadata");
+const permissionsrv = require("../services/Permission");
 
 const get_germissions = (req, res) => {
     res.status(503).send();
@@ -54,8 +55,8 @@ const post_file_metadata = async (req, res) => {
 
 const patch_file_metadata = async (req, res) => {
     try {
-        // let {email}= req.user_data;
-        let email = "svlmehul@gmail.com";
+        let {email}= req.user_data;
+        // let email = "svlmehul@gmail.com";
         let obj = {};
         let { sharewith, available_time, availabel_date, max_limit, make_public, unlimited_access } = req.body;
         let { id } = req.params;
@@ -96,10 +97,74 @@ const delete_file_metadata = async (req, res) => {
     }
 }
 
+const patch_folder_sharedata=async(req,res)=>{
+    try {
+        let {id}=req.params;
+        if (id==undefined) {
+            throw new Error(`folder id not provided..`)
+        }
+        let ress = await permissionsrv.update_type_id({folder:id},req.body,req.user_data);
+        res.status(200).json(ress);
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+    }
+}
+
+const get_folder_sharedata=async(req,res)=>{
+    try {
+        let {id}=req.params;
+        if (id==undefined) {
+            throw new Error(`folder id not provided..`)
+        }
+        let ress = await permissionsrv.read_by_type_id({folder:id},req.user_data);
+        res.status(200).json(ress);
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+    }
+}
+
+const get_file_sharedata=async(req,res)=>{
+    try {
+        let {id}=req.params;
+        if (id==undefined) {
+            throw new Error(`file id not provided..`)
+        }
+        let ress = await permissionsrv.read_by_type_id({file:id},req.user_data);
+        res.status(200).json(ress);
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+    }
+}
+
+const patch_file_sharedata=async(req,res)=>{
+    try {
+        let {id}=req.params;
+        if (id==undefined) {
+            throw new Error(`file id not provided..`)
+        }
+        let ress = await permissionsrv.update_type_id({file:id},req.body,req.user_data);
+        res.status(200).json(ress);
+    } catch (error) {
+        res.status(400).json({
+            errmsg:error.message
+        })
+    }
+}
+
 module.exports = {
     get_germissions,
     get_file_metadata,
     post_file_metadata,
     patch_file_metadata,
-    delete_file_metadata
+    delete_file_metadata,
+    patch_folder_sharedata,
+    get_folder_sharedata,
+    patch_file_sharedata,
+    get_file_sharedata
 };

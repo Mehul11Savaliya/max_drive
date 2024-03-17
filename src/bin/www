@@ -15,26 +15,33 @@ const foldersrv  = require("../services/Folder.js");
 const filesrv  = require("../services/File.js");
 const filemetadatsrv  = require("../services/FileMetadata.js");
 const mastersrv  = require("../services/Master.js");
+const permissionsrv = require("../services/Permission.js");
+const roomsrv = require("../services/Rooms.js");
+const audit_jobs = require("../jobs/clean_audit_collection.js");
+const file_jobs = require("../jobs/clean_large_files.js");
 
 var app = require('../../app');
 var debug = require('debug')('cloud-storage:server');
 var http = require('http');
 const { start_socket } = require("../config/socketio.js");
 
-
-
 var port = normalizePort(process.env.PORT);
 app.set('port', port);
 
 (async function () {
-  // testDbConnection();
+  testDbConnection();
   // await sq.sync({alter:true})
-  // await usersrv.sync();
-  // await authsrv.sync();
-  // await foldersrv.sync();
-  // await filesrv.sync();
+  // await usersrv.sync({force:true});
+  // await authsrv.sync({force:true});
+  // await foldersrv.sync({alter:true});
+  // await filesrv.sync({ alter: true });
   // await filemetadatsrv.sync();
   // await mastersrv.sync();
+  // await permissionsrv.sync({alter:true});
+  // await roomsrv.sync({force:true});
+  
+  audit_jobs.start();
+  file_jobs.file_cleanup(24*60*60*1000);
 })()
 
 // const cpunum  = os.cpus().length;

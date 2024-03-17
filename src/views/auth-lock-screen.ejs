@@ -1,0 +1,96 @@
+
+
+
+<!doctype html>
+<html lang="en">
+  
+<!-- Mirrored from templates.iqonic.design/cloudbox/html/backend/auth-lock-screen.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 28 Jun 2023 08:26:20 GMT -->
+<head>
+    <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title><%=data.name%> | VarifyOTP</title>
+      
+          <!-- Favicon -->
+          <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+      
+          <link rel="stylesheet" href="/assets/css/backend-plugin.min.css">
+          <link rel="stylesheet" href="/assets/css/backende209.css?v=1.0.0">
+         
+         </head>
+  <body class=" ">
+    <!-- loader Start -->
+    <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+    <!-- loader END -->
+    
+      <div class="wrapper">
+      <section class="login-content">
+         <div class="container h-100">
+            <div class="row justify-content-center align-items-center height-self-center">
+               <div class="col-md-5 col-sm-12 col-12 align-self-center">
+                  <div class="sign-user_card">
+                        <img src="/assets/images/logo.png" class="img-fluid rounded-normal light-logo logo" alt="logo">
+                        <!-- <img src="/assets/images/logo-white.png" class="img-fluid rounded-normal darkmode-logo logo" alt="logo"> -->
+                     <h2 class="mb-3">Henlo! Varify Yourself.</h2>
+                     <p>Enter your OTP to varify which you recieved on registered email <span style="color: red;"><%=data.auth.email%></span></p>
+                     <form id="varifyform">
+                        <div class="row">
+                           <div class="col-lg-12">
+                              <div class="floating-label form-group">
+                                 <input class="floating-input form-control" name="otp" type="text" placeholder=" ">
+                                 <input type="hidden" name="id" value="<%=data.auth.id%>">
+                                 <label>OTP</label>
+                              </div>
+                           </div>
+                        </div>
+                        <p>Attempts left : <span style="color: red;" id="attempts"><%=data.auth.attempts.varify%></span></p>
+                        <p><span style="color: red;" id="otpmsg"></span></p>
+                     </form>
+                    <button onclick="varify()" class="btn btn-primary">Varify</button>
+                    <button onclick="semd_otp()" class="btn btn-primary">Send Again</button>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <script>
+           async function varify() {
+               let form = document.querySelector("#varifyform");
+               form = new FormData(form);
+               let res = await fetch("/auth/varifyotp",{
+                  method:"POST",
+                  body:form
+               });
+               if (res.status!=200) {
+                  window.location.href=window.location;
+               }
+               else{
+                  let body = await res.json();
+                  window.location.href = body.next;
+               }
+            }
+
+            async  function semd_otp(){
+               let res = await fetch("/auth/<%=data.auth.id%>/sendotp",{
+                  method:"GET"
+               });
+               if (res.status!=200) {
+                  document.querySelector("#otpmsg").textContent = await res.text();
+               }
+               else{
+                  document.querySelector("#otpmsg").textContent = await res.text();
+               }
+            }
+         </script>
+      </section>
+      </div>
+      <!-- Backend Bundle JavaScript -->
+      <script src="/assets/js/backend-bundle.min.js"></script>
+   
+      <!-- app JavaScript -->
+      <script src="/assets/js/app.js" defer></script>
+   </body>
+
+<!-- Mirrored from templates.iqonic.design/cloudbox/html/backend/auth-lock-screen.html by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 28 Jun 2023 08:26:20 GMT -->
+</html>

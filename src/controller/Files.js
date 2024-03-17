@@ -8,6 +8,9 @@ const commssrv = require("../services/Communication");
 const metadatasrv = require("../services/FileMetadata");
 const tokensrv = require("../services/Token");
 const usersrv = require("../services/User");
+const permissionsrv = require("../services/Permission");
+const notificationsrv = require("../services/notification");
+
 
 const filehandler = require("../services/FileHandler");
 const uuid = require("uuid");
@@ -15,6 +18,7 @@ const { generategeneralData } = require("../utils/PageData");
 
 const post_files = async (req, res) => {
     try {
+        // console.log(req);
         if (req.files == null)
             throw new Error(`file not provided..`);
 
@@ -31,10 +35,19 @@ const post_files = async (req, res) => {
             metadata.encoding = files.encoding;
             metadata.mimetype = files.mimetype;
             metadata.checksum = files.md5;
-
+             if(["exe","sh","bash","bat"].includes(ext)) throw new Error(`invalid file format`);
             try {
                 let name = uuid.v4() + "." + ext;//Date.now() + metadata.name;
-                let pathx = filehandler.move_file_to(files.data, `../uploads/${name}`);
+
+                // let pathx = filehandler.move_file_to(files.data, `../uploads/${name}`);
+                let pathx = '/uploads/' + name;
+                files.mv(path.join(__dirname, ".." + pathx), (err) => {
+                    if (err) {
+                        console.log("err : " + err)
+                    } else {
+                        console.log("uploaded..");
+                    }
+                })
                 metadata = { ...metadata, path: pathx };
                 console.log("path is : ", pathx);
                 let file = {
@@ -45,7 +58,7 @@ const post_files = async (req, res) => {
                     tags: [metadata.name]
                 }
                 let resp = await service.create(file);
-                await metadatasrv.create(genBlankMetadaObject(resp));
+                await permissionsrv.create({ createdBy: resp.createdBy, file: resp.id });
                 arr.push(resp);
             } catch (error) {
                 console.log(error);
@@ -63,11 +76,20 @@ const post_files = async (req, res) => {
                 metadata.encoding = filex.encoding;
                 metadata.mimetype = filex.mimetype;
                 metadata.checksum = filex.md5;
+                if(["exe","sh","bash","bat"].includes(ext)) throw new Error(`invalid file format`);
                 try {
                     let name = uuid.v4() + "." + ext;//Date.now() + metadata.name;
-                    let pathx = filehandler.move_file_to(filex.data, `../uploads/${name}`);
-                    console.log("path is : ", pathx);
-                    // metadata['path'] = pathx;
+                    // let pathx = filehandler.move_file_to(filex.data, `../uploads/${name}`);
+                    // console.log("path is : ", pathx);
+                    // // metadata['path'] = pathx;
+                    let pathx = '/uploads/' + name;
+                    filex.mv(path.join(__dirname, ".." + pathx), (err) => {
+                        if (err) {
+                            console.log("err : " + err)
+                        } else {
+                            console.log("uploaded..");
+                        }
+                    });
                     metadata = { ...metadata, path: pathx };
 
                     let file = {
@@ -79,7 +101,7 @@ const post_files = async (req, res) => {
                     }
 
                     let resp = await service.create(file);
-                    await metadatasrv.create(genBlankMetadaObject(resp));
+                    await permissionsrv.create({ createdBy: resp.createdBy, file: resp.id });
                     arr.push(resp);
                 } catch (error) {
                     console.log(error);
@@ -87,7 +109,6 @@ const post_files = async (req, res) => {
 
             }
         }
-        console.log(arr);
         res.status(201).json(arr);
     } catch (error) {
         console.log(error);
@@ -104,7 +125,7 @@ const get_all_folder_file = async (req, res) => {
         let files = await service.get_files_from_folder(Number.parseInt(folder));
         res.status(200).json(files);
     } catch (error) {
-        console.log("err",error);
+        console.log("err", error);
         res.status(400).json({
             errmsg: error.message
         });
@@ -113,22 +134,27 @@ const get_all_folder_file = async (req, res) => {
 
 const get_file = async (req, res) => {
     try {
+        let notification = await notificationsrv.get_notification(req.user_data);
+  
         let { id } = req.params;
         if (id == undefined) throw new Error(`file id not provided..`)
         let resx = await service.get_by_id(id, req.user_data);
         resx.metadata.size = (((resx.metadata.size) / 1024) / 1024).toFixed(3);
-        let folder = await foldersrv.get_by_id(resx.folder);
+        let folder = await foldersrv.get_by_id(resx.folder, req.user_data);
+        // console.log(folder);
         resx.folder = folder;
-        console.log(resx);
+        // console.log(resx);
         res.status(200).render('page-file-view.ejs', {
             data: {
                 ...req.user_data,
                 ...generategeneralData(),
-                file: { ...resx }
+                file: { ...resx },
+            notification : notification
 
             }
         });
     } catch (error) {
+        console.log(error);
         res.status(400).send(error.message);
     }
 }
@@ -146,85 +172,62 @@ const delete_file = async (req, res) => {
 }
 
 const get_file_content = async (req, res) => {
-     try {
-    let { id } = req.params;
-    let {type} = req.query;
-    if (type==undefined) {
-        type = "full"
-    }
-    else  if (["full","thumb"].includes(type)) {
-            type  = type;
+    try {
+        let { id } = req.params;
+        let { type } = req.query;
+        if (type == undefined) {
+            type = "full"
         }
-    else{
-        type = "full";
-    }
+        else if (["full", "thumb"].includes(type)) {
+            type = type;
+        }
+        else {
+            type = "full";
+        }
 
-    let file = req.file_info;
-
-    let share_settings = file.file_metadata.share_settings;
-    let pth = path.join(__dirname, ".." + file.metadata.path);
-    if (share_settings.is_public) {
-        if (file.metadata.mimetype.split("/")[0] == "image" && type=="thumb") {
+        let file = req.file_info;
+        let pth = path.join(__dirname, ".." + file.metadata.path);
+        if (file.metadata.mimetype.split("/")[0] == "image" && type == "thumb") {
             filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
-                if (err!=null) {
-                    sendError(res, err)
+                if (err != null) {
+                    return sendError(res, err)
                 } else {
                     res.set('Content-Type', 'image/webp');
                     res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
-                  return  res.status(200).send(data);
+                    return res.status(200).send(data);
                 }
             })
-        }else{
-         res.status(200).sendFile(pth, (err) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send();
-            } else {
-                console.log(`file ${pth} sended..`);
-            }
-        });
-    }
-    }
-    else {
-        try {
-           
-            let { email } = req.user;
-            // console.log(share_settings.share_with,typeof share_settings.share_with);
-            if (share_settings.share_with.includes(email) || email == file.createdBy) {
-                // res.status(200).send("u hab access");
-                // res.status(200).json(file)
-                if (file.metadata.mimetype.split("/")[0] == "image"  && type=="thumb") {
-                    filehandler.gen_thumb_nail(pth, 460, 300, (err, data) => {
-                        if (err) {
-                            sendError(res, err)
-                        } else {
-                            res.set('Content-Type', 'image/webp');
-                            res.set('Content-Disposition', `inline; filename=${file.metadata.name}.webp`);
-                          return  res.status(200).send(data);
-                        }
-                    })
-                }else{
-            return   res.status(200).sendFile(pth, (err) => {
-                    if (err) {
-                        console.log(err);
-                        res.status(500).send();
-                    } else {
-                        console.log(`file ${pth} sended..`);
-                    }
-                });
-            }
-            } else {
-                // res.status(200).send("u dont hab access");
-                res.status(401).send();
-            }
+        } else {
+            // res.set('Content-Disposition', `attachment; filename=${file.metadata.name}`);
+            // fs.createWriteStream(path.join(__dirname,'..'+file.metadata.path)).pipe(res);
 
-        } catch (error) {
-            res.status(401).send();
+            res.set('Content-Type', file.metadata.mimetype);
+            res.set('Content-Disposition', `attachment; filename=${file.metadata.name}`);
+            res.set('Content-Length', file.metadata.size);
+
+          let rfs  =  fs.createReadStream(pth);
+          rfs.pipe(res);
+        //   rfs.on("data",(chuk)=>{
+        //     console.log(chuk);
+        //   })
+          rfs.on('error', (err) => {
+            console.error('Error streaming file:', err);
+            res.status(500).end('Internal Server Error');
+          });
+            // return res.status(200).sendFile(pth, (err) => {
+            //     if (err) {
+            //         console.log(err);
+            //         res.status(500).send();
+            //     } else {
+            //         console.log(`file ${pth} sended..`);
+            //     }
+            // });
         }
+
+    } catch (error) {
+        console.log(error)
+        res.status(400).send();
     }
-}catch(error){
-    res.status(400).send();
-}
 }
 
 const get_crypto_file = async (req, res) => {
@@ -273,6 +276,7 @@ const get_crypto_file = async (req, res) => {
             });
         });
     } catch (error) {
+        console.log(error);
         res.status(400).json({
             errmsg: error.message
         });
@@ -353,6 +357,32 @@ function sendError(res, err) {
     })
 }
 
+const get_range = async (req, res) => {
+    try {
+        let { from, to, favorite, fromtime, totime } = req.query;
+        console.log(req.query);
+        let resx;
+        from = Number.parseInt(from);
+        to = Number.parseInt(to);
+        // console.log(isNaN(from));
+        // if (isNaN(from) || isNaN(to)) {
+        //     throw new Error(`invaid request..`);
+        // }
+
+        if ((fromtime != undefined && fromtime != '') && (totime != undefined && totime != ''))
+            resx = await service.get_recent(fromtime, totime, req.user_data);
+        else if (favorite != undefined && favorite == "true")
+            resx = await service.get_in_range(from, to, req.user_data, false, true);
+        else if (!isNaN(from) || !isNaN(to)) resx = await service.get_in_range(from, to, req.user_data);
+        else throw new Error(`invalid request`)
+        res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg: error.message
+        })
+    }
+}
+
 module.exports = {
     post_files,
     get_all_folder_file,
@@ -361,7 +391,8 @@ module.exports = {
     get_file_content,
     get_crypto_file,
     post_decrypt_file,
-    patch_file
+    patch_file,
+    get_range
 }
 
 function genBlankMetadaObject(filedata) {

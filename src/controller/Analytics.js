@@ -1,5 +1,6 @@
 const service = require("../services/Analytics");
 const fileauditsrv = require("../services/FileAudit");
+const folderauditsrv = require("../services/FolderAudit");
 
 const under_dev=(req,res)=>{
     res.status(503).send();
@@ -126,6 +127,31 @@ const get_upsanddown=async(req,res)=>{
     }
 }
 
+const get_folder_audit=async(req,res)=>{
+    try {
+        let {id} = req.params;
+        if (id==undefined) {
+            throw new Error(`invalid request..`);
+        }
+        id = Number.parseInt(id);
+        let resx  = await folderauditsrv.get_folder_timeline(id,req.user_data);
+        resx = resx.map((val)=>{
+            return {
+                user : val.user,
+                time : val.time,
+                folderid : val.folderid,
+                message : val.msg,
+                author :val.author
+            }
+        })
+        res.status(200).json(resx);
+    } catch (error) {
+        res.status(400).json({
+            errmsg : error.message
+        })
+    }
+}
+
 module.exports={
     under_dev,
     get_file_list,
@@ -134,7 +160,8 @@ module.exports={
     get_storage_usage_stats,
     get_file_search,
     get_file_audit,
-    get_upsanddown
+    get_upsanddown,
+    get_folder_audit
 }
 
 function check_gap(gap) {

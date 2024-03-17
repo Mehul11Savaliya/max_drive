@@ -34,6 +34,8 @@
     <!-- new-vender -->
     <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+
+    <script src="/assets/vendor/socketio/socket.io.min.js"></script>
     <!-- new-vender -->
 </head>
   <body class="  ">
@@ -45,8 +47,8 @@
     <!-- loader END -->
   <script>
     var index_page = true;
+    var user_email = '<%-data.email%>';
   </script>
-
     <!-- Wrapper Start -->
     <div class="wrapper">
       
@@ -67,30 +69,32 @@
                                     <span class="caret"><!--icon--></span>
                                     </div>
                                     <ul class="dropdown-menu">
-                                        <li><div class="item"><i class="ri-folder-add-line pr-3"></i>New Folder</div></li>
-                                        <li><div class="item"><i class="ri-file-upload-line pr-3"></i>Upload Files</div></li>
-                                        <li><div class="item"><i class="ri-folder-upload-line pr-3"></i>Upload Folders</div></li>
+                                        <li><div onclick="createFolder()" class="item"><i class="fa-solid fa-folder-plus"></i>New Folder</div></li>
+                                        <li><div onclick="upload_file()" class="item"><i class="fa-solid fa-arrow-up-from-bracket"></i>Upload Files</div></li>
+                                        <li><div onclick="upload_folder()" class="item"><i class="fa-solid fa-up-long"></i>Upload Folders</div></li>
                                     </ul>
                                 </div>
                             </div>
                             <div class="dashboard1-dropdown d-flex align-items-center">
                                 <div class="dashboard1-info">
-                                    <a href="#calander" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                        <i class="ri-arrow-down-s-line"></i>
+                                    <a href="#exp" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                        <i class="fa-solid fa-plus"></i>
                                     </a>
-                                    <ul id="calander" class="iq-dropdown collapse list-inline m-0 p-0 mt-2">
+                                    <ul id="exp" class="iq-dropdown collapse list-inline m-0 p-0 mt-2">
                                         <li class="mb-2">
-                                            <a href="#" data-toggle="tooltip" data-placement="right" title="Calander">
-                                                <i class="fa-solid fa-calendar-days"></i>
+                                            <a onclick="createFolder()" data-toggle="tooltip" data-placement="right" title="create folder">
+                                                <i class="fa-solid fa-folder-plus"></i>
                                             </a>
                                         </li>
                                         <li class="mb-2">
-                                            <a href="#" data-toggle="tooltip" data-placement="right" title="Keep">
-                                                <i class="fa-solid fa-lightbulb"></i>
+                                            <a onclick="upload_file()" data-toggle="tooltip" data-placement="right" title="upload file">
+                                                <i class="fa-solid fa-file-import"></i>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" data-toggle="tooltip" data-placement="right" title="Tasks"><i class="fa-solid fa-list-check"></i></a>
+                                            <a onclick="upload_folder()" data-toggle="tooltip" data-placement="right" title="upload folder">'
+                                                <i class="fa-solid fa-folder-tree"></i>
+                                            </a>
                                         </li>                                        
                                     </ul>
                                  </div>
@@ -104,7 +108,7 @@
                             <div class="d-flex flex-wrap align-items-center">
                                 <div class="col-lg-6 col-sm-6 p-0">
                                     <h3 class="mb-3">Welcome <%=data.first_name+" "+data.last_name%></h3>
-                                    <p class="mb-5">You have 32 new notifications and 23 unread messages to reply</p>
+                                    <p class="mb-5">You have <%=data.notification.count%>  new notifications. <span style="visibility: hidden;">and 23 unread messages to reply</span></p>
                                     <a href="#">Try Now<i class="las la-arrow-right ml-2"></i></a>
                                 </div>
                             </div>
@@ -121,11 +125,13 @@
                         <div class="card-body">
                             <ul class="list-inline p-0 mb-0 row align-items-center">
                                 <li class="col-lg-6 col-sm-6 mb-3 mb-sm-0"> 
-                                    <div data-load-file="file" data-load-target="#resolte-contaniner" data-url="/assets/vendor/doc-viewer/files/demo.pdf" data-toggle="modal" data-target="#exampleModal" data-title="Product-planning.pdf" style="cursor: pointer;" class="p-2 text-center border rounded">
+                                    <div  style="cursor: pointer;" class="p-2 text-center border rounded">
+                                        <a href="/large-upload">
                                         <div>
                                             <img src="/assets/images/layouts/mydrive/folder-1.png" class="img-fluid mb-1" alt="image1">
                                         </div>
-                                        <p class="mb-0">Planning</p>
+                                        <p class="mb-0">Large file upload</p>
+                                    </a>
                                     </div>
                                 </li>
                                 <li class="col-lg-6 col-sm-6"> 
@@ -238,7 +244,7 @@
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-6">
                                     <div class="media align-items-center">
-                                        <div class="icon iq-icon-box bg-light rounded icon-statistic">
+                                        <div class="icon iq-icon-box bg-success rounded icon-statistic">
                                             <i class="fa-solid fa-upload"></i>
                                         </div>
                                         <div class="media-body ml-3">

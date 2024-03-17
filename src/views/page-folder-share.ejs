@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title><%=data.name%> | <%=data.folder.name%></title>
+      
+       <!-- Favicon -->
+       <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+       
+       <link rel="stylesheet" href="/assets/css/backend-plugin.min.css">
+       <link rel="stylesheet" href="/assets/css/backende209.css?v=1.0.0">
+       
+       <!-- <link rel="stylesheet" href="/assets/vendor/%40fortawesome/fontawesome-free/css/all.min.css"> -->
+      <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+         <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+ 
+         <!-- new Vendors -->
+         <link href="https://cdn.datatables.net/v/dt/dt-1.13.6/datatables.min.css" rel="stylesheet">
+         <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+         <!-- new Vendors -->
+ 
+         <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
+         <!-- <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script> -->
+ <body class=" color-light ">
+
+    <style>
+        .countdown {
+  text-align: center;
+}
+
+.time {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+    </style>
+
+    <!-- loader Start -->
+    <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+    <!-- loader END -->
+
+    <script> 
+        var folder_id = "<%=data.folder.id%>";
+        var folder_name  = "<%=data.folder.name%>";
+        var table = null;
+                    $(document).ready(function() {
+           table =  $('#list').DataTable({
+                responsive: true,
+                scrollX: true,
+                header: true
+            });
+        });
+    </script>
+
+    <%
+        let date  = data.folder.permission.share_settings.available_date;
+        let time = data.folder.permission.share_settings.available_time;
+       // if(date==""){
+       //     date  = Date.now();
+       //}
+       // if(time==""){
+       //     time  = "00:00";
+       // }
+      let datex  = new Date(date);
+      datex.setHours(time.split(":")[0]);
+      datex.setMinutes(time.split(":")[1]);
+      let timeDifference = new Date() - datex;
+        %>
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+      
+          <div class="iq-top-navbar w-100">
+          <div class="iq-navbar-custom">
+              <nav class="navbar navbar-expand-lg navbar-light p-0">
+              <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
+                  <a href="/" class="header-logo">
+                      <img src="/assets/images/logo.png" class="img-fluid rounded-normal light-logo" alt="logo">
+                      <img src="/assets/images/logo-white.png" class="img-fluid rounded-normal darkmode-logo" alt="logo">
+                  </a>
+              </div>
+                  <div class="iq-search-bar device-search">
+                    <!-- //previous owner and tags -->
+                  
+                  </div>
+      
+                  <div class="d-flex align-items-center">
+                      <div class="change-mode">
+                          <div class="custom-control custom-switch custom-switch-icon custom-control-inline">
+                              <div class="custom-switch-inner">
+                                  <p class="mb-0"> </p>
+                                  <input type="checkbox" class="custom-control-input" id="dark-mode" data-active="true">
+                                  <label class="custom-control-label" for="dark-mode" data-mode="toggle">
+                                      <span class="switch-icon-left"><i class="fa-solid fa-sun"></i></span>
+                                      <span class="switch-icon-right"><i class="fa-solid fa-moon"></i></span>
+                                  </label>
+                              </div>
+                          </div>
+                      </div>
+                      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"  aria-label="Toggle navigation">
+                        <i class="fa-solid fa-bars"></i>
+                      </button>
+                      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        
+                          <ul class="navbar-nav ml-auto navbar-list align-items-center">
+                       
+                          <li class="nav-item nav-icon dropdown">
+                              <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fa-solid fa-question"></i>
+                              </a>
+                              <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton01">
+                                  <div class="card shadow-none m-0">
+                                      <div class="card-body p-0 ">
+                                          <div class="p-3">
+                                              <a href="#" class="iq-sub-card pt-0"><i class="fa-solid fa-handshake-angle"></i></i>Help</a>
+                                              <a href="#" class="iq-sub-card"><i class="fa-solid fa-train"></i>Training</a>
+                                              <a href="#" class="iq-sub-card"><i class="fa-solid fa-arrow-up"></i>Updates</a>
+                                              <a href="#" class="iq-sub-card"><i class="fa-solid fa-note-sticky"></i>Terms and Policy</a>
+                                              <a href="#" class="iq-sub-card"><i class="fa-solid fa-bullhorn"></i>Send Feedback</a>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="nav-item nav-icon dropdown"> 
+                              <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+                                <i class="fa-solid fa-gear"></i>
+                              </a>
+                              <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton02">
+                                  <div class="card shadow-none m-0">
+                                      <div class="card-body p-0 ">
+                                          <div class="p-3">
+                                             <a href="#" class="iq-sub-card"><i class="fa-solid fa-desktop"></i> Get Drive for desktop</a>
+                                         </div>                                
+                                      </div>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="nav-item nav-icon dropdown caption-content">
+                              <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton03" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+                                  <div class="caption bg-primary line-height">P</div>
+                              </a>
+                          </li>
+                          </ul>                     
+                      </div> 
+                  </div>
+              </nav>
+          </div>
+      </div>
+      <%
+      if(timeDifference>0||isNaN(timeDifference)){%>
+     
+      <div class="content-page">
+      <div class="container-fluid">
+        <br>
+        <div class="row">
+            <div class="col-lg-3 col-md-3 col-sm-2"></div>
+            <div class="col-lg-6 col-md-6 col-sm-8">
+                <%=data.folder.name%> (owner : <%=data.folder.createdBy%>)
+                <div class="tags">
+                    <%
+                    let tagc = ['primary','secondary','success','danger','warning','info','light']
+                    for(let tag of data.folder.tags){
+                    %>
+                    <span class="mt-2 badge badge-<%-tagc[Number.parseInt(Math.random()*(7)+0)]-%>"><%=tag%></span>
+                    <%
+                    }
+                    %>
+                </div>
+            </div>
+         
+            <div class="col-lg-3 col-md-3 col-sm-2"></div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-lg-3 col-md-3 col-sm-2"></div>
+            <div class="col-lg-6 col-md-6 col-sm-8">
+                <button class="btn btn-success" onclick="download_folder('<%-data.folder.id-%>','<%-data.folder.name-%>')">Download(Experimental)</button>
+                <script>
+                    async function download_folder(id, foldername = "bulk") {
+    id = Number.parseInt(id);
+    if (!isNaN(id)) {
+        Swal.fire({
+                title: `bulk(${foldername}) download..`,
+                html: `
+                  <div id="progress-container">
+                    <progress id="progress" max="100"></progress>
+                    <p id="speed">0%</p>
+                    <p id="progress-text">0%</p>
+                    <p id="time-remaining">Calculating...</p>
+                  </div>
+                `,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    const progress = document.getElementById('progress');
+                    const speed = document.getElementById('speed');
+                    const timeRemaining = document.getElementById('time-remaining');
+                    const progressText = document.getElementById('progress-text');
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', `/share/folder/${id}/bulk`, true);
+                    xhr.responseType = "blob";
+
+                    let startTime = new Date().getTime(), lastTime, totalBytes, loadedBytes, elapsedTime;
+
+                    xhr.addEventListener('progress', (e) => {
+                        console.log(e);
+                        if (e.lengthComputable) {
+                            
+                            const percent = (e.loaded / e.total) * 100;
+                            progress.value = percent;
+                            progressText.textContent = `${percent.toFixed(2)}%`;
+
+                            const currentTime = new Date().getTime();
+                            if (!startTime) {
+                                startTime = lastTime = currentTime;
+                                totalBytes = e.total;
+                                loadedBytes = e.loaded;
+                            }
+                            elapsedTime = currentTime - startTime;
+                            const bytesPerSecond = (e.loaded - loadedBytes) / (elapsedTime / 1000);
+                            loadedBytes = e.loaded;
+
+                            const timeLeft = (totalBytes - e.loaded) / bytesPerSecond;
+                            timeRemaining.textContent = formatTimeRemaining(timeLeft);
+                            speed.textContent = `${(bytesPerSecond / 1024).toFixed(2)} Kb/s`;
+                            lastTime = currentTime;
+                        }else{
+                            timeRemaining.textContent = "";
+                            let mbyts = (e.loaded/1024/1024).toFixed(3);
+                           const currentTime = new Date().getTime();
+                            if (!startTime) {
+                                startTime = lastTime = currentTime;
+                                loadedBytes = e.loaded;
+                            }
+                            elapsedTime = currentTime - startTime;
+                            const bytesPerSecond = (e.loaded - loadedBytes) / (elapsedTime / 1000);
+                            loadedBytes = e.loaded;
+                            speed.textContent = `${(bytesPerSecond / 1024).toFixed(2)} Kb/s`;
+                            progressText.textContent = `${mbyts} Mb loaded.`
+                        }
+                    });
+
+                    xhr.addEventListener('load', () => {
+                        if (xhr.status === 200) {
+                            const blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${foldername.replaceAll(" ", "_")}.zip`; // Specify the filename
+                            a.style.display = 'none';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        }
+                    });
+                    function formatTimeRemaining(seconds) {
+                        const hours = Math.floor(seconds / 3600);
+                        const minutes = Math.floor((seconds % 3600) / 60);
+                        const remainingSeconds = Math.floor(seconds % 60);
+                        return `${hours}h ${minutes}m ${remainingSeconds}s`;
+                    }
+                    xhr.send();
+                },
+            });
+        }
+    }
+                </script>
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-2"></div>
+        </div>
+        <br>
+        <div class="col-lg-12 col-md-6 col-sm-6">
+            <div class="row" id="downdisplay">
+              
+            </div>
+        </div>
+        <br>
+         <div class="row">
+            <div class="col-12">
+                <table id="list" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+         </div>
+      </div>
+      </div>
+    </div>
+    
+            <%
+        if(data.folder.password!=null){
+            %>
+            <script>
+
+    let password=undefined;
+    function getPass() {
+        let password = prompt("enter password..");
+        if (password=="") {
+            getPass();
+        }
+        return password;
+    }
+async function load_files(params) {
+    password = getPass();
+    if (folder_id!=undefined) {
+            folder_id = Number.parseInt(folder_id);
+            try {
+                let filelist = await fetch(`/folder/${folder_id}/content?password=${password}`)
+                if (filelist.status!=200) {
+                    alert(filelist.statusText);
+                   await load_files();
+                }else{
+                let res  = await filelist.json();
+                let i =1;
+                res.forEach((val)=>{
+                    let arr =[];
+                    arr.push(i++);
+                    arr.push(`<span>${val.metadata.name}</span><div class="row d-flex" id="dctrl-${val.id}"></div>`)
+                    arr.push(`<span class="mt-2 badge badge-primary" onclick="view_file('${val.id}','${val.metadata.name}')"><i class="fa-solid fa-eye"></i></span>&nbsp;<span onclick="download_file('${val.id}','${val.metadata.name}')" class="mt-2 badge badge-success"><i class="fa-solid fa-download"></i></span>`);
+                    table.row.add(arr).draw(); 
+                });
+                return;
+            }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+ }
+ async function view_file(id) {
+        id = Number.parseInt(id);
+        if (!isNaN(id)) {
+            window.location.href =`/folder/${Number.parseInt(folder_id)}/file/${id}/content?type=thumb&password=${password}`;
+        }
+ }
+ async function download_file(fileid,fname) {
+        fileid = Number.parseInt(fileid);
+        if (!isNaN(fileid)) {
+            let controlsx = document.querySelector(`#dctrl-${fileid}`);
+            controlsx.innerHTML = ` <progress id="downloadProgress-${fileid}"class="col-lg-7 col-md-6 col-sm-6 mx-2" value="0" max="100"></progress>
+            <span id="progressText-${fileid}" class="col-lg-2 col-md-2 col-sm-2 mx-2">0%</span>
+            <span id="downloadSpeed-${fileid}" class="col-lg-2 col-md-2 mx-2">0 KB/s</span>
+            <span id="remainingTime-${fileid}" class="col-lg-2 col-md-2 mx-2">Calculating...</span>`;
+
+            const downloadProgress = document.getElementById(`downloadProgress-${fileid}`);
+            const progressText = document.getElementById(`progressText-${fileid}`);
+            const downloadSpeed = document.getElementById(`downloadSpeed-${fileid}`);
+            const remainingTime = document.getElementById(`remainingTime-${fileid}`);
+
+            const start = Date.now();
+
+            // fetch(`/file/164/content?type=full`)
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/folder/${Number.parseInt(folder_id)}/file/${fileid}/content?password=${password}&type=full`, true); // Replace 'sample.txt' with the actual file URL
+            xhr.responseType = 'blob';
+            xhr.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentage = (event.loaded / event.total) * 100;
+                    downloadProgress.value = percentage;
+                    progressText.textContent = `${percentage.toFixed(2)}%`;
+
+                    const currentTime = new Date().getTime();
+                    const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                    const downloadRate = (event.loaded / elapsedTime);
+                    downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+
+                    const remainingBytes = event.total - event.loaded;
+                    const remainingTimeInSeconds = remainingBytes / downloadRate;
+                    const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                    const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                    remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+                }
+            });
+            const startTime = new Date().getTime();
+            xhr.onerror = function () {
+
+            }
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.status!=200) {
+                    let msg  = "";
+                        if (xhr.status==401) {
+                            msg = 'unauthorized';
+                        }
+                        if (xhr.status==400) {
+                           msg = 'bad request'; 
+                        }
+                        controls.innerHTML=msg;
+                    }
+                if (xhr.readyState === 4 && xhr.status === 200) {
+
+                    const blob = xhr.response;
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.download = fname; // Specify the desired filename
+                    // Simulate a click on the download link to trigger the download
+                    downloadLink.style.display = 'none'; // Hide the link
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.onclick = function () {
+                        downloadLink.remove();
+                    }
+                    controls.innerHTML = 'downloaded';
+                }
+            };
+        }
+ }
+         </script>
+            <%
+        }
+        else{
+            %>
+            <script>
+            async function load_files(params) {
+    password = null;
+    if (folder_id!=undefined) {
+            folder_id = Number.parseInt(folder_id);
+            try {
+                let filelist = await fetch(`/folder/${folder_id}/content?password=${password}`)
+                if (filelist.status!=200) {
+                    alert(filelist.statusText);
+                //    await load_files();
+                }else{
+                let res  = await filelist.json();
+                let i =1;
+                res.forEach((val)=>{
+                    let arr =[];
+                    arr.push(i++);
+                    arr.push(`<div class="d-flex align-items-center"><span>${val.metadata.name}</span></div><div class="row d-flex" id="dctrl-${val.id}"></div>`)
+                    arr.push(`<span class="mt-2 badge badge-primary" onclick="view_file('${val.id}')"><i class="fa-solid fa-eye"></i></span>&nbsp;<span onclick="download_file('${val.id}','${val.metadata.name}')" class="mt-2 badge badge-success"><i class="fa-solid fa-download"></i></span>`);
+                    table.row.add(arr).draw(); 
+                });
+                return;
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+ }
+
+ async function view_file(id) {
+        id = Number.parseInt(id);
+        if (!isNaN(id)) {
+            window.location.href =`/folder/${Number.parseInt(folder_id)}/file/${id}/content?type=thumb`;
+        }
+ }
+ async function download_file(fileid,fname) {
+        fileid = Number.parseInt(fileid);
+        if (!isNaN(fileid)) {
+            let controlsx = document.querySelector(`#dctrl-${fileid}`);
+            controlsx.innerHTML = ` <progress id="downloadProgress-${fileid}"class="col-lg-7 col-md-6 col-sm-6 mx-2" value="0" max="100"></progress>
+            <span id="progressText-${fileid}" class="col-lg-2 col-md-2 col-sm-2 mx-2">0%</span>
+            <span id="downloadSpeed-${fileid}" class="col-lg-2 col-md-2 mx-2">0 KB/s</span>
+            <span id="remainingTime-${fileid}" class="col-lg-2 col-md-2 mx-2">Calculating...</span>`;
+
+            const downloadProgress = document.getElementById(`downloadProgress-${fileid}`);
+            const progressText = document.getElementById(`progressText-${fileid}`);
+            const downloadSpeed = document.getElementById(`downloadSpeed-${fileid}`);
+            const remainingTime = document.getElementById(`remainingTime-${fileid}`);
+
+            const start = Date.now();
+
+            // fetch(`/file/164/content?type=full`)
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/folder/${Number.parseInt(folder_id)}/file/${fileid}/content`, true); // Replace 'sample.txt' with the actual file URL
+            xhr.responseType = 'blob';
+            xhr.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentage = (event.loaded / event.total) * 100;
+                    downloadProgress.value = percentage;
+                    progressText.textContent = `${percentage.toFixed(2)}%`;
+
+                    const currentTime = new Date().getTime();
+                    const elapsedTime = (currentTime - startTime) / 1000; // seconds
+                    const downloadRate = (event.loaded / elapsedTime);
+                    downloadSpeed.textContent = `${(downloadRate / 1024).toFixed(2)} KB/s`;
+
+                    const remainingBytes = event.total - event.loaded;
+                    const remainingTimeInSeconds = remainingBytes / downloadRate;
+                    const remainingMinutes = Math.floor(remainingTimeInSeconds / 60);
+                    const remainingSeconds = Math.floor(remainingTimeInSeconds % 60);
+                    remainingTime.textContent = `${remainingMinutes} min ${remainingSeconds} sec`;
+                }
+            });
+            const startTime = new Date().getTime();
+            xhr.onerror = function () {
+
+            }
+            xhr.send();
+            xhr.onreadystatechange = function () {
+                if (xhr.status!=200) {
+                    let msg  = "";
+                        if (xhr.status==401) {
+                            msg = 'unauthorized';
+                        }
+                        if (xhr.status==400) {
+                           msg = 'bad request'; 
+                        }
+                        controls.innerHTML=msg;
+                    }
+                if (xhr.readyState === 4 && xhr.status === 200) {
+
+                    const blob = xhr.response;
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.download = fname; // Specify the desired filename
+                    // Simulate a click on the download link to trigger the download
+                    downloadLink.style.display = 'none'; // Hide the link
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.onclick = function () {
+                        downloadLink.remove();
+                    }
+                    controls.innerHTML = 'downloaded';
+                }
+            };
+        }
+ }
+         </script>
+            <% } %>
+  
+    <%} else {
+        timeDifference *= -1;
+        %>
+        <div class="countdown m" style="margin-top: 15vh;">
+            <div class="time" id="timer">00:00:00</div>
+          </div>
+          <script>
+            
+            var millsec  =  "<%-timeDifference%>";
+            let timeLeft = Number.parseInt(millsec);
+            console.log(typeof millsec,millsec);
+            const timer = setInterval(() => {
+      if (timeLeft > 0) {
+        let days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        let hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+      document.getElementById("timer").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+    // document.getElementById("timer").innerHTML = timeLeft;
+    } else {
+        clearInterval(timer);
+        window.location.href = window.location.href;
+      }
+      timeLeft -= 1000;
+    }, 1000);
+           </script>
+       
+       <%  }  %>
+
+    <script>
+         window.onload=async()=>{await load_files()};
+    </script>
+
+    <!-- Wrapper End-->
+    <footer class="iq-footer">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-6">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item"><a href="privacy-policy.html">Privacy Policy</a></li>
+                        <li class="list-inline-item"><a href="terms-of-service.html">Terms of Use</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-6 text-right">
+                    <span class="mr-1"><script>document.write(new Date().getFullYear())</script>©</span> <a href="/" class=""><%=data.name+"("+data.version+")"%></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Backend Bundle JavaScript -->
+    <script src="/assets/js/backend-bundle.min.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script src="/assets/js/customizer.js" defer></script>
+
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+    
+    <!-- app JavaScript -->
+    <script src="/assets/js/app.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.dataTables.min.js" integrity="sha512-fQmyZE5e3plaa6ADOXBM17WshoZzDIvo7sR4GC1VsmSKqm13Ed8cO2kPwFPAOoeF0RcdhuQQlPq46X/HnPmllg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+     -->
+  
+  </body>
+
+</html>

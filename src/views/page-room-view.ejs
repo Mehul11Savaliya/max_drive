@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  
+<!-- Live share page -->
+<head>
+    <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title>MaxDrivse | room#<%=data.room.id%> | <%=data.room.name%></title>
+      
+   <!-- Favicon -->
+   <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+       
+   <link rel="stylesheet" href="/assets/css/backend-plugin.min.css">
+   <link rel="stylesheet" href="/assets/css/backende209.css?v=1.0.0">
+
+    <!-- new Vendors -->
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+     <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
+     <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
+     <script src="/assets/vendor/socketio/socket.io.min.js"></script>
+     <!-- new Vendors -->
+    </head>
+  <body class=" color-light ">
+    <!-- loader Start -->
+    <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+    <!-- loader END -->
+
+    <!-- nav scriot -->
+    <script>
+        var room_view_page  = true;
+        var user = "<%-data.email-%>";
+        var roomviewid = "<%-data.room.id-%>";
+    </script>
+    <!-- nav scriot -->
+
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+      
+        <%-include('components/sidebar.ejs',{}) -%>
+            <div class="iq-top-navbar">
+                <%-include('components/header.ejs',{}) -%>
+      </div>
+      <div class="content-page">
+      <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-8 col-md-6 col-sm-6">
+                <button class="btn btn-success" onclick="">start screenshare</button>
+                <button class="btn btn-success" onclick="">start video</button>
+                <button class="btn btn-success" onclick="">start audio</button>
+            
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-4">
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8 col-md-6 col-sm-6">
+
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="profile-details mt-4 pt-4 border-top" style="max-height: 40vh;overflow-y: scroll;" id="joined_user">
+               
+            </div>
+        </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    <!-- Wrapper End-->
+    <%-include('components/footer.ejs',{}) -%>
+    <!-- Backend Bundle JavaScript -->
+    <script src="/assets/js/backend-bundle.min.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script src="/assets/js/customizer.js" defer></script>
+    
+   
+    <!-- app JavaScript -->
+    <script src="/assets/js/app.js" defer></script>
+    <script src="/assets/js/doc-viewer.js" defer></script>
+  </body>
+
+<!-- page live share -->
+</html>

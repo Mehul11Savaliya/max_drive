@@ -17,8 +17,8 @@
                 </div>
                 <ul class="dropdown-menu">
                     <li><div onclick="createFolder()" class="item"><i class="fa-solid fa-folder-plus"></i>New Folder</div></li>
-                    <li><div class="item"><i class="fa-solid fa-arrow-up-from-bracket"></i>Upload Files</div></li>
-                    <li><div class="item"><i class="fa-solid fa-up-long"></i>Upload Folders</div></li>
+                    <li><div onclick="upload_file()" class="item"><i class="fa-solid fa-arrow-up-from-bracket"></i>Upload Files</div></li>
+                    <li><div onclick="upload_folder()" class="item"><i class="fa-solid fa-up-long"></i>Upload Folders</div></li>
                 </ul>
             </div>
         </div>
@@ -36,54 +36,52 @@
                         <i class="fa-solid fa-hard-drive"></i><span>File Manager</span>
                     </a>
                     <ul id="mydrive" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                            <li class=" ">
-                                    <a href="page-alexa.html">
-                                        <i class="lab la-blogger-b"></i><span>Alexa Workshop</span>
-                                    </a>
-                            </li>
-                            <li class=" ">
-                                    <a href="page-android.html">
-                                        <i class="las la-share-alt"></i><span>Android</span>
-                                    </a>
-                            </li>
-                            <li class=" ">
-                                    <a href="page-brightspot.html">
-                                        <i class="las la-icons"></i><span>Brightspot</span>
-                                    </a>
-                            </li>
-                            <li class=" ">
-                                    <a href="page-ionic.html">
-                                        <i class="las la-icons"></i><span>Ionic Chat App</span>
-                                    </a>
-                            </li>
                     </ul>
                  </li>
+               
+                 <%if(data.Auth!==undefined&&data.Auth.role==="admin"){%>
                  <li class=" ">
-                        <a href="page-files.html" class="">
+                    <a href="#admintask" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                        <i class="fa-solid fa-list"></i><span>Admin Action</span>
+                    </a>
+                    <ul id="admintask" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                        <li>
+                        <a href="/admin/userlist">
+                            <i class="fa-solid fa-list-check"></i><span>User list</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/analytics">
+                            <i class="fa-solid fa-circle-info"></i><span>Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/bugs">
+                            <i class="fa-solid fa-bug"></i><span>Bugs Report</span>
+                        </a>
+                    </li>
+                    </ul>
+                 </li>
+                 <%}%>
+                 <li class=" ">
+                        <a href="/user/files" class="">
                             <i class="fa-solid fa-file"></i><span>Files</span>
                         </a>
                     <ul id="page-files" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                     </ul>
                  </li>
                  <li class=" ">
-                        <a href="page-folders.html" class="">
+                        <a href="/user/recent" class="">
                             <i class="fa-solid fa-stopwatch"></i><span>Recent</span>
                         </a>
                     <ul id="page-folders" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                     </ul>
                  </li>
                  <li class=" ">
-                        <a href="page-favourite.html" class="">
+                        <a href="/user/favorite" class="">
                             <i class="fa-solid fa-star"></i><span>Favourite</span>
                         </a>
                     <ul id="page-fevourite" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                    </ul>
-                 </li>
-                 <li class=" ">
-                        <a href="page-delete.html" class="">
-                            <i class="fa-solid fa-trash-can"></i></i><span>Trash</span>
-                        </a>
-                    <ul id="page-delete" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                     </ul>
                  </li>
                  <li class=" ">
@@ -91,122 +89,21 @@
                         <i class="fa-regular fa-file"></i><span>other page</span>
                     </a>
                     <ul id="otherpage" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                            <!-- <li class=" ">
-                                <a href="#user" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                    <i class="las la-user-cog"></i><span>User Details</span>
-                                    <i class="las la-angle-right iq-arrow-right arrow-active"></i>
-                                    <i class="las la-angle-down iq-arrow-right arrow-hover"></i>
-                                </a>
-                                <ul id="user" class="iq-submenu collapse" data-parent="#otherpage">
-                                        <li class=" ">
-                                            <a href="https://templates.iqonic.design/cloudbox/html/app/user-profile.html">
-                                                <i class="las la-id-card"></i><span>User Profile</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="https://templates.iqonic.design/cloudbox/html/app/user-add.html">
-                                                <i class="las la-user-plus"></i><span>User Add</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="https://templates.iqonic.design/cloudbox/html/app/user-list.html">
-                                                <i class="las la-list-alt"></i><span>User List</span>
-                                            </a>
-                                        </li>
-                                </ul>
-                            </li> -->
                             <li class=" ">
                                  <a href="/explore">
                                     <i class="fa-solid fa-signal"></i><span>Explore</span>
                                     </a>
                             </li>
                             <li class=" ">
-                                <a href="#">
+                                <a href="/rooms">
                                     <i class="fa-solid fa-door-open"></i><span>Rooms</span>
                                    </a>
                            </li>
-                            <li class=" ">
-                                <a href="#auth" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                    <i class="las la-torah iq-arrow-left"></i><span>Authentication</span>
-                                    <i class="las la-angle-right iq-arrow-right arrow-active"></i>
-                                    <i class="las la-angle-down iq-arrow-right arrow-hover"></i>
-                                </a>
-                                <ul id="auth" class="iq-submenu collapse" data-parent="#otherpage">
-                                        <li class=" ">
-                                            <a href="auth-sign-in.html">
-                                                <i class="las la-sign-in-alt"></i><span>Login</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="auth-sign-up.html">
-                                                <i class="las la-registered"></i><span>Register</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="auth-recoverpw.html">
-                                                <i class="las la-unlock-alt"></i><span>Recover Password</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="auth-confirm-mail.html">
-                                                <i class="las la-envelope-square"></i><span>Confirm Mail</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="auth-lock-screen.html">
-                                                <i class="las la-lock"></i><span>Lock Screen</span>
-                                            </a>
-                                        </li>
-                                </ul>
-                            </li>
-                            <li class=" ">
-                                <a href="#pricing" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                    <i class="las la-coins"></i><span>Pricing</span>
-                                    <i class="las la-angle-right iq-arrow-right arrow-active"></i>
-                                    <i class="las la-angle-down iq-arrow-right arrow-hover"></i>
-                                </a>
-                                <ul id="pricing" class="iq-submenu collapse" data-parent="#otherpage">
-                                        <li class=" ">
-                                            <a href="pricing.html">
-                                                <i class="las la-weight"></i><span>Pricing 1</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="pricing-2.html">
-                                                <i class="las la-dna"></i><span>Pricing 2</span>
-                                            </a>
-                                        </li>
-                                </ul>
-                            </li>
-                            <li class=" ">
-                                <a href="#pages-error" class="collapsed" data-toggle="collapse" aria-expanded="false">
-                                    <i class="las la-exclamation-triangle"></i><span>Error</span>
-                                    <i class="las la-angle-right iq-arrow-right arrow-active"></i>
-                                    <i class="las la-angle-down iq-arrow-right arrow-hover"></i>
-                                </a>
-                                <ul id="pages-error" class="iq-submenu collapse" data-parent="#otherpage">
-                                        <li class=" ">
-                                            <a href="pages-error.html">
-                                                <i class="las la-bomb"></i><span>Error 404</span>
-                                            </a>
-                                        </li>
-                                        <li class=" ">
-                                            <a href="pages-error-500.html">
-                                                <i class="las la-exclamation-circle"></i><span>Error 500</span>
-                                            </a>
-                                        </li>
-                                </ul>
-                            </li>
-                            <li class=" ">
-                                    <a href="pages-blank-page.html">
-                                        <i class="las la-pager"></i><span>Blank Page</span>
-                                    </a>
-                            </li>
-                            <li class=" ">
-                                    <a href="pages-maintenance.html">
-                                        <i class="las la-cubes"></i><span>Maintenance</span>
-                                    </a>
-                            </li>
+                           <li class=" ">
+                            <a href="/bugs">
+                                <i class="fa-solid fa-bug"></i><span>Report BUG</span>
+                               </a>
+                       </li>
                     </ul>
                  </li>
             </ul>

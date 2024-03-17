@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  
+<!-- admin-analytics-page-->
+<head>
+    <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <title>MaxDrive | Analytics</title>
+      
+   <!-- Favicon -->
+   <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+       
+   <link rel="stylesheet" href="/assets/css/backend-plugin.min.css">
+   <link rel="stylesheet" href="/assets/css/backende209.css?v=1.0.0">
+
+    <!-- new Vendors -->
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/assets/vendor/fontawesome/css/solid.css">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap-grid.min.css">
+     <script src="/assets/vendor/bootstrap/bootstrap.min.js"></script>
+     <script src="/assets/vendor/socketio/socket.io.min.js"></script>
+
+     <script  src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+     <!-- new Vendors -->
+    </head>
+  <body class=" color-light ">
+    <!-- loader Start -->
+    <div id="loading">
+          <div id="loading-center">
+          </div>
+    </div>
+    <!-- loader END -->
+
+    <!-- nav scriot -->
+    <script>
+        var admin_analytics_page  = true;
+    </script>
+    <!-- nav scriot -->
+
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+      
+        <%-include('components/sidebar.ejs',{}) -%>
+            <div class="iq-top-navbar">
+                <%-include('components/header.ejs',{}) -%>
+      </div>
+      <div class="content-page">
+      <div class="container-fluid">
+         <div class="row">
+            <div id="pagehits"></div>
+         </div>
+         <br>
+          <div class="row">
+            <div class="col-6 col-xl-3" style="border: 2px solid black;border-radius: 5px;">
+              <a class="block block-rounded block-link-shadow text-end" >
+                <div class="block-content block-content-full d-sm-flex justify-content-between align-items-center">
+                  <div class="d-none d-sm-block">
+                    <i class="fa-solid fa-database fa-2x"></i>
+                  </div>
+                  <div>
+                    <div class="fs-3 fw-semibold"><%=((data.storage_stats.used)/1024/1024/1024).toFixed(2)%></div>
+                    <div class="fs-sm fw-semibold text-uppercase text-muted">GB</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="col-6 col-xl-3" style="border: 2px solid black;border-radius: 5px;">
+              <a class="block block-rounded block-link-shadow text-end" href="javascript:void(0)">
+                <div class="block-content block-content-full d-sm-flex justify-content-between align-items-center">
+                  <div class="d-none d-sm-block">
+                    <i class="fa fa-wallet fa-2x opacity-25"></i>
+                  </div>
+                  <div>
+                    <div class="fs-3 fw-semibold">dummy</div>
+                    <div class="fs-sm fw-semibold text-uppercase text-muted">Earnings</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="col-6 col-xl-3" style="border: 2px solid black;border-radius: 5px;">
+              <a class="block block-rounded block-link-shadow text-end" href="javascript:void(0)">
+                <div class="block-content block-content-full d-sm-flex justify-content-between align-items-center">
+                  <div class="d-none d-sm-block">
+                    <i class="fa fa-envelope-open fa-2x opacity-25"></i>
+                  </div>
+                  <div>
+                    <div class="fs-3 fw-semibold">dummy</div>
+                    <div class="fs-sm fw-semibold text-uppercase text-muted">Messages</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="col-6 col-xl-3" style="border: 2px solid black;border-radius: 5px;">
+              <a class="block block-rounded block-link-shadow text-end" href="javascript:void(0)">
+                <div class="block-content block-content-full d-sm-flex justify-content-between align-items-center">
+                  <div class="d-none d-sm-block">
+                    <i class="fa fa-users fa-2x opacity-25"></i>
+                  </div>
+                  <div>
+                    <div class="fs-3 fw-semibold">dummy</div>
+                    <div class="fs-sm fw-semibold text-uppercase text-muted">Online</div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <br>
+          <div class="row">
+            <h3>Ip to location map</h3>
+            <div id="map" style="height: 400px;"></div>
+            </div>
+          <!-- JavaScript -->
+
+
+         </div>
+      </div>
+      </div>
+
+     <script>
+        var page_hits = '<%-JSON.stringify(data.page_hits)-%>';
+        var storage_stats = '<%-JSON.stringify(data.storage_stats)-%>';
+        storage_stats = JSON.parse(storage_stats);
+
+        page_hits = JSON.parse(page_hits);
+        var mymap;
+  document.addEventListener('DOMContentLoaded', function () {
+     mymap = L.map('map').setView([51.505, -0.09], 1);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mymap);
+
+    for(let locs of page_hits.locations) {
+          L.marker([locs[0], locs[1]]).addTo(mymap)
+              .bindPopup('<br>Latitude: ' + locs[0] + '<br>Longitude: ' + locs[1])
+              .openPopup();
+          }
+  });
+        
+        let pagehittmplt = {
+        home: [],
+        signin: [],
+        signup: [],
+        folder: [],
+        file: [],
+        dashboard: [],
+        userlist: [],
+        analytics: [],
+        recent: [],
+        favorite: [],
+        explore: [],
+        bigswall: [],
+        rooms: [],
+        liveshare: [],
+        others: []
+    }
+  
+        for (let index = 1; index <= 12; index++) {
+            const element = page_hits[index];
+          
+            if (element==undefined) {
+                for (const cat in pagehittmplt) {
+                    pagehittmplt[cat].push(0);
+                }
+            }
+            else{
+                for (const cat in pagehittmplt) {
+                    pagehittmplt[cat].push(element[cat]);
+                }
+            }
+
+        }
+        let series = [];
+       for(let item in pagehittmplt) {
+         series.push({
+            name : item,
+            data : pagehittmplt[item]
+         })
+       }
+       
+  var options = {
+          series:series,
+          chart: {
+          height: 350,
+          type: 'line',
+          zoom: {
+            enabled: true
+          }
+        },
+        dataLabels: {
+          enabled: true
+        },
+        stroke: {
+          curve: 'smooth'
+        },
+        title: {
+          text: 'Page Hits By Month',
+          align: 'left'
+        },
+        grid: {
+          row: {
+            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+            opacity: 0.5
+          },
+        },
+        xaxis: {
+          categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep','Oct','Nov','Dec'],
+        }
+        };
+//  window.onload = ()=>{
+    var chart = new ApexCharts(document.querySelector("#pagehits"), options);
+        chart.render();
+//  }
+      
+      </script>
+    </div>
+    <!-- Wrapper End-->
+    <%-include('components/footer.ejs',{}) -%>
+    <!-- Backend Bundle JavaScript -->
+    <script src="/assets/js/backend-bundle.min.js"></script>
+    
+    <!-- Chart Custom JavaScript -->
+    <script src="/assets/vendor/jquery/jquery-3.7.1.min.js"></script>
+    
+    <script src="/assets/js/customizer.js" defer></script>
+   
+   
+    <!-- app JavaScript -->
+    <script src="/assets/js/app.js" defer></script>
+    <script src="/assets/js/doc-viewer.js" defer></script>
+  </body>
+
+<!-- admin-analytics-page -->
+</html>
