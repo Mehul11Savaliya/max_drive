@@ -44,6 +44,7 @@ const update=async(id,obj)=>{
 }
 
 
+
 module.exports={
     sync,
     create,

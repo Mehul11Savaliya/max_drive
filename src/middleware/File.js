@@ -86,10 +86,6 @@ const is_accessible=(req,res,next)=>{
          return  res.status(500).send();
         }
         if (share_settings.is_public) {
-            //emmiting twice for owner
-            if (user!=null&&file.createdBy==user.email) {
-                return  next();
-                 }
             shareemmiter.emit("share",{
                 fileid : file.id,
                 filename:file.metadata.name,
