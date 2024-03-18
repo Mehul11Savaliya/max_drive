@@ -2894,9 +2894,23 @@ const load_bugs=async()=>{
     }
 }
 
-// const change_bug_status=(id)=>{
-   
-// }
+
+//user profile related function
+try {
+    user_profile_edit = user_profile_edit
+} catch (error) {
+    user_profile_edit = false;
+}
+
+function personal_info_update(event) {
+    event.preventDefault()
+    let formdata = new FormData(event.target);
+    let obj = {};
+    formdata.forEach((val,key)=>{
+        obj[key]=val;
+    })
+    console.log(obj);
+}
 
 window.addEventListener("beforeunload",(ev)=>{
     roomviewsocket.emit("leave-room",{

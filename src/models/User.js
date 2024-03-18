@@ -6,6 +6,7 @@ const foldermdl = require('./Folder');
 const filemdl = require("./File");
 const filemetadatamdl = require('./FileMetadata');
 const roommdl = require("./Room");
+const Profile  = require("./Profile");
 
 const User  = sq.define('user',{
     id:{
@@ -32,9 +33,6 @@ const User  = sq.define('user',{
     },
     phone:{
         type : DataTypes.STRING
-    },
-    profile:{
-        type : DataTypes.STRING
     }
 },{
     freezeTableName:true
@@ -46,5 +44,6 @@ User.hasMany(filemdl,{as :"Files",sourceKey:"email",foreignKey:"createdBy"});
 User.hasMany(filemetadatamdl,{as:"fkey_user_filemetada_ctby",sourceKey :"email",foreignKey:"createdBy"});
 User.hasMany(filemetadatamdl,{as:"fkey_user_filemetada_upby",sourceKey :"email",foreignKey:"updatedBy"});
 User.hasOne(roommdl,{as:"fkey_user_room",sourceKey:"email",foreignKey:"createdBy"});
+User.hasOne(Profile,{as:"fkey_user_profile",sourceKey:"email",foreignKey:"user"});
 
 module.exports=User
