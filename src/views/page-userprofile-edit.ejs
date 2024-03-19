@@ -89,7 +89,7 @@
                                  </div>
                               </div>
                               <div class="card-body">
-                                 <form id="idpersonal-information" onsubmit="personal_info_update(event)">
+                                 <form id="idpersonal-information"  enctype="multipart/form-data">
                                     <div class="form-group row align-items-center">
                                        <div class="col-md-12">
                                           <div class="profile-img-edit">
@@ -106,19 +106,19 @@
                                     <div class=" row align-items-center">
                                        <div class="form-group col-sm-6">
                                           <label for="fname">First Name:</label>
-                                          <input type="text" class="form-control" name="first_name" id="fname" value="Barry">
+                                          <input type="text" class="form-control" name="first_name" id="fname" value="Barry" required>
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label for="lname">Last Name:</label>
-                                          <input type="text" class="form-control" name="last_name" id="lname" value="Tech">
+                                          <input type="text" class="form-control" name="last_name" id="lname" value="Tech" required>
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label for="uname">User Name:</label>
-                                          <input type="text" class="form-control" name="username" id="uname" value="Barry@01">
+                                          <input type="text" class="form-control" name="username" id="uname" value="barry.tech" required>
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label for="cname">City:</label>
-                                          <input type="text" class="form-control" name="city" id="cname" value="Atlanta">
+                                          <input type="text" class="form-control" name="city" id="cname" value="Atlanta" required>
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label class="d-block">Gender:</label>
@@ -133,23 +133,16 @@
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label for="dob">Date Of Birth:</label>
-                                          <input  class="form-control" name="dob" id="dob" value="1984-01-24">
+                                          <input  class="form-control" name="dob" id="dob" type="date" required>
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label>Age:</label>
-                                          <select class="form-control" name="age" id="exampleFormControlSelect2">
-                                             <option>12-18</option>
-                                             <option>19-32</option>
-                                             <option selected="">33-45</option>
-                                             <option>46-62</option>
-                                             <option>63 > </option>
-                                          </select>
+                                          <input  class="form-control" type="number" max="200" min="5" name="age" >
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label>Country:</label>
-                                          <select class="form-control" name="country" id="exampleFormControlSelect3">
+                                          <select class="form-control" name="country"  id="exampleFormControlSelect3" required>
                                              <option>Caneda</option>
-                                             <option>Noida</option>
                                              <option selected="">USA</option>
                                              <option>India</option>
                                              <option>Africa</option>
@@ -157,7 +150,7 @@
                                        </div>
                                        <div class="form-group col-sm-6">
                                           <label>State:</label>
-                                          <select class="form-control" name="city" id="exampleFormControlSelect4">
+                                          <select class="form-control" name="city" id="exampleFormControlSelect4" required>
                                              <option>California</option>
                                              <option>Florida</option>
                                              <option selected="">Georgia</option>
@@ -167,14 +160,12 @@
                                        </div>
                                        <div class="form-group col-sm-12">
                                           <label>Address:</label>
-                                          <textarea class="form-control" name="address" rows="5" style="line-height: 22px;">
-                                 
-                                          </textarea>
+                                          <textarea class="form-control" name="address" rows="5" style="line-height: 22px;" required></textarea>
                                        </div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary mr-2">Submit</button>
                                     <button type="reset" class="btn iq-bg-danger">Cancel</button>
                                  </form>
+                                 <button onclick="personal_info_update(event)" class="btn btn-primary mr-2">Submit</button>
                               </div>
                            </div>
                         </div>

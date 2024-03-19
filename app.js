@@ -65,6 +65,11 @@ app.use(async(req,res,next)=>{
   }
   next();
 })
+app.use(fileUpload({
+  useTempFiles : true,
+  tempFileDir : './src/tmp'
+}));
+
 // app.use(express.json());
 app.use(bodyparser.json());
 app.use(express.urlencoded({ extended: false }));
@@ -76,14 +81,6 @@ app.use("/roomsthumb",express.static(path.join(__dirname,"./src/uploads/roomst")
 app.use("/src/main.js",express.static(path.join(__dirname,"./src/public/assets/js/main.js")));
 app.use('/assets',express.static(path.join(__dirname,'./src/public/asset/')));
 app.use("/uploads",express.static(path.join(__dirname,"./src/uploads/")));
-app.use("/folder",fileUpload({
-  useTempFiles : true,
-  tempFileDir : './src/tmp'
-}));
-app.use("/file",fileUpload({
-  useTempFiles : true,
-  tempFileDir : './src/tmp'
-}));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

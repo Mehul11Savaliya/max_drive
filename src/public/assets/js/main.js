@@ -2902,14 +2902,22 @@ try {
     user_profile_edit = false;
 }
 
-function personal_info_update(event) {
+async function personal_info_update(event) {
     event.preventDefault()
-    let formdata = new FormData(event.target);
+    let formdata = new FormData(document.getElementById("idpersonal-information"));
     let obj = {};
     formdata.forEach((val,key)=>{
+        if (val==""|| val==" ") {
+            return alert(key+" not valid");
+        }
         obj[key]=val;
     })
     console.log(obj);
+    let res = await fetch("/user/profile",{
+        method:"PATCH",
+        body:formdata
+    });
+    console.log(await res.json());
 }
 
 window.addEventListener("beforeunload",(ev)=>{
